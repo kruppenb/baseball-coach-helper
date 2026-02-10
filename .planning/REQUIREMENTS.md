@@ -84,39 +84,39 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROST-01 | — | Pending |
-| ROST-02 | — | Pending |
-| ROST-03 | — | Pending |
-| ROST-04 | — | Pending |
-| ROST-05 | — | Pending |
-| ROST-06 | — | Pending |
-| LINE-01 | — | Pending |
-| LINE-02 | — | Pending |
-| LINE-03 | — | Pending |
-| LINE-04 | — | Pending |
-| LINE-05 | — | Pending |
-| LINE-06 | — | Pending |
-| LINE-07 | — | Pending |
-| LINE-08 | — | Pending |
-| BATT-01 | — | Pending |
-| BATT-02 | — | Pending |
-| BATT-03 | — | Pending |
-| HIST-01 | — | Pending |
-| HIST-02 | — | Pending |
-| HIST-03 | — | Pending |
-| HIST-04 | — | Pending |
-| HIST-05 | — | Pending |
-| OUTP-01 | — | Pending |
-| OUTP-02 | — | Pending |
-| OUTP-03 | — | Pending |
-| VALD-01 | — | Pending |
-| VALD-02 | — | Pending |
+| ROST-01 | Phase 1 | Pending |
+| ROST-02 | Phase 1 | Pending |
+| ROST-03 | Phase 4 | Pending |
+| ROST-04 | Phase 4 | Pending |
+| ROST-05 | Phase 1 | Pending |
+| ROST-06 | Phase 1 | Pending |
+| LINE-01 | Phase 2 | Pending |
+| LINE-02 | Phase 2 | Pending |
+| LINE-03 | Phase 2 | Pending |
+| LINE-04 | Phase 2 | Pending |
+| LINE-05 | Phase 2 | Pending |
+| LINE-06 | Phase 2 | Pending |
+| LINE-07 | Phase 2 | Pending |
+| LINE-08 | Phase 2 | Pending |
+| BATT-01 | Phase 3 | Pending |
+| BATT-02 | Phase 3 | Pending |
+| BATT-03 | Phase 3 | Pending |
+| HIST-01 | Phase 4 | Pending |
+| HIST-02 | Phase 4 | Pending |
+| HIST-03 | Phase 4 | Pending |
+| HIST-04 | Phase 4 | Pending |
+| HIST-05 | Phase 4 | Pending |
+| OUTP-01 | Phase 4 | Pending |
+| OUTP-02 | Phase 4 | Pending |
+| OUTP-03 | Phase 4 | Pending |
+| VALD-01 | Phase 2 | Pending |
+| VALD-02 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 27 total
-- Mapped to phases: 0
-- Unmapped: 27
+- Mapped to phases: 27
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-09 after initial definition*
+*Last updated: 2026-02-09 after roadmap creation*
