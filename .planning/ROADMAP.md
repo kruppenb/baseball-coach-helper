@@ -65,10 +65,11 @@ Plans:
   1. User can generate a continuous batting order including all rostered players
   2. Batting order is independent of fielding assignments
   3. Batting order generation considers history so kids rotate through lineup positions
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Batting order types and three-band fairness algorithm (TDD)
+- [ ] 03-02-PLAN.md — useBattingOrder hook, UI components, and LineupPage integration
 
 ### Phase 4: History & Output
 **Goal**: Lineups are saved to history and printable on single page
@@ -97,5 +98,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-09 |
 | 2. Lineup Engine | 5/5 | ✓ Complete | 2026-02-10 |
-| 3. Batting Order | 0/TBD | Not started | - |
+| 3. Batting Order | 0/2 | In Progress | - |
 | 4. History & Output | 0/TBD | Not started | - |
