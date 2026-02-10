@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 
 ## Current Position
 
-Phase: 3 of 4 (Batting Order)
-Plan: 1 of 2 complete
-Status: In Progress
-Last activity: 2026-02-10 -- Completed 03-01 (Batting Order Algorithm)
+Phase: 3 of 4 (Batting Order) -- COMPLETE
+Plan: 2 of 2 complete
+Status: Phase Complete
+Last activity: 2026-02-10 -- Completed 03-02 (Batting Order Hook & UI)
 
-Progress: [#####-----] 50%
+Progress: [######----] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 6 min
-- Total execution time: 57 min
+- Total execution time: 59 min
 
 **By Phase:**
 
@@ -29,7 +29,7 @@ Progress: [#####-----] 50%
 |-------|-------|-------|----------|
 | 01-foundation | 3/3 | 9 min | 3 min |
 | 02-lineup-engine | 5/5 | 46 min | 9 min |
-| 03-batting-order | 1/2 | 2 min | 2 min |
+| 03-batting-order | 2/2 | 4 min | 2 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -40,6 +40,7 @@ Progress: [#####-----] 50%
 - 02-04: 2 min (2 tasks, 5 files)
 - 02-05: 25 min (3 tasks, 6 files)
 - 03-01: 2 min (2 tasks, 3 files)
+- 03-02: 2 min (2 tasks, 6 files)
 
 *Updated after each plan completion*
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - Fisher-Yates shuffle duplicated in batting-order.ts (not shared utility) to keep modules independent
 - Fairness score = top - bottom band counts (ascending sort pushes top-heavy players down)
 - PlayerBandCounts interface kept module-private (not exported from types)
+- BattingOrderSection renders independently of fielding lineup state (BATT-02)
+- Confirm appends new history entry each time -- coach controls when to confirm
+- BattingOrderList is pure presentational (no hooks) -- receives order and players as props
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 03-01 execution)
-Stopped at: Completed 03-01-PLAN.md (Batting Order Algorithm)
+Last session: 2026-02-10 (plan 03-02 execution)
+Stopped at: Completed 03-02-PLAN.md (Batting Order Hook & UI)
 Resume file: None
