@@ -19,9 +19,9 @@ Progress: [#######---] 70%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 6 min
-- Total execution time: 61 min
+- Total plans completed: 12
+- Average duration: 5 min
+- Total execution time: 63 min
 
 **By Phase:**
 
@@ -30,7 +30,7 @@ Progress: [#######---] 70%
 | 01-foundation | 3/3 | 9 min | 3 min |
 | 02-lineup-engine | 5/5 | 46 min | 9 min |
 | 03-batting-order | 2/2 | 4 min | 2 min |
-| 03.1-ui-fixes | 1/2 | 2 min | 2 min |
+| 03.1-ui-fixes | 2/2 | 4 min | 2 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -43,6 +43,7 @@ Progress: [#######---] 70%
 - 03-01: 2 min (2 tasks, 3 files)
 - 03-02: 2 min (2 tasks, 6 files)
 - 03.1-01: 2 min (2 tasks, 4 files)
+- 03.1-02: 2 min (2 tasks, 3 files)
 
 *Updated after each plan completion*
 
@@ -90,10 +91,12 @@ Recent decisions affecting current work:
 - Removed band badges entirely from batting order display (confusing to coaches per UAT)
 - Per-player bench summary format: "Name (1, 4)" sorted by first bench inning for consistent ordering
 - Lineup option cards vertically stacked (flex-direction: column) instead of horizontal scroll
+- computeFairnessSummary is a module-level pure function (not a hook or useMemo)
+- FairnessSummary is a sibling to LineupGrid inside the same section div, rendered by LineupPage
 
 ### Pending Todos
 
-- Per-player fairness summary on lineup grid: show infield innings count (P/C count as infield) and bench innings per kid so coach can validate fairness at a glance. Target: Phase 3 or 4.
+None.
 
 ### Roadmap Evolution
 
@@ -105,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 03.1-01 execution)
-Stopped at: Completed 03.1-01-PLAN.md (UI Fixes: Band Badges & Vertical Cards)
+Last session: 2026-02-10 (plan 03.1-02 execution)
+Stopped at: Completed 03.1-02-PLAN.md (Fairness Summary)
 Resume file: None
