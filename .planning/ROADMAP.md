@@ -13,7 +13,7 @@ Build a fair, constraint-based lineup generator for Little League coaches in 4 p
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Roster management and configuration UI ✓
-- [ ] **Phase 2: Lineup Engine** - Constraint-based auto-generation with validation
+- [x] **Phase 2: Lineup Engine** - Constraint-based auto-generation with validation ✓
 - [ ] **Phase 3: Batting Order** - Continuous batting rotation with cross-game fairness
 - [ ] **Phase 4: History & Output** - Game tracking and printable dugout card
 
@@ -51,11 +51,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Lineup types and validation system (TDD)
-- [ ] 02-02-PLAN.md — Lineup generation algorithm (TDD)
-- [ ] 02-03-PLAN.md — Pre-assignment and position blocking UI components
-- [ ] 02-04-PLAN.md — useLineup hook, lineup grid, and validation panel
-- [ ] 02-05-PLAN.md — LineupPage container, lineup options, and AppShell wiring
+- [x] 02-01-PLAN.md — Lineup types and validation system (TDD)
+- [x] 02-02-PLAN.md — Lineup generation algorithm (TDD)
+- [x] 02-03-PLAN.md — Pre-assignment and position blocking UI components
+- [x] 02-04-PLAN.md — useLineup hook, lineup grid, and validation panel
+- [x] 02-05-PLAN.md — LineupPage container, lineup options, and AppShell wiring
 
 ### Phase 3: Batting Order
 **Goal**: Continuous batting order rotates fairly across games
@@ -96,6 +96,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-09 |
-| 2. Lineup Engine | 0/5 | Planned | - |
+| 2. Lineup Engine | 5/5 | ✓ Complete | 2026-02-10 |
 | 3. Batting Order | 0/TBD | Not started | - |
 | 4. History & Output | 0/TBD | Not started | - |
