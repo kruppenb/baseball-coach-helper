@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Roster management and configuration UI ✓
 - [x] **Phase 2: Lineup Engine** - Constraint-based auto-generation with validation ✓
-- [ ] **Phase 3: Batting Order** - Continuous batting rotation with cross-game fairness
+- [x] **Phase 3: Batting Order** - Continuous batting rotation with cross-game fairness ✓
 - [ ] **Phase 4: History & Output** - Game tracking and printable dugout card
 
 ## Phase Details
@@ -68,8 +68,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Batting order types and three-band fairness algorithm (TDD)
-- [ ] 03-02-PLAN.md — useBattingOrder hook, UI components, and LineupPage integration
+- [x] 03-01-PLAN.md — Batting order types and three-band fairness algorithm (TDD)
+- [x] 03-02-PLAN.md — useBattingOrder hook, UI components, and LineupPage integration
 
 ### Phase 4: History & Output
 **Goal**: Lineups are saved to history and printable on single page
@@ -98,5 +98,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-09 |
 | 2. Lineup Engine | 5/5 | ✓ Complete | 2026-02-10 |
-| 3. Batting Order | 0/2 | In Progress | - |
+| 3. Batting Order | 2/2 | ✓ Complete | 2026-02-10 |
 | 4. History & Output | 0/TBD | Not started | - |

@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** Phase 3 - Batting Order
+**Current focus:** Phase 4 - History & Output
 
 ## Current Position
 
