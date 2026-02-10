@@ -1,5 +1,7 @@
+import { AppShell } from './components/app-shell/AppShell'
+
 function App() {
-  return <div>App Shell Coming Soon</div>
+  return <AppShell />
 }
 
 export default App
