@@ -10,30 +10,31 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 2 of 4 (Lineup Engine)
-Plan: 1 of 5 complete
+Plan: 2 of 5 complete
 Status: In Progress
-Last activity: 2026-02-10 -- Completed 02-01 (lineup types and validation system)
+Last activity: 2026-02-10 -- Completed 02-03 (pre-assignments and position blocks UI)
 
-Progress: [####░░░░░░] 30%
+Progress: [#####░░░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 4 min
-- Total execution time: 21 min
+- Total plans completed: 5
+- Average duration: 5 min
+- Total execution time: 24 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 3/3 | 9 min | 3 min |
-| 02-lineup-engine | 1/5 | 12 min | 12 min |
+| 02-lineup-engine | 2/5 | 15 min | 8 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
 - 01-03: 3 min (2 tasks, 11 files)
 - 02-01: 12 min (4 tasks, 8 files)
+- 02-03: 3 min (2 tasks, 5 files)
 
 *Updated after each plan completion*
 
@@ -57,6 +58,9 @@ Recent decisions affecting current work:
 - Used 10-player lineup for valid test case (11 players with fixed P/C makes infield minimum mathematically unsatisfiable)
 - Separated vitest.config.ts from vite.config.ts for vitest v4 TypeScript compatibility
 - INFIELD_POSITIONS includes P and C (6 positions total) per plan spec
+- Pure presentational components with no hooks for PreAssignments and PositionBlocks
+- Native <select> for P/C dropdowns (mobile-friendly per research)
+- HTML <details>/<summary> for collapsible position blocks (zero JS state)
 
 ### Pending Todos
 
@@ -68,6 +72,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 02-01 execution)
-Stopped at: Completed 02-01-PLAN.md (lineup types and validation system)
+Last session: 2026-02-10 (plan 02-03 execution)
+Stopped at: Completed 02-03-PLAN.md (pre-assignments and position blocks UI)
 Resume file: None
