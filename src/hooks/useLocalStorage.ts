@@ -27,6 +27,18 @@ export function useLocalStorage<T>(
     }
   });
 
+  // Sync across components using the same key within the same tab
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail.key === key) {
+        setStoredValue(detail.value as T);
+      }
+    };
+    window.addEventListener('local-storage-sync', handler);
+    return () => window.removeEventListener('local-storage-sync', handler);
+  }, [key]);
+
   useEffect(() => {
     if (!storageAvailable) return;
     try {
@@ -39,9 +51,15 @@ export function useLocalStorage<T>(
   const setValue = useCallback((value: T | ((prev: T) => T)) => {
     setStoredValue((prev) => {
       const nextValue = value instanceof Function ? value(prev) : value;
+      // Notify other hook instances using the same key
+      window.dispatchEvent(
+        new CustomEvent('local-storage-sync', {
+          detail: { key, value: nextValue },
+        })
+      );
       return nextValue;
     });
-  }, []);
+  }, [key]);
 
   return [storedValue, setValue];
 }
