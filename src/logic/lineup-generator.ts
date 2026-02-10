@@ -284,6 +284,16 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
     }
   }
 
+  // Helper: find eligible players for a position in a given inning
+  function findEligible(pos: Position, inn: number, used: Set<string>): string[] {
+    return shuffle(playerIds.filter(p => {
+      if (used.has(p)) return false;
+      if (isBlockedFrom(p, pos, positionBlocks)) return false;
+      if (inn > 1 && lineup[inn - 1] && lineup[inn - 1][pos] === p) return false;
+      return true;
+    }));
+  }
+
   // Phase 4: Build lineup inning by inning
   for (let inn = 1; inn <= innings; inn++) {
     lineup[inn] = {} as InningAssignment;
@@ -294,9 +304,12 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
 
     const used = new Set([pitcherByInning[inn], catcherByInning[inn]]);
 
-    // 4b. Fill pre-assigned infield slots (1B, 2B, 3B, SS) for innings 1-4
-    if (inn <= maxInfieldInning) {
-      for (const pos of NON_BATTERY_INFIELD) {
+    // 4b. Fill infield positions (1B, 2B, 3B, SS)
+    for (const pos of NON_BATTERY_INFIELD) {
+      let placed = false;
+
+      // For innings 1-4, try to use pre-assigned infield slots
+      if (inn <= maxInfieldInning) {
         let assignedPlayer = '';
         for (const [pid, slots] of Object.entries(slotAssignments)) {
           if (slots.some(s => s.inn === inn && s.pos === pos)) {
@@ -307,39 +320,13 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
         if (assignedPlayer && !used.has(assignedPlayer)) {
           lineup[inn][pos] = assignedPlayer;
           used.add(assignedPlayer);
-        } else if (assignedPlayer && used.has(assignedPlayer)) {
-          // Player already used (as P/C), need fallback
-          const eligible = shuffle(playerIds.filter(p => {
-            if (used.has(p)) return false;
-            if (isBlockedFrom(p, pos, positionBlocks)) return false;
-            if (inn > 1 && lineup[inn - 1] && lineup[inn - 1][pos] === p) return false;
-            return true;
-          }));
-          if (eligible.length === 0) return null;
-          lineup[inn][pos] = eligible[0];
-          used.add(eligible[0]);
-        } else {
-          // No pre-assignment for this slot, fill from eligible players
-          const eligible = shuffle(playerIds.filter(p => {
-            if (used.has(p)) return false;
-            if (isBlockedFrom(p, pos, positionBlocks)) return false;
-            if (inn > 1 && lineup[inn - 1] && lineup[inn - 1][pos] === p) return false;
-            return true;
-          }));
-          if (eligible.length === 0) return null;
-          lineup[inn][pos] = eligible[0];
-          used.add(eligible[0]);
+          placed = true;
         }
       }
-    } else {
-      // Innings beyond maxInfieldInning: fill infield positions freely
-      for (const pos of NON_BATTERY_INFIELD) {
-        const eligible = shuffle(playerIds.filter(p => {
-          if (used.has(p)) return false;
-          if (isBlockedFrom(p, pos, positionBlocks)) return false;
-          if (inn > 1 && lineup[inn - 1] && lineup[inn - 1][pos] === p) return false;
-          return true;
-        }));
+
+      // Fallback: pick from eligible players
+      if (!placed) {
+        const eligible = findEligible(pos, inn, used);
         if (eligible.length === 0) return null;
         lineup[inn][pos] = eligible[0];
         used.add(eligible[0]);
