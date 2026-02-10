@@ -1,0 +1,78 @@
+.section {
+  padding: var(--space-lg) 0;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-sm);
+}
+
+.helperText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-lg);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-md);
+}
+
+.generateButton {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: var(--min-tap-size);
+  font-family: inherit;
+}
+
+.generateButton:hover {
+  filter: brightness(0.9);
+}
+
+.confirmButton {
+  background: var(--color-success);
+  color: white;
+  border: none;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: var(--min-tap-size);
+  font-family: inherit;
+}
+
+.confirmButton:hover {
+  filter: brightness(0.9);
+}
+
+.clearButton {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  font-family: inherit;
+}
+
+.clearButton:hover {
+  color: var(--color-text);
+}
+
+.confirmedMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-success);
+  font-weight: 600;
+  margin: 0 0 var(--space-md);
+}

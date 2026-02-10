@@ -6,6 +6,7 @@ import { PositionBlocks } from './PositionBlocks';
 import { LineupGrid } from './LineupGrid';
 import { LineupOptions } from './LineupOptions';
 import { ValidationPanel } from './ValidationPanel';
+import { BattingOrderSection } from '../batting-order/BattingOrderSection';
 import styles from './LineupPage.module.css';
 
 export function LineupPage() {
@@ -129,6 +130,10 @@ export function LineupPage() {
           {selectedLineup && (
             <ValidationPanel errors={validationErrors} preErrors={[]} />
           )}
+
+          <div className={styles.section}>
+            <BattingOrderSection />
+          </div>
         </>
       )}
     </div>
