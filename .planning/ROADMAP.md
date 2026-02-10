@@ -48,10 +48,14 @@ Plans:
   6. Generated lineup prevents same position in consecutive innings (except P/C)
   7. User can generate 3-5 valid lineup options and choose one
   8. Validation errors display in plain-language, coach-friendly messages
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md — Lineup types and validation system (TDD)
+- [ ] 02-02-PLAN.md — Lineup generation algorithm (TDD)
+- [ ] 02-03-PLAN.md — Pre-assignment and position blocking UI components
+- [ ] 02-04-PLAN.md — useLineup hook, lineup grid, and validation panel
+- [ ] 02-05-PLAN.md — LineupPage container, lineup options, and AppShell wiring
 
 ### Phase 3: Batting Order
 **Goal**: Continuous batting order rotates fairly across games
@@ -92,6 +96,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-09 |
-| 2. Lineup Engine | 0/TBD | Not started | - |
+| 2. Lineup Engine | 0/5 | Planned | - |
 | 3. Batting Order | 0/TBD | Not started | - |
 | 4. History & Output | 0/TBD | Not started | - |
