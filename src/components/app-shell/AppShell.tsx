@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { TabBar } from './TabBar';
+import { RosterPage } from '../roster/RosterPage';
+import { GameSetupPage } from '../game-setup/GameSetupPage';
 import styles from './AppShell.module.css';
 
 const tabs = [
@@ -25,7 +27,7 @@ export function AppShell() {
             id="panel-roster"
             aria-labelledby="tab-roster"
           >
-            <p>Roster page coming in Plan 02</p>
+            <RosterPage />
           </div>
         )}
         {activeTab === 'game-setup' && (
