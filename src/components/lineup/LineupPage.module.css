@@ -1,0 +1,73 @@
+.page {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+}
+
+.minPlayersMessage {
+  background: var(--color-surface);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+}
+
+.generateSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.generateButton {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: var(--min-tap-size);
+  font-family: inherit;
+}
+
+.generateButton:hover {
+  filter: brightness(0.9);
+}
+
+.generateButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clearButton {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  font-family: inherit;
+}
+
+.clearButton:hover {
+  color: var(--color-text);
+}
+
+.statusMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.section {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-lg);
+}

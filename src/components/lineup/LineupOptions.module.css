@@ -1,0 +1,59 @@
+.options {
+  padding: var(--space-md) 0;
+}
+
+.heading {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-md);
+}
+
+.cardContainer {
+  display: flex;
+  gap: var(--space-md);
+  overflow-x: auto;
+  padding-bottom: var(--space-sm);
+  scroll-snap-type: x mandatory;
+}
+
+.card {
+  flex: 0 0 auto;
+  width: 200px;
+  padding: var(--space-md);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  text-align: left;
+  scroll-snap-align: start;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.card:hover {
+  border-color: var(--color-primary);
+}
+
+.cardSelected {
+  border-color: var(--color-primary);
+  background-color: rgba(13, 110, 253, 0.05);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-sm);
+}
+
+.benchSummary {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
