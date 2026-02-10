@@ -1,0 +1,53 @@
+.addForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.inputRow {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-sm);
+}
+
+.addInput {
+  flex-grow: 1;
+  min-height: var(--min-tap-size);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  color: var(--color-text);
+}
+
+.addInput:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.addButton {
+  min-height: var(--min-tap-size);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--color-primary);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.addButton:hover {
+  opacity: 0.9;
+}
+
+.addButton:active {
+  opacity: 0.8;
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin: var(--space-xs) 0 0 0;
+}
