@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** Phase 4 - History & Output
+**Current focus:** Phase 3.1 - Lineup and batting order UI fixes
 
 ## Current Position
 
-Phase: 3 of 4 (Batting Order) -- COMPLETE
+Phase: 3.1 of 4 (Lineup and Batting Order UI Fixes) -- COMPLETE
 Plan: 2 of 2 complete
 Status: Phase Complete
-Last activity: 2026-02-10 -- Completed 03-02 (Batting Order Hook & UI)
+Last activity: 2026-02-10 -- Completed 03.1-02 (Fairness Summary)
 
-Progress: [######----] 60%
+Progress: [#######---] 70%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 6 min
-- Total execution time: 59 min
+- Total execution time: 61 min
 
 **By Phase:**
 
@@ -30,6 +30,7 @@ Progress: [######----] 60%
 | 01-foundation | 3/3 | 9 min | 3 min |
 | 02-lineup-engine | 5/5 | 46 min | 9 min |
 | 03-batting-order | 2/2 | 4 min | 2 min |
+| 03.1-ui-fixes | 1/2 | 2 min | 2 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -41,6 +42,7 @@ Progress: [######----] 60%
 - 02-05: 25 min (3 tasks, 6 files)
 - 03-01: 2 min (2 tasks, 3 files)
 - 03-02: 2 min (2 tasks, 6 files)
+- 03.1-01: 2 min (2 tasks, 4 files)
 
 *Updated after each plan completion*
 
@@ -85,10 +87,17 @@ Recent decisions affecting current work:
 - BattingOrderSection renders independently of fielding lineup state (BATT-02)
 - Confirm appends new history entry each time -- coach controls when to confirm
 - BattingOrderList is pure presentational (no hooks) -- receives order and players as props
+- Removed band badges entirely from batting order display (confusing to coaches per UAT)
+- Per-player bench summary format: "Name (1, 4)" sorted by first bench inning for consistent ordering
+- Lineup option cards vertically stacked (flex-direction: column) instead of horizontal scroll
 
 ### Pending Todos
 
 - Per-player fairness summary on lineup grid: show infield innings count (P/C count as infield) and bench innings per kid so coach can validate fairness at a glance. Target: Phase 3 or 4.
+
+### Roadmap Evolution
+
+- Phase 3.1 inserted after Phase 3: Lineup and batting order UI fixes (URGENT)
 
 ### Blockers/Concerns
 
@@ -96,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 03-02 execution)
-Stopped at: Completed 03-02-PLAN.md (Batting Order Hook & UI)
+Last session: 2026-02-10 (plan 03.1-01 execution)
+Stopped at: Completed 03.1-01-PLAN.md (UI Fixes: Band Badges & Vertical Cards)
 Resume file: None
