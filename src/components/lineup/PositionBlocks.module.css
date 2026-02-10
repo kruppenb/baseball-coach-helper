@@ -1,0 +1,84 @@
+.positionBlocks {
+  padding: var(--space-lg);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0 0 var(--space-sm);
+}
+
+.hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-lg);
+}
+
+.details {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-md);
+}
+
+.summary {
+  padding: var(--space-md);
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+.summary:hover {
+  background: var(--color-surface-hover);
+}
+
+.playerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.playerRow:last-child {
+  border-bottom: none;
+}
+
+.playerName {
+  min-width: 100px;
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+}
+
+.chips {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.chip {
+  min-width: 36px;
+  min-height: 32px;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.chip:hover {
+  background: var(--color-surface-hover);
+}
+
+.chipBlocked {
+  background: var(--color-blocked-bg);
+  border-color: var(--color-blocked);
+  color: var(--color-blocked);
+  text-decoration: line-through;
+}
+
+.chipBlocked:hover {
+  filter: brightness(0.95);
+}
