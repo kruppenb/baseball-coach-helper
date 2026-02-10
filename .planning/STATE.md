@@ -10,25 +10,25 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 2 of 4 (Lineup Engine)
-Plan: 3 of 5 complete
+Plan: 4 of 5 complete
 Status: In Progress
-Last activity: 2026-02-10 -- Completed 02-02 (lineup generation algorithm TDD)
+Last activity: 2026-02-10 -- Completed 02-04 (useLineup hook & lineup display components)
 
-Progress: [######░░░░] 50%
+Progress: [########░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 5 min
-- Total execution time: 28 min
+- Total plans completed: 7
+- Average duration: 4 min
+- Total execution time: 30 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 3/3 | 9 min | 3 min |
-| 02-lineup-engine | 3/5 | 19 min | 6 min |
+| 02-lineup-engine | 4/5 | 21 min | 5 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -36,6 +36,7 @@ Progress: [######░░░░] 50%
 - 02-01: 12 min (4 tasks, 8 files)
 - 02-02: 4 min (3 tasks, 2 files)
 - 02-03: 3 min (2 tasks, 5 files)
+- 02-04: 2 min (2 tasks, 5 files)
 
 *Updated after each plan completion*
 
@@ -66,6 +67,9 @@ Recent decisions affecting current work:
 - Pure presentational components with no hooks for PreAssignments and PositionBlocks
 - Native <select> for P/C dropdowns (mobile-friendly per research)
 - HTML <details>/<summary> for collapsible position blocks (zero JS state)
+- useLineup uses Record types throughout (not Map/Set) for JSON-serializable localStorage persistence
+- Stale P/C assignments auto-cleaned when innings count changes
+- LineupGrid and ValidationPanel are purely presentational -- no hooks, all data via props
 
 ### Pending Todos
 
@@ -77,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 02-02 execution)
-Stopped at: Completed 02-02-PLAN.md (lineup generation algorithm TDD)
+Last session: 2026-02-10 (plan 02-04 execution)
+Stopped at: Completed 02-04-PLAN.md (useLineup hook & lineup display components)
 Resume file: None
