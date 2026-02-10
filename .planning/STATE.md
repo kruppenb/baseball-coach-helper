@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** Phase 2 - Lineup Engine
+**Current focus:** Phase 3 - Batting Order
 
 ## Current Position
 
-Phase: 2 of 4 (Lineup Engine)
-Plan: 5 of 5 complete
-Status: Complete
-Last activity: 2026-02-10 -- Completed 02-05 (LineupPage integration & dynamic tab activation)
+Phase: 3 of 4 (Batting Order)
+Plan: 1 of 2 complete
+Status: In Progress
+Last activity: 2026-02-10 -- Completed 03-01 (Batting Order Algorithm)
 
-Progress: [##########] 100%
+Progress: [#####-----] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 6 min
-- Total execution time: 55 min
+- Total execution time: 57 min
 
 **By Phase:**
 
@@ -29,6 +29,7 @@ Progress: [##########] 100%
 |-------|-------|-------|----------|
 | 01-foundation | 3/3 | 9 min | 3 min |
 | 02-lineup-engine | 5/5 | 46 min | 9 min |
+| 03-batting-order | 1/2 | 2 min | 2 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -38,6 +39,7 @@ Progress: [##########] 100%
 - 02-03: 3 min (2 tasks, 5 files)
 - 02-04: 2 min (2 tasks, 5 files)
 - 02-05: 25 min (3 tasks, 6 files)
+- 03-01: 2 min (2 tasks, 3 files)
 
 *Updated after each plan completion*
 
@@ -76,6 +78,9 @@ Recent decisions affecting current work:
 - AppShell dynamically enables Lineup tab when presentCount >= 9
 - Auto-redirect from Lineup to Game Setup if player count drops below 9
 - useLocalStorage cross-component sync via custom events for real-time state updates
+- Fisher-Yates shuffle duplicated in batting-order.ts (not shared utility) to keep modules independent
+- Fairness score = top - bottom band counts (ascending sort pushes top-heavy players down)
+- PlayerBandCounts interface kept module-private (not exported from types)
 
 ### Pending Todos
 
@@ -87,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 02-05 execution)
-Stopped at: Completed 02-05-PLAN.md (LineupPage integration & dynamic tab activation) -- Phase 2 Complete
+Last session: 2026-02-10 (plan 03-01 execution)
+Stopped at: Completed 03-01-PLAN.md (Batting Order Algorithm)
 Resume file: None
