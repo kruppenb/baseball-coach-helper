@@ -10,20 +10,30 @@ interface LineupOptionsProps {
   onSelect: (index: number) => void;
 }
 
-function getBenchSummary(lineup: Lineup, innings: number, players: Player[]): string {
-  const lines: string[] = [];
+function getCompactBenchSummary(lineup: Lineup, innings: number, players: Player[]): string {
+  const presentPlayers = players.filter(p => p.isPresent);
+  const benchMap = new Map<string, number[]>();
+
   for (let inn = 1; inn <= innings; inn++) {
     const assignment = lineup[inn];
     if (!assignment) continue;
     const playingIds = new Set(POSITIONS.map((pos: Position) => assignment[pos]));
-    const benchNames = players
-      .filter(p => p.isPresent && !playingIds.has(p.id))
-      .map(p => p.name);
-    if (benchNames.length > 0) {
-      lines.push(`Inn ${inn}: ${benchNames.join(', ')}`);
+    for (const player of presentPlayers) {
+      if (!playingIds.has(player.id)) {
+        const existing = benchMap.get(player.name) ?? [];
+        existing.push(inn);
+        benchMap.set(player.name, existing);
+      }
     }
   }
-  return lines.join('\n');
+
+  if (benchMap.size === 0) {
+    return 'No bench';
+  }
+
+  // Sort by first bench inning number (ascending)
+  const entries = Array.from(benchMap.entries()).sort((a, b) => a[1][0] - b[1][0]);
+  return entries.map(([name, innings]) => `${name} (${innings.join(', ')})`).join(', ');
 }
 
 export function LineupOptions({
@@ -49,7 +59,7 @@ export function LineupOptions({
           const cardClass = isSelected
             ? `${styles.card} ${styles.cardSelected}`
             : styles.card;
-          const benchText = getBenchSummary(lineup, innings, players);
+          const benchText = getCompactBenchSummary(lineup, innings, players);
           return (
             <button
               key={index}
@@ -60,9 +70,7 @@ export function LineupOptions({
             >
               <div className={styles.cardTitle}>Option {index + 1}</div>
               <div className={styles.benchSummary}>
-                {benchText.split('\n').map((line, i) => (
-                  <div key={i}>{line}</div>
-                ))}
+                Bench: {benchText}
               </div>
             </button>
           );
