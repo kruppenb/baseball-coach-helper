@@ -1,0 +1,34 @@
+import type { Player, Lineup, Position, BatteryAssignments, PositionBlocks } from '../types/index.ts';
+
+export type ValidationRule =
+  | 'GRID_COMPLETE'
+  | 'NO_DUPLICATES'
+  | 'PITCHER_MATCH'
+  | 'CATCHER_MATCH'
+  | 'NO_CONSECUTIVE_BENCH'
+  | 'INFIELD_MINIMUM'
+  | 'NO_CONSECUTIVE_POSITION'
+  | 'POSITION_BLOCK';
+
+export interface ValidationError {
+  rule: ValidationRule;
+  message: string;
+  inning?: number;
+  playerId?: string;
+  position?: Position;
+}
+
+export interface GenerateLineupInput {
+  presentPlayers: Player[];
+  innings: number;
+  pitcherAssignments: BatteryAssignments;
+  catcherAssignments: BatteryAssignments;
+  positionBlocks: PositionBlocks;
+}
+
+export interface GenerateLineupResult {
+  lineup: Lineup;
+  valid: boolean;
+  errors: ValidationError[];
+  attemptCount: number;
+}
