@@ -36,7 +36,7 @@ export function AppShell() {
             id="panel-game-setup"
             aria-labelledby="tab-game-setup"
           >
-            <p>Game Setup page coming in Plan 03</p>
+            <GameSetupPage />
           </div>
         )}
       </main>

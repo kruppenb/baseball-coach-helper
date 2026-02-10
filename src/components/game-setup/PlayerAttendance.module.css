@@ -1,0 +1,30 @@
+.attendanceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: var(--min-tap-size);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  font-family: inherit;
+  transition: opacity 0.15s ease;
+}
+
+.attendanceRow.absent {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.attendanceRow:active {
+  background: var(--color-surface-hover);
+}
+
+.status {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
