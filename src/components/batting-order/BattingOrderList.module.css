@@ -26,25 +26,3 @@
   flex: 1;
   font-size: var(--font-size-base);
 }
-
-.bandLabel {
-  font-size: var(--font-size-sm);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-}
-
-.top {
-  background: #d1e7dd;
-  color: #198754;
-}
-
-.middle {
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-}
-
-.bottom {
-  background: #fff3cd;
-  color: #856404;
-}
