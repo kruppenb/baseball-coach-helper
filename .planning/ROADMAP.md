@@ -28,10 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. User can edit existing player names and remove players
   3. User can configure number of innings (5 or 6) for the game
   4. User can mark players as absent before generating lineup
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: TBD
+- [ ] 01-01-PLAN.md — Scaffold project, types, hooks, design tokens, and app shell with tabbed navigation
+- [ ] 01-02-PLAN.md — Roster page with quick-add, inline edit, delete confirmation, and player list
+- [ ] 01-03-PLAN.md — Game Setup page with attendance toggling and inning configuration
 
 ### Phase 2: Lineup Engine
 **Goal**: Auto-generated lineups respect all fairness constraints
@@ -89,7 +91,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/3 | Planned | - |
 | 2. Lineup Engine | 0/TBD | Not started | - |
 | 3. Batting Order | 0/TBD | Not started | - |
 | 4. History & Output | 0/TBD | Not started | - |
