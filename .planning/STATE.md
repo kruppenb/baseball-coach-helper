@@ -10,25 +10,25 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 2 of 4 (Lineup Engine)
-Plan: 4 of 5 complete
-Status: In Progress
-Last activity: 2026-02-10 -- Completed 02-04 (useLineup hook & lineup display components)
+Plan: 5 of 5 complete
+Status: Complete
+Last activity: 2026-02-10 -- Completed 02-05 (LineupPage integration & dynamic tab activation)
 
-Progress: [########░░] 75%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 4 min
-- Total execution time: 30 min
+- Total plans completed: 8
+- Average duration: 6 min
+- Total execution time: 55 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 3/3 | 9 min | 3 min |
-| 02-lineup-engine | 4/5 | 21 min | 5 min |
+| 02-lineup-engine | 5/5 | 46 min | 9 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -37,6 +37,7 @@ Progress: [########░░] 75%
 - 02-02: 4 min (3 tasks, 2 files)
 - 02-03: 3 min (2 tasks, 5 files)
 - 02-04: 2 min (2 tasks, 5 files)
+- 02-05: 25 min (3 tasks, 6 files)
 
 *Updated after each plan completion*
 
@@ -70,10 +71,15 @@ Recent decisions affecting current work:
 - useLineup uses Record types throughout (not Map/Set) for JSON-serializable localStorage persistence
 - Stale P/C assignments auto-cleaned when innings count changes
 - LineupGrid and ValidationPanel are purely presentational -- no hooks, all data via props
+- LineupOptions renders selectable cards showing bench rotation per lineup option
+- LineupPage container owns status message state for generation feedback
+- AppShell dynamically enables Lineup tab when presentCount >= 9
+- Auto-redirect from Lineup to Game Setup if player count drops below 9
+- useLocalStorage cross-component sync via custom events for real-time state updates
 
 ### Pending Todos
 
-None yet.
+- Per-player fairness summary on lineup grid: show infield innings count (P/C count as infield) and bench innings per kid so coach can validate fairness at a glance. Target: Phase 3 or 4.
 
 ### Blockers/Concerns
 
@@ -81,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 02-04 execution)
-Stopped at: Completed 02-04-PLAN.md (useLineup hook & lineup display components)
+Last session: 2026-02-10 (plan 02-05 execution)
+Stopped at: Completed 02-05-PLAN.md (LineupPage integration & dynamic tab activation) -- Phase 2 Complete
 Resume file: None
