@@ -38,3 +38,21 @@ export interface LineupState {
   generatedLineups: Lineup[];
   selectedLineupIndex: number | null;
 }
+
+// --- Batting Order Types ---
+
+/** Batting order band: top, middle, or bottom of the lineup */
+export type BattingBand = 'top' | 'middle' | 'bottom';
+
+/** A single game's batting order record */
+export interface BattingHistoryEntry {
+  id: string;
+  gameDate: string;
+  order: string[];
+}
+
+/** Batting order state stored in localStorage */
+export interface BattingOrderState {
+  currentOrder: string[] | null;
+  isConfirmed: boolean;
+}
