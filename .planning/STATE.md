@@ -10,28 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 1 of 4 (Foundation)
-Plan: 2 of 3 complete
-Status: Executing
-Last activity: 2026-02-09 -- Completed 01-02 (roster management UI components)
+Plan: 3 of 3 complete
+Status: Complete
+Last activity: 2026-02-10 -- Completed 01-03 (game setup UI with attendance and config)
 
-Progress: [##░░░░░░░░] 17%
+Progress: [###░░░░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: 3 min
-- Total execution time: 6 min
+- Total execution time: 9 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 2/3 | 6 min | 3 min |
+| 01-foundation | 3/3 | 9 min | 3 min |
 
 **Recent Trend:**
 - 01-01: 4 min (2 tasks, 21 files)
 - 01-02: 2 min (2 tasks, 9 files)
+- 01-03: 3 min (2 tasks, 11 files)
 
 *Updated after each plan completion*
 
@@ -48,6 +49,10 @@ Recent decisions affecting current work:
 - Single-input inline edit pattern for player names (always an input, styled as text when idle)
 - Two-step delete confirmation inline (no modal dialogs) for player removal
 - RosterPage consumes useRoster() directly (no prop drilling through AppShell)
+- Innings default to 6 per user decision (persistent setting, set once, stays until changed)
+- Entire player row is tappable button with role=switch for attendance toggle
+- Absent players dimmed with opacity 0.45 and line-through text decoration
+- Dev server port changed to 5180 per user request
 
 ### Pending Todos
 
@@ -59,6 +64,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (plan 01-02 execution)
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-02-10 (plan 01-03 execution)
+Stopped at: Completed 01-03-PLAN.md (Phase 1 Foundation Complete)
 Resume file: None
