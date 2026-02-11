@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 
 ## Current Position
 
-Phase: 3.1 of 4 (Lineup and Batting Order UI Fixes) -- COMPLETE
-Plan: 2 of 2 complete
-Status: Phase Complete
-Last activity: 2026-02-10 -- Completed 03.1-02 (Fairness Summary)
+Phase: 4 of 4 (History & Output)
+Plan: 2 of 5 complete
+Status: Executing
+Last activity: 2026-02-10 -- Completed 04-02 (CSV Import/Export)
 
-Progress: [#######---] 70%
+Progress: [########--] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 5 min
-- Total execution time: 63 min
+- Total execution time: 65 min
 
 **By Phase:**
 
@@ -31,6 +31,7 @@ Progress: [#######---] 70%
 | 02-lineup-engine | 5/5 | 46 min | 9 min |
 | 03-batting-order | 2/2 | 4 min | 2 min |
 | 03.1-ui-fixes | 2/2 | 4 min | 2 min |
+| 04-history-output | 2/5 | 2 min | 1 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -44,6 +45,7 @@ Progress: [#######---] 70%
 - 03-02: 2 min (2 tasks, 6 files)
 - 03.1-01: 2 min (2 tasks, 4 files)
 - 03.1-02: 2 min (2 tasks, 3 files)
+- 04-02: 2 min (2 tasks, 5 files)
 
 *Updated after each plan completion*
 
@@ -93,6 +95,10 @@ Recent decisions affecting current work:
 - Lineup option cards vertically stacked (flex-direction: column) instead of horizontal scroll
 - computeFairnessSummary is a module-level pure function (not a hook or useMemo)
 - FairnessSummary is a sibling to LineupGrid inside the same section div, rendered by LineupPage
+- CSV field escaping follows RFC 4180 (double-quote wrapping, internal quote doubling)
+- importPlayers deduplicates within import batch and against existing roster (case-insensitive)
+- Hidden file input triggered by visible button for consistent CSV import UX
+- Secondary button style (outlined border) for CSV actions, differentiating from primary add button
 
 ### Pending Todos
 
@@ -108,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 03.1-02 execution)
-Stopped at: Completed 03.1-02-PLAN.md (Fairness Summary)
+Last session: 2026-02-10 (plan 04-02 execution)
+Stopped at: Completed 04-02-PLAN.md (CSV Import/Export)
 Resume file: None
