@@ -56,3 +56,24 @@ export interface BattingOrderState {
   currentOrder: string[] | null;
   isConfirmed: boolean;
 }
+
+// --- Game History Types ---
+
+/** Per-player summary within a single game history entry */
+export interface PlayerGameSummary {
+  playerId: string;
+  playerName: string;
+  battingPosition: number;
+  fieldingPositions: Position[];
+  benchInnings: number;
+}
+
+/** A complete snapshot of a finalized game */
+export interface GameHistoryEntry {
+  id: string;
+  gameDate: string;
+  innings: number;
+  lineup: Lineup;
+  battingOrder: string[];
+  playerSummaries: PlayerGameSummary[];
+}
