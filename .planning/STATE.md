@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 4 of 4 (History & Output)
-Plan: 3 of 5 complete
+Plan: 4 of 5 complete
 Status: Executing
-Last activity: 2026-02-10 -- Completed 04-03 (Printable Dugout Card)
+Last activity: 2026-02-11 -- Completed 04-04 (Finalize Game + History Tab)
 
-Progress: [########--] 80%
+Progress: [#########-] 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 5 min
-- Total execution time: 73 min
+- Total execution time: 76 min
 
 **By Phase:**
 
@@ -31,7 +31,7 @@ Progress: [########--] 80%
 | 02-lineup-engine | 5/5 | 46 min | 9 min |
 | 03-batting-order | 2/2 | 4 min | 2 min |
 | 03.1-ui-fixes | 2/2 | 4 min | 2 min |
-| 04-history-output | 3/5 | 10 min | 3 min |
+| 04-history-output | 4/5 | 13 min | 3 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -48,6 +48,7 @@ Progress: [########--] 80%
 - 04-01: 2 min (2 tasks, 3 files)
 - 04-02: 2 min (2 tasks, 5 files)
 - 04-03: 8 min (3 tasks, 4 files)
+- 04-04: 3 min (2 tasks, 7 files)
 
 *Updated after each plan completion*
 
@@ -108,10 +109,13 @@ Recent decisions affecting current work:
 - Global print CSS uses data attribute selector [data-dugout-card] to hide everything except the card
 - Landscape orientation suggested via @page CSS for better field grid layout
 - Collapsible sections (PreAssignments, BattingOrder) added to LineupPage for better UX on long pages
+- Finalize Game unifies batting order confirm and game history save into one action (prevents desync)
+- Removed standalone Confirm Order button from BattingOrderSection (confirm now part of Finalize)
+- History displayed in reverse chronological order with expandable per-player details
 
 ### Pending Todos
 
-None.
+- Move position blocks UI from Lineup tab to Roster section (per-player setting belongs with roster management)
 
 ### Roadmap Evolution
 
@@ -123,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 04-03 execution)
-Stopped at: Completed 04-03-PLAN.md (Printable Dugout Card)
+Last session: 2026-02-11 (plan 04-04 execution)
+Stopped at: Completed 04-04-PLAN.md (Finalize Game + History Tab)
 Resume file: None
