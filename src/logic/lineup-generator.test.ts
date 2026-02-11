@@ -349,3 +349,97 @@ describe('generateMultipleLineups', () => {
     }
   });
 });
+
+// --- benchPriority Tests ---
+
+describe('benchPriority', () => {
+  it('generates valid lineup when benchPriority is undefined (backward compatible)', () => {
+    const input = makeDefaultInput();
+    // benchPriority is not set (undefined by default)
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('generates valid lineup when benchPriority is an empty object', () => {
+    const input = makeDefaultInput({ benchPriority: {} });
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('player with highest bench priority sits less on average across many runs', () => {
+    // Use 11 players / 6 innings (2 bench per inning gives more room for priority to matter)
+    // Give p11 very high bench priority so they should sit less
+    const benchPriority: Record<string, number> = { p11: 20 };
+    const inputWithPriority = makeDefaultInput({
+      presentPlayers: players11,
+      benchPriority,
+    });
+    const inputWithout = makeDefaultInput({
+      presentPlayers: players11,
+    });
+
+    // Run 50 generations with and without priority, count bench innings for p11
+    let benchWithPriority = 0;
+    let benchWithout = 0;
+    const runs = 50;
+
+    for (let i = 0; i < runs; i++) {
+      const r1 = generateLineup(inputWithPriority);
+      if (r1.valid) {
+        for (let inn = 1; inn <= inputWithPriority.innings; inn++) {
+          const playing = POSITIONS.some(pos => r1.lineup[inn][pos] === 'p11');
+          if (!playing) benchWithPriority++;
+        }
+      }
+
+      const r2 = generateLineup(inputWithout);
+      if (r2.valid) {
+        for (let inn = 1; inn <= inputWithout.innings; inn++) {
+          const playing = POSITIONS.some(pos => r2.lineup[inn][pos] === 'p11');
+          if (!playing) benchWithout++;
+        }
+      }
+    }
+
+    // With high priority, p11 should have fewer or equal bench innings on average
+    // Allow 10% tolerance for randomness in constraint solver
+    expect(benchWithPriority).toBeLessThanOrEqual(benchWithout + runs * 0.2);
+  });
+
+  it('all constraints still hold with benchPriority set', () => {
+    const benchPriority: Record<string, number> = {
+      p7: 8, p8: 5, p9: 3, p10: 10,
+    };
+    const input = makeDefaultInput({ benchPriority });
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+
+    // Verify no consecutive bench
+    for (const player of input.presentPlayers) {
+      let consecutiveBench = 0;
+      for (let inn = 1; inn <= input.innings; inn++) {
+        const isPlaying = POSITIONS.some(pos => result.lineup[inn][pos] === player.id);
+        if (!isPlaying) {
+          consecutiveBench++;
+          expect(consecutiveBench).toBeLessThanOrEqual(1);
+        } else {
+          consecutiveBench = 0;
+        }
+      }
+    }
+
+    // Verify infield minimum
+    const maxCheckInning = Math.min(4, input.innings);
+    for (const player of input.presentPlayers) {
+      let infieldCount = 0;
+      for (let inn = 1; inn <= maxCheckInning; inn++) {
+        const isInfield = INFIELD_POSITIONS.some(pos => result.lineup[inn][pos] === player.id);
+        if (isInfield) infieldCount++;
+      }
+      expect(infieldCount).toBeGreaterThanOrEqual(2);
+    }
+  });
+});

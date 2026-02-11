@@ -148,7 +148,11 @@ export function generateLineup(input: GenerateLineupInput): GenerateLineupResult
  */
 function attemptBuild(input: GenerateLineupInput): Lineup | null {
   const { presentPlayers, innings, pitcherAssignments, catcherAssignments, positionBlocks } = input;
-  const shuffledPlayers = shuffle(presentPlayers);
+  let shuffledPlayers = shuffle(presentPlayers);
+  if (input.benchPriority) {
+    const bp = input.benchPriority;
+    shuffledPlayers.sort((a, b) => (bp[b.id] ?? 0) - (bp[a.id] ?? 0));
+  }
   const playerIds = shuffledPlayers.map(p => p.id);
   const lineup: Lineup = {};
 

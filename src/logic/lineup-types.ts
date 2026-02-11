@@ -24,6 +24,8 @@ export interface GenerateLineupInput {
   pitcherAssignments: BatteryAssignments;
   catcherAssignments: BatteryAssignments;
   positionBlocks: PositionBlocks;
+  /** Maps playerId to cumulative bench innings from history. Higher = more field time priority. */
+  benchPriority?: Record<string, number>;
 }
 
 export interface GenerateLineupResult {
