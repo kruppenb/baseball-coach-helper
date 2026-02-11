@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 4 of 4 (History & Output)
-Plan: 4 of 5 complete
-Status: Executing
-Last activity: 2026-02-11 -- Completed 04-04 (Finalize Game + History Tab)
+Plan: 5 of 5 complete
+Status: Phase Complete
+Last activity: 2026-02-11 -- Completed 04-05 (Cross-Game Fairness Integration)
 
-Progress: [#########-] 90%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: 5 min
-- Total execution time: 76 min
+- Total execution time: 79 min
 
 **By Phase:**
 
@@ -31,7 +31,7 @@ Progress: [#########-] 90%
 | 02-lineup-engine | 5/5 | 46 min | 9 min |
 | 03-batting-order | 2/2 | 4 min | 2 min |
 | 03.1-ui-fixes | 2/2 | 4 min | 2 min |
-| 04-history-output | 4/5 | 13 min | 3 min |
+| 04-history-output | 5/5 | 16 min | 3 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -49,6 +49,7 @@ Progress: [#########-] 90%
 - 04-02: 2 min (2 tasks, 5 files)
 - 04-03: 8 min (3 tasks, 4 files)
 - 04-04: 3 min (2 tasks, 7 files)
+- 04-05: 3 min (2 tasks, 4 files)
 
 *Updated after each plan completion*
 
@@ -112,6 +113,8 @@ Recent decisions affecting current work:
 - Finalize Game unifies batting order confirm and game history save into one action (prevents desync)
 - Removed standalone Confirm Order button from BattingOrderSection (confirm now part of Finalize)
 - History displayed in reverse chronological order with expandable per-player details
+- benchPriority is a soft preference via sort-after-shuffle, not an absolute constraint (constraint solver has final say)
+- benchPriority undefined when no history exists (backward compatible, no-op for first game of season)
 
 ### Pending Todos
 
@@ -127,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (plan 04-04 execution)
-Stopped at: Completed 04-04-PLAN.md (Finalize Game + History Tab)
+Last session: 2026-02-11 (plan 04-05 execution)
+Stopped at: Completed 04-05-PLAN.md (Cross-Game Fairness Integration) -- Phase 4 COMPLETE
 Resume file: None
