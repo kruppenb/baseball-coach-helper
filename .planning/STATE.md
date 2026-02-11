@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 4 of 4 (History & Output)
-Plan: 2 of 5 complete
+Plan: 3 of 5 complete
 Status: Executing
-Last activity: 2026-02-10 -- Completed 04-02 (CSV Import/Export)
+Last activity: 2026-02-10 -- Completed 04-03 (Printable Dugout Card)
 
 Progress: [########--] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 5 min
-- Total execution time: 65 min
+- Total execution time: 73 min
 
 **By Phase:**
 
@@ -31,7 +31,7 @@ Progress: [########--] 80%
 | 02-lineup-engine | 5/5 | 46 min | 9 min |
 | 03-batting-order | 2/2 | 4 min | 2 min |
 | 03.1-ui-fixes | 2/2 | 4 min | 2 min |
-| 04-history-output | 2/5 | 2 min | 1 min |
+| 04-history-output | 3/5 | 10 min | 3 min |
 
 **Recent Trend:**
 - 01-02: 2 min (2 tasks, 9 files)
@@ -47,6 +47,7 @@ Progress: [########--] 80%
 - 03.1-02: 2 min (2 tasks, 3 files)
 - 04-01: 2 min (2 tasks, 3 files)
 - 04-02: 2 min (2 tasks, 5 files)
+- 04-03: 8 min (3 tasks, 4 files)
 
 *Updated after each plan completion*
 
@@ -103,6 +104,10 @@ Recent decisions affecting current work:
 - fieldingPositions stores actual positions played per inning; benchInnings tracked as separate count (not BENCH in array)
 - computeFieldingFairness returns Position[] (not Set) for JSON-serializable localStorage persistence
 - playerName stored alongside playerId in PlayerGameSummary for robustness against roster deletion
+- HTML table used for fielding grid instead of CSS Grid for reliable print rendering across browsers
+- Global print CSS uses data attribute selector [data-dugout-card] to hide everything except the card
+- Landscape orientation suggested via @page CSS for better field grid layout
+- Collapsible sections (PreAssignments, BattingOrder) added to LineupPage for better UX on long pages
 
 ### Pending Todos
 
@@ -118,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 04-01 execution)
-Stopped at: Completed 04-01-PLAN.md (Game History Data Model)
+Last session: 2026-02-10 (plan 04-03 execution)
+Stopped at: Completed 04-03-PLAN.md (Printable Dugout Card)
 Resume file: None
