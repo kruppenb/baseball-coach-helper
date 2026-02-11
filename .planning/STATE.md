@@ -45,6 +45,7 @@ Progress: [########--] 80%
 - 03-02: 2 min (2 tasks, 6 files)
 - 03.1-01: 2 min (2 tasks, 4 files)
 - 03.1-02: 2 min (2 tasks, 3 files)
+- 04-01: 2 min (2 tasks, 3 files)
 - 04-02: 2 min (2 tasks, 5 files)
 
 *Updated after each plan completion*
@@ -99,6 +100,9 @@ Recent decisions affecting current work:
 - importPlayers deduplicates within import batch and against existing roster (case-insensitive)
 - Hidden file input triggered by visible button for consistent CSV import UX
 - Secondary button style (outlined border) for CSV actions, differentiating from primary add button
+- fieldingPositions stores actual positions played per inning; benchInnings tracked as separate count (not BENCH in array)
+- computeFieldingFairness returns Position[] (not Set) for JSON-serializable localStorage persistence
+- playerName stored alongside playerId in PlayerGameSummary for robustness against roster deletion
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 04-02 execution)
-Stopped at: Completed 04-02-PLAN.md (CSV Import/Export)
+Last session: 2026-02-10 (plan 04-01 execution)
+Stopped at: Completed 04-01-PLAN.md (Game History Data Model)
 Resume file: None
