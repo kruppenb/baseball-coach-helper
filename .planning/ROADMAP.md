@@ -95,10 +95,14 @@ Plans:
   6. User can print a single-page dugout card with grid layout (rows=positions, columns=innings)
   7. Dugout card displays batting order alongside fielding grid
   8. Printed dugout card is readable from a few feet away in dugout
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md — Game history types and pure logic functions (TDD)
+- [ ] 04-02-PLAN.md — CSV import/export logic and roster UI
+- [ ] 04-03-PLAN.md — Printable dugout card component with print styles
+- [ ] 04-04-PLAN.md — Finalize Game flow, useGameHistory hook, and History tab
+- [ ] 04-05-PLAN.md — Cross-game fairness integration into lineup generation
 
 ## Progress
 
@@ -111,4 +115,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 4
 | 2. Lineup Engine | 5/5 | ✓ Complete | 2026-02-10 |
 | 3. Batting Order | 2/2 | ✓ Complete | 2026-02-10 |
 | 3.1 UI Fixes | 2/2 | ✓ Complete | 2026-02-10 |
-| 4. History & Output | 0/TBD | Not started | - |
+| 4. History & Output | 0/5 | Not started | - |
