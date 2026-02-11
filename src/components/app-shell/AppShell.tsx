@@ -3,6 +3,7 @@ import { TabBar } from './TabBar';
 import { RosterPage } from '../roster/RosterPage';
 import { GameSetupPage } from '../game-setup/GameSetupPage';
 import { LineupPage } from '../lineup/LineupPage';
+import { HistoryPage } from '../history/HistoryPage';
 import { useRoster } from '../../hooks/useRoster';
 import styles from './AppShell.module.css';
 
@@ -14,7 +15,7 @@ export function AppShell() {
     { id: 'roster', label: 'Roster' },
     { id: 'game-setup', label: 'Game Setup' },
     { id: 'lineup', label: 'Lineup', disabled: presentCount < 9 },
-    { id: 'history', label: 'History', disabled: true },
+    { id: 'history', label: 'History' },
   ];
 
   useEffect(() => {
@@ -55,6 +56,15 @@ export function AppShell() {
             aria-labelledby="tab-lineup"
           >
             <LineupPage />
+          </div>
+        )}
+        {activeTab === 'history' && (
+          <div
+            role="tabpanel"
+            id="panel-history"
+            aria-labelledby="tab-history"
+          >
+            <HistoryPage />
           </div>
         )}
       </main>
