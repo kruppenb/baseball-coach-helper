@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Roster management and configuration UI ✓
 - [x] **Phase 2: Lineup Engine** - Constraint-based auto-generation with validation ✓
 - [x] **Phase 3: Batting Order** - Continuous batting rotation with cross-game fairness ✓
-- [ ] **Phase 3.1: UI Fixes** - Lineup and batting order UI polish (INSERTED)
+- [x] **Phase 3.1: UI Fixes** - Lineup and batting order UI polish (INSERTED) ✓
 - [ ] **Phase 4: History & Output** - Game tracking and printable dugout card
 
 ## Phase Details
@@ -79,8 +79,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 03.1-01-PLAN.md — Remove band badges from batting order, fix lineup option cards to vertical layout with compact bench summaries
-- [ ] 03.1-02-PLAN.md — Add FairnessSummary component showing per-player infield and bench innings counts
+- [x] 03.1-01-PLAN.md — Remove band badges from batting order, fix lineup option cards to vertical layout with compact bench summaries
+- [x] 03.1-02-PLAN.md — Add FairnessSummary component showing per-player infield and bench innings counts
 
 ### Phase 4: History & Output
 **Goal**: Lineups are saved to history and printable on single page
@@ -110,5 +110,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 4
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-09 |
 | 2. Lineup Engine | 5/5 | ✓ Complete | 2026-02-10 |
 | 3. Batting Order | 2/2 | ✓ Complete | 2026-02-10 |
-| 3.1 UI Fixes | 0/2 | Planned | - |
+| 3.1 UI Fixes | 2/2 | ✓ Complete | 2026-02-10 |
 | 4. History & Output | 0/TBD | Not started | - |
