@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLineup } from '../../hooks/useLineup';
 import { useRoster } from '../../hooks/useRoster';
 import { useBattingOrder } from '../../hooks/useBattingOrder';
+import { useGameHistory } from '../../hooks/useGameHistory';
 import { PreAssignments } from './PreAssignments';
 import { PositionBlocks } from './PositionBlocks';
 import { LineupGrid } from './LineupGrid';
@@ -78,9 +79,16 @@ export function LineupPage() {
   } = useLineup();
 
   const { players } = useRoster();
-  const { currentOrder } = useBattingOrder();
+  const { currentOrder, confirm: confirmBatting } = useBattingOrder();
+  const { finalizeGame } = useGameHistory();
 
   const [statusMessage, setStatusMessage] = useState('');
+  const [isFinalized, setIsFinalized] = useState(false);
+
+  // Reset finalized state when selected lineup changes
+  useEffect(() => {
+    setIsFinalized(false);
+  }, [selectedLineupIndex]);
 
   const handleGenerate = () => {
     setStatusMessage('');
@@ -97,6 +105,13 @@ export function LineupPage() {
   const handleClear = () => {
     clearLineups();
     setStatusMessage('');
+  };
+
+  const handleFinalize = () => {
+    if (!selectedLineup || !currentOrder) return;
+    confirmBatting();
+    finalizeGame(selectedLineup, currentOrder, innings, players);
+    setIsFinalized(true);
   };
 
   return (
@@ -199,6 +214,22 @@ export function LineupPage() {
               <BattingOrderSection />
             </div>
           </details>
+
+          <div className={styles.section}>
+            <button
+              type="button"
+              className={styles.finalizeButton}
+              disabled={!selectedLineup || !currentOrder || isFinalized}
+              onClick={handleFinalize}
+            >
+              {isFinalized ? 'Game Finalized' : 'Finalize Game'}
+            </button>
+            {isFinalized && (
+              <p className={styles.finalizedMessage}>
+                Game finalized and saved to history!
+              </p>
+            )}
+          </div>
 
           {selectedLineup && (
             <details className={styles.details}>

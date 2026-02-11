@@ -6,10 +6,8 @@ import styles from './BattingOrderSection.module.css';
 export function BattingOrderSection() {
   const {
     currentOrder,
-    isConfirmed,
     presentPlayers,
     generate,
-    confirm,
     clear,
   } = useBattingOrder();
 
@@ -39,16 +37,6 @@ export function BattingOrderSection() {
           {hasGenerated ? 'Regenerate' : 'Generate Batting Order'}
         </button>
 
-        {currentOrder && !isConfirmed && (
-          <button
-            type="button"
-            className={styles.confirmButton}
-            onClick={confirm}
-          >
-            Confirm Order
-          </button>
-        )}
-
         {currentOrder && (
           <button
             type="button"
@@ -59,12 +47,6 @@ export function BattingOrderSection() {
           </button>
         )}
       </div>
-
-      {currentOrder && isConfirmed && (
-        <p className={styles.confirmedMessage}>
-          Batting order confirmed for this game.
-        </p>
-      )}
 
       {currentOrder && (
         <BattingOrderList order={currentOrder} players={presentPlayers} />

@@ -91,3 +91,34 @@
 .detailsContent {
   padding: 0 var(--space-md) var(--space-md);
 }
+
+.finalizeButton {
+  background-color: var(--color-success);
+  color: white;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  padding: var(--space-md) var(--space-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  width: 100%;
+  min-height: var(--min-tap-size);
+  font-family: inherit;
+}
+
+.finalizeButton:hover {
+  filter: brightness(0.9);
+}
+
+.finalizeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.finalizedMessage {
+  color: var(--color-success);
+  text-align: center;
+  margin-top: var(--space-sm);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
