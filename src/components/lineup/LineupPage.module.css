@@ -71,3 +71,23 @@
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-lg);
 }
+
+.details {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.summary {
+  padding: var(--space-md);
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+.summary:hover {
+  background: var(--color-surface-hover);
+}
+
+.detailsContent {
+  padding: 0 var(--space-md) var(--space-md);
+}

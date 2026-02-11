@@ -20,16 +20,32 @@ body {
 @media print {
   body * {
     visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    border: none;
   }
   [data-dugout-card],
   [data-dugout-card] * {
     visibility: visible;
+    height: auto;
+    overflow: visible;
+    padding: revert;
+    margin: revert;
+    border: revert;
   }
   [data-dugout-card] {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
+  }
+  details > *:not(summary) {
+    display: block !important;
+  }
+  details > summary {
+    display: none !important;
   }
   @page {
     size: landscape;

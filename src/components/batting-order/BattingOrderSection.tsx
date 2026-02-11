@@ -26,7 +26,6 @@ export function BattingOrderSection() {
 
   return (
     <section className={styles.section}>
-      <h3 className={styles.sectionTitle}>Batting Order</h3>
       <p className={styles.helperText}>
         All present players bat in continuous rotation, independent of fielding.
       </p>

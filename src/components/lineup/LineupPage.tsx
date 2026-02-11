@@ -111,14 +111,21 @@ export function LineupPage() {
         </div>
       ) : (
         <>
-          <PreAssignments
-            innings={innings}
-            presentPlayers={presentPlayers}
-            pitcherAssignments={pitcherAssignments}
-            catcherAssignments={catcherAssignments}
-            onPitcherChange={setPitcher}
-            onCatcherChange={setCatcher}
-          />
+          <details className={styles.details} open>
+            <summary className={styles.summary}>
+              Pitchers &amp; Catchers ({Object.values(pitcherAssignments).filter(Boolean).length + Object.values(catcherAssignments).filter(Boolean).length} assigned)
+            </summary>
+            <div className={styles.detailsContent}>
+              <PreAssignments
+                innings={innings}
+                presentPlayers={presentPlayers}
+                pitcherAssignments={pitcherAssignments}
+                catcherAssignments={catcherAssignments}
+                onPitcherChange={setPitcher}
+                onCatcherChange={setCatcher}
+              />
+            </div>
+          </details>
 
           <PositionBlocks
             presentPlayers={presentPlayers}
@@ -166,36 +173,45 @@ export function LineupPage() {
           )}
 
           {selectedLineup && (
-            <div className={styles.section}>
-              <LineupGrid
-                lineup={selectedLineup}
-                innings={innings}
-                players={players}
-                errors={validationErrors}
-              />
-              <FairnessSummary
-                summary={computeFairnessSummary(selectedLineup, innings, players)}
-              />
-            </div>
+            <details className={styles.details} open>
+              <summary className={styles.summary}>Lineup Detail &amp; Fairness</summary>
+              <div className={styles.detailsContent}>
+                <LineupGrid
+                  lineup={selectedLineup}
+                  innings={innings}
+                  players={players}
+                  errors={validationErrors}
+                />
+                <FairnessSummary
+                  summary={computeFairnessSummary(selectedLineup, innings, players)}
+                />
+              </div>
+            </details>
           )}
 
           {selectedLineup && (
             <ValidationPanel errors={validationErrors} preErrors={[]} />
           )}
 
-          <div className={styles.section}>
-            <BattingOrderSection />
-          </div>
+          <details className={styles.details} open>
+            <summary className={styles.summary}>Batting Order</summary>
+            <div className={styles.detailsContent}>
+              <BattingOrderSection />
+            </div>
+          </details>
 
           {selectedLineup && (
-            <div className={styles.section}>
-              <DugoutCard
-                lineup={selectedLineup}
-                innings={innings}
-                players={players}
-                battingOrder={currentOrder}
-              />
-            </div>
+            <details className={styles.details}>
+              <summary className={styles.summary}>Dugout Card (ready to print)</summary>
+              <div className={styles.detailsContent}>
+                <DugoutCard
+                  lineup={selectedLineup}
+                  innings={innings}
+                  players={players}
+                  battingOrder={currentOrder}
+                />
+              </div>
+            </details>
           )}
         </>
       )}

@@ -22,7 +22,6 @@ export function PreAssignments({
 
   return (
     <div className={styles.preAssignments}>
-      <h3 className={styles.sectionTitle}>Pitchers and Catchers</h3>
       <p className={styles.hint}>
         Assign who pitches and catches each inning. Leave blank to let the
         generator decide.

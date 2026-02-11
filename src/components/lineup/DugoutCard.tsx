@@ -23,10 +23,7 @@ export function DugoutCard({ lineup, innings, players, battingOrder }: DugoutCar
 
   return (
     <div className={styles.card} data-dugout-card>
-      <div className={styles.header}>
-        <h3 className={styles.title}>Dugout Card</h3>
-        <span className={styles.date}>{new Date().toLocaleDateString()}</span>
-      </div>
+      <span className={styles.date}>{new Date().toLocaleDateString()}</span>
 
       <table className={styles.table}>
         <thead>
