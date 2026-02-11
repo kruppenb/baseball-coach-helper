@@ -16,3 +16,23 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  [data-dugout-card],
+  [data-dugout-card] * {
+    visibility: visible;
+  }
+  [data-dugout-card] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  @page {
+    size: landscape;
+    margin: 0.5in;
+  }
+}

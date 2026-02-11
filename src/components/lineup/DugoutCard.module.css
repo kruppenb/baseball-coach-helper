@@ -1,0 +1,184 @@
+.card {
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-top: var(--space-lg);
+  background: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-md);
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+.date {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-lg);
+}
+
+.table th,
+.table td {
+  border: 1px solid var(--color-border);
+  padding: var(--space-xs) var(--space-sm);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  background: var(--color-surface);
+  font-weight: 600;
+}
+
+.cornerCell {
+  width: 60px;
+}
+
+.positionLabel {
+  font-weight: 700;
+  text-align: left !important;
+  padding-left: var(--space-sm);
+}
+
+.benchRow td {
+  font-size: var(--font-size-xs);
+}
+
+.battingSection {
+  margin-top: var(--space-md);
+}
+
+.battingTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.battingList {
+  margin: 0;
+  padding-left: var(--space-xl);
+}
+
+.battingList li {
+  padding: 2px 0;
+}
+
+.noBattingOrder {
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.printButton {
+  display: block;
+  margin: var(--space-lg) auto 0;
+  padding: var(--space-md) var(--space-xl);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: var(--min-tap-size);
+}
+
+.printButton:hover {
+  filter: brightness(0.9);
+}
+
+/* Print-specific styles */
+@media print {
+  .printButton {
+    display: none;
+  }
+
+  .card {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #000;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+  }
+
+  .header {
+    margin-bottom: 8pt;
+  }
+
+  .title {
+    font-size: 16pt;
+  }
+
+  .date {
+    font-size: 11pt;
+    color: #000;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .table th,
+  .table td {
+    border: 2px solid #000;
+    padding: 4pt 6pt;
+    text-align: center;
+    font-size: 13pt;
+  }
+
+  .table th {
+    background: #e0e0e0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-weight: 700;
+  }
+
+  .positionLabel {
+    font-weight: 700;
+    font-size: 13pt;
+  }
+
+  .benchRow td {
+    font-size: 11pt;
+  }
+
+  .battingSection {
+    margin-top: 10pt;
+  }
+
+  .battingTitle {
+    font-size: 14pt;
+  }
+
+  .battingList {
+    font-size: 12pt;
+    columns: 2;
+    column-gap: 20pt;
+  }
+
+  .battingList li {
+    break-inside: avoid;
+  }
+
+  .noBattingOrder {
+    font-size: 12pt;
+    color: #000;
+  }
+}
