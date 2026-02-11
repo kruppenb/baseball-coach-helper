@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLineup } from '../../hooks/useLineup';
 import { useRoster } from '../../hooks/useRoster';
+import { useBattingOrder } from '../../hooks/useBattingOrder';
 import { PreAssignments } from './PreAssignments';
 import { PositionBlocks } from './PositionBlocks';
 import { LineupGrid } from './LineupGrid';
@@ -8,6 +9,7 @@ import { LineupOptions } from './LineupOptions';
 import { ValidationPanel } from './ValidationPanel';
 import { FairnessSummary } from './FairnessSummary';
 import type { PlayerFairness } from './FairnessSummary';
+import { DugoutCard } from './DugoutCard';
 import { BattingOrderSection } from '../batting-order/BattingOrderSection';
 import type { Lineup, Player } from '../../types/index';
 import { INFIELD_POSITIONS, POSITIONS } from '../../types/index';
@@ -76,6 +78,7 @@ export function LineupPage() {
   } = useLineup();
 
   const { players } = useRoster();
+  const { currentOrder } = useBattingOrder();
 
   const [statusMessage, setStatusMessage] = useState('');
 
@@ -183,6 +186,17 @@ export function LineupPage() {
           <div className={styles.section}>
             <BattingOrderSection />
           </div>
+
+          {selectedLineup && (
+            <div className={styles.section}>
+              <DugoutCard
+                lineup={selectedLineup}
+                innings={innings}
+                players={players}
+                battingOrder={currentOrder}
+              />
+            </div>
+          )}
         </>
       )}
     </div>
