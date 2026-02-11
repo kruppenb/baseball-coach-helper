@@ -2,24 +2,23 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-09)
+See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** Phase 4 - History & Output
+**Current focus:** v1.0 complete — planning next milestone
 
 ## Current Position
 
-Phase: 4 of 4 (History & Output)
-Plan: 5 of 5 complete
-Status: Phase Complete
-Last activity: 2026-02-11 -- Completed 04-05 (Cross-Game Fairness Integration)
+Milestone: v1.0 MVP — SHIPPED
+Status: Milestone complete
+Last activity: 2026-02-11 -- Completed v1.0 milestone
 
 Progress: [##########] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 5 min
 - Total execution time: 79 min
 
@@ -33,103 +32,22 @@ Progress: [##########] 100%
 | 03.1-ui-fixes | 2/2 | 4 min | 2 min |
 | 04-history-output | 5/5 | 16 min | 3 min |
 
-**Recent Trend:**
-- 01-02: 2 min (2 tasks, 9 files)
-- 01-03: 3 min (2 tasks, 11 files)
-- 02-01: 12 min (4 tasks, 8 files)
-- 02-02: 4 min (3 tasks, 2 files)
-- 02-03: 3 min (2 tasks, 5 files)
-- 02-04: 2 min (2 tasks, 5 files)
-- 02-05: 25 min (3 tasks, 6 files)
-- 03-01: 2 min (2 tasks, 3 files)
-- 03-02: 2 min (2 tasks, 6 files)
-- 03.1-01: 2 min (2 tasks, 4 files)
-- 03.1-02: 2 min (2 tasks, 3 files)
-- 04-01: 2 min (2 tasks, 3 files)
-- 04-02: 2 min (2 tasks, 5 files)
-- 04-03: 8 min (3 tasks, 4 files)
-- 04-04: 3 min (2 tasks, 7 files)
-- 04-05: 3 min (2 tasks, 4 files)
-
-*Updated after each plan completion*
-
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- CSS Modules with CSS custom properties for styling (no Tailwind, no component library)
-- Conditional tab panel rendering (simpler, roster data persists via localStorage)
-- Disabled Lineup and History tabs shown in tab bar for future scalability
-- Single-input inline edit pattern for player names (always an input, styled as text when idle)
-- Two-step delete confirmation inline (no modal dialogs) for player removal
-- RosterPage consumes useRoster() directly (no prop drilling through AppShell)
-- Innings default to 6 per user decision (persistent setting, set once, stays until changed)
-- Entire player row is tappable button with role=switch for attendance toggle
-- Absent players dimmed with opacity 0.45 and line-through text decoration
-- Dev server port changed to 5180 per user request
-- Used 10-player lineup for valid test case (11 players with fixed P/C makes infield minimum mathematically unsatisfiable)
-- Separated vitest.config.ts from vite.config.ts for vitest v4 TypeScript compatibility
-- INFIELD_POSITIONS includes P and C (6 positions total) per plan spec
-- Fisher-Yates shuffle for unbiased lineup generation randomization
-- Pre-validation before generation to fail fast on impossible inputs
-- Meaningful lineup deduplication: bench + infield differences, not outfield swaps
-- P/C assignments optional per inning -- generator picks randomly when unassigned
-- Pure presentational components with no hooks for PreAssignments and PositionBlocks
-- Native <select> for P/C dropdowns (mobile-friendly per research)
-- HTML <details>/<summary> for collapsible position blocks (zero JS state)
-- useLineup uses Record types throughout (not Map/Set) for JSON-serializable localStorage persistence
-- Stale P/C assignments auto-cleaned when innings count changes
-- LineupGrid and ValidationPanel are purely presentational -- no hooks, all data via props
-- LineupOptions renders selectable cards showing bench rotation per lineup option
-- LineupPage container owns status message state for generation feedback
-- AppShell dynamically enables Lineup tab when presentCount >= 9
-- Auto-redirect from Lineup to Game Setup if player count drops below 9
-- useLocalStorage cross-component sync via custom events for real-time state updates
-- Fisher-Yates shuffle duplicated in batting-order.ts (not shared utility) to keep modules independent
-- Fairness score = top - bottom band counts (ascending sort pushes top-heavy players down)
-- PlayerBandCounts interface kept module-private (not exported from types)
-- BattingOrderSection renders independently of fielding lineup state (BATT-02)
-- Confirm appends new history entry each time -- coach controls when to confirm
-- BattingOrderList is pure presentational (no hooks) -- receives order and players as props
-- Removed band badges entirely from batting order display (confusing to coaches per UAT)
-- Per-player bench summary format: "Name (1, 4)" sorted by first bench inning for consistent ordering
-- Lineup option cards vertically stacked (flex-direction: column) instead of horizontal scroll
-- computeFairnessSummary is a module-level pure function (not a hook or useMemo)
-- FairnessSummary is a sibling to LineupGrid inside the same section div, rendered by LineupPage
-- CSV field escaping follows RFC 4180 (double-quote wrapping, internal quote doubling)
-- importPlayers deduplicates within import batch and against existing roster (case-insensitive)
-- Hidden file input triggered by visible button for consistent CSV import UX
-- Secondary button style (outlined border) for CSV actions, differentiating from primary add button
-- fieldingPositions stores actual positions played per inning; benchInnings tracked as separate count (not BENCH in array)
-- computeFieldingFairness returns Position[] (not Set) for JSON-serializable localStorage persistence
-- playerName stored alongside playerId in PlayerGameSummary for robustness against roster deletion
-- HTML table used for fielding grid instead of CSS Grid for reliable print rendering across browsers
-- Global print CSS uses data attribute selector [data-dugout-card] to hide everything except the card
-- Landscape orientation suggested via @page CSS for better field grid layout
-- Collapsible sections (PreAssignments, BattingOrder) added to LineupPage for better UX on long pages
-- Finalize Game unifies batting order confirm and game history save into one action (prevents desync)
-- Removed standalone Confirm Order button from BattingOrderSection (confirm now part of Finalize)
-- History displayed in reverse chronological order with expandable per-player details
-- benchPriority is a soft preference via sort-after-shuffle, not an absolute constraint (constraint solver has final say)
-- benchPriority undefined when no history exists (backward compatible, no-op for first game of season)
+See PROJECT.md Key Decisions table (12 decisions, all ✓ Good).
 
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (per-player setting belongs with roster management)
 
-### Roadmap Evolution
-
-- Phase 3.1 inserted after Phase 3: Lineup and batting order UI fixes (URGENT)
-
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (plan 04-05 execution)
-Stopped at: Completed 04-05-PLAN.md (Cross-Game Fairness Integration) -- Phase 4 COMPLETE
+Last session: 2026-02-11 (milestone completion)
+Stopped at: v1.0 milestone archived
 Resume file: None
