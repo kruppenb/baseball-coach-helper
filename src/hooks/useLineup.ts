@@ -2,8 +2,10 @@ import { useMemo, useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import { useRoster } from './useRoster';
 import { useGameConfig } from './useGameConfig';
+import { useGameHistory } from './useGameHistory';
 import { generateMultipleLineups, preValidate } from '../logic/lineup-generator';
 import { validateLineup } from '../logic/lineup-validator';
+import { computeFieldingFairness } from '../logic/game-history';
 import type { LineupState, Position, Lineup, Player } from '../types/index';
 import type { ValidationError } from '../logic/lineup-types';
 
@@ -20,11 +22,24 @@ export function useLineup() {
   const { players } = useRoster();
   const { config } = useGameConfig();
 
+  const { history } = useGameHistory();
   const innings = config.innings;
   const presentPlayers = useMemo(
     () => players.filter((p: Player) => p.isPresent),
     [players],
   );
+
+  // Compute bench priority from game history for cross-game fairness
+  const benchPriority = useMemo(() => {
+    if (history.length === 0) return undefined;
+    const presentIds = presentPlayers.map(p => p.id);
+    const fairness = computeFieldingFairness(history, presentIds);
+    const priority: Record<string, number> = {};
+    for (const [id, metrics] of Object.entries(fairness)) {
+      priority[id] = metrics.totalBenchInnings;
+    }
+    return priority;
+  }, [history, presentPlayers]);
 
   // Clean up stale assignments when innings count changes
   // (e.g., assignments for inning 6 when innings is now 5)
@@ -114,6 +129,7 @@ export function useLineup() {
       pitcherAssignments: cleanState.pitcherAssignments,
       catcherAssignments: cleanState.catcherAssignments,
       positionBlocks: cleanState.positionBlocks,
+      benchPriority,
     };
 
     const preErrors = preValidate(input);
@@ -139,7 +155,7 @@ export function useLineup() {
     }
 
     return { success: true, count: validLineups.length, errors: [] };
-  }, [presentPlayers, innings, cleanState, setState]);
+  }, [presentPlayers, innings, cleanState, setState, benchPriority]);
 
   const selectLineup = useCallback((index: number) => {
     setState((prev: LineupState) => ({
