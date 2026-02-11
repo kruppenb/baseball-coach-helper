@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Lineup Engine** - Constraint-based auto-generation with validation ✓
 - [x] **Phase 3: Batting Order** - Continuous batting rotation with cross-game fairness ✓
 - [x] **Phase 3.1: UI Fixes** - Lineup and batting order UI polish (INSERTED) ✓
-- [ ] **Phase 4: History & Output** - Game tracking and printable dugout card
+- [x] **Phase 4: History & Output** - Game tracking and printable dugout card ✓
 
 ## Phase Details
 
@@ -98,11 +98,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Game history types and pure logic functions (TDD)
-- [ ] 04-02-PLAN.md — CSV import/export logic and roster UI
-- [ ] 04-03-PLAN.md — Printable dugout card component with print styles
-- [ ] 04-04-PLAN.md — Finalize Game flow, useGameHistory hook, and History tab
-- [ ] 04-05-PLAN.md — Cross-game fairness integration into lineup generation
+- [x] 04-01-PLAN.md — Game history types and pure logic functions (TDD)
+- [x] 04-02-PLAN.md — CSV import/export logic and roster UI
+- [x] 04-03-PLAN.md — Printable dugout card component with print styles
+- [x] 04-04-PLAN.md — Finalize Game flow, useGameHistory hook, and History tab
+- [x] 04-05-PLAN.md — Cross-game fairness integration into lineup generation
 
 ## Progress
 
@@ -115,4 +115,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 4
 | 2. Lineup Engine | 5/5 | ✓ Complete | 2026-02-10 |
 | 3. Batting Order | 2/2 | ✓ Complete | 2026-02-10 |
 | 3.1 UI Fixes | 2/2 | ✓ Complete | 2026-02-10 |
-| 4. History & Output | 0/5 | Not started | - |
+| 4. History & Output | 5/5 | ✓ Complete | 2026-02-11 |
