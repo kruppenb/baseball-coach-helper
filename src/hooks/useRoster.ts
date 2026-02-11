@@ -52,6 +52,38 @@ export function useRoster() {
     setPlayers(players.map((p) => ({ ...p, isPresent: true })));
   };
 
+  const importPlayers = (names: string[]): { added: number; skipped: number } => {
+    let added = 0;
+    let skipped = 0;
+    const newPlayers: Player[] = [];
+    const existingNames = new Set(players.map((p) => p.name.toLowerCase()));
+
+    for (const name of names) {
+      const capitalized = autoCapitalize(name.trim());
+      if (capitalized === '') {
+        skipped++;
+        continue;
+      }
+      if (existingNames.has(capitalized.toLowerCase())) {
+        skipped++;
+        continue;
+      }
+      existingNames.add(capitalized.toLowerCase());
+      newPlayers.push({
+        id: crypto.randomUUID(),
+        name: capitalized,
+        isPresent: true,
+      });
+      added++;
+    }
+
+    if (newPlayers.length > 0) {
+      setPlayers([...players, ...newPlayers]);
+    }
+
+    return { added, skipped };
+  };
+
   return {
     players: sortedPlayers,
     playerCount: players.length,
@@ -61,5 +93,6 @@ export function useRoster() {
     removePlayer,
     togglePresent,
     resetAttendance,
+    importPlayers,
   };
 }
