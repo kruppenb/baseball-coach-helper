@@ -11,18 +11,22 @@ See: .planning/PROJECT.md (updated 2026-02-12)
 
 Milestone: v2.0 Azure Cloud Sync
 Phase: 5 of 9 (Auth Layer)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-12 — Roadmap created for v2.0
+Plan: 1 of 2 in current phase
+Status: Executing
+Last activity: 2026-02-12 — Completed 05-01 auth infrastructure
 
-Progress: [=================...............] 55% (17/~31 plans across all milestones)
+Progress: [==================..............] 58% (18/~31 plans across all milestones)
 
 ## Performance Metrics
 
-**Velocity (from v1.0):**
-- Total plans completed: 17
+**Velocity (from v1.0 + v2.0):**
+- Total plans completed: 18
 - Average duration: 5 min
-- Total execution time: 79 min
+- Total execution time: 81 min
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 05-auth-layer | 01 | 2min | 3 | 6 |
 
 ## Accumulated Context
 
@@ -37,6 +41,12 @@ Key v2.0 decisions from research:
 - Per-game documents for game history (avoid 2MB limit)
 - useCloudStorage wraps useLocalStorage with identical API signature
 
+From 05-01 execution:
+- TENANT_ID left as placeholder in SWA config -- user replaces at deployment time
+- getDisplayName extracts name claim first, falls back to userDetails, then 'Coach'
+- Auth fetch errors gracefully set user: null (AUTH-04 preserved)
+- /api proxy to port 7071 configured now for Phase 6 readiness
+
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (tech debt from v1.0)
@@ -47,6 +57,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-12 (roadmap creation)
-Stopped at: Roadmap created, ready to plan Phase 5
+Last session: 2026-02-12 (05-01 execution)
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
