@@ -23,7 +23,7 @@
 **Milestone Goal:** Move from localStorage-only to Azure-backed storage with Microsoft authentication, so coaches can use the app across devices with offline support at the field.
 
 - [x] **Phase 5: Auth Layer** — Microsoft sign-in via SWA EasyAuth with invite-only access (completed 2026-02-12)
-- [ ] **Phase 6: API + Database** — Azure Functions API with Cosmos DB per-user storage
+- [x] **Phase 6: API + Database** — Azure Functions API with Cosmos DB per-user storage (completed 2026-02-13)
 - [ ] **Phase 7: Sync Engine** — Offline-first background sync with conflict resolution
 - [ ] **Phase 8: Data Migration** — Existing localStorage data migrates to cloud on first sign-in
 - [ ] **Phase 9: PWA + Deployment** — Azure Static Web Apps hosting with installable PWA
@@ -57,8 +57,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — API project scaffold with shared auth and Cosmos DB infrastructure libraries
-- [ ] 06-02-PLAN.md — All function endpoints (roster, game-config, lineup-state, game-history, batting)
+- [x] 06-01-PLAN.md — API project scaffold with shared auth and Cosmos DB infrastructure libraries
+- [x] 06-02-PLAN.md — All function endpoints (roster, game-config, lineup-state, game-history, batting)
 
 ### Phase 7: Sync Engine
 **Goal**: The app reads/writes localStorage first and syncs to cloud in the background, with visible sync status and safe conflict resolution
@@ -114,7 +114,7 @@ Plans:
 | 3.1 UI Fixes | v1.0 | 2/2 | Complete | 2026-02-10 |
 | 4. History & Output | v1.0 | 5/5 | Complete | 2026-02-11 |
 | 5. Auth Layer | v2.0 | 2/2 | Complete | 2026-02-12 |
-| 6. API + Database | v2.0 | 0/2 | Planned | - |
+| 6. API + Database | v2.0 | 2/2 | Complete | 2026-02-13 |
 | 7. Sync Engine | v2.0 | 0/TBD | Not started | - |
 | 8. Data Migration | v2.0 | 0/TBD | Not started | - |
 | 9. PWA + Deployment | v2.0 | 0/TBD | Not started | - |
