@@ -1,0 +1,46 @@
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-text-muted);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.indicator[data-status="synced"] .dot {
+  background-color: #22c55e;
+}
+
+.indicator[data-status="syncing"] .dot {
+  background-color: #3b82f6;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.indicator[data-status="offline"] .dot {
+  background-color: #9ca3af;
+}
+
+.indicator[data-status="error"] .dot {
+  background-color: #ef4444;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media print {
+  .indicator {
+    display: none;
+  }
+}

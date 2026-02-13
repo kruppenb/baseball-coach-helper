@@ -1,5 +1,6 @@
 import { useAuth } from '../../auth/useAuth';
 import { getDisplayName } from '../../auth/types';
+import { SyncStatusIndicator } from './SyncStatusIndicator';
 import styles from './AppHeader.module.css';
 
 export function AppHeader() {
@@ -10,6 +11,7 @@ export function AppHeader() {
       <h1 className={styles.title}>Lineup Builder</h1>
       {!isLoading && (
         <div className={styles.authSection}>
+          <SyncStatusIndicator />
           {user ? (
             <>
               <span className={styles.userName}>{getDisplayName(user)}</span>
