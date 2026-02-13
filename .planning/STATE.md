@@ -93,6 +93,7 @@ From 08-01 execution:
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (tech debt from v1.0)
+- Add sync conflict resolution with timestamp comparison — prompt user when local data is newer than cloud (sync)
 
 ### Blockers/Concerns
 
