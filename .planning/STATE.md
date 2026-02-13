@@ -10,25 +10,26 @@ See: .planning/PROJECT.md (updated 2026-02-12)
 ## Current Position
 
 Milestone: v2.0 Azure Cloud Sync
-Phase: 6 of 9 (API & Database)
-Plan: 1 of 2 in current phase (done)
-Status: Executing
-Last activity: 2026-02-13 — Completed 06-01 API project scaffold
+Phase: 6 of 9 (API & Database) -- COMPLETE
+Plan: 2 of 2 in current phase (done)
+Status: Phase complete -- ready for Phase 7
+Last activity: 2026-02-13 — Completed 06-02 API CRUD endpoints
 
-Progress: [====================............] 65% (20/~31 plans across all milestones)
+Progress: [=====================...........] 68% (21/~31 plans across all milestones)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0):**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 4 min
-- Total execution time: 86 min
+- Total execution time: 88 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 05-auth-layer | 01 | 2min | 3 | 6 |
 | 05-auth-layer | 02 | 3min | 3 | 5 |
 | 06-api-database | 01 | 2min | 2 | 9 |
+| 06-api-database | 02 | 2min | 2 | 5 |
 
 ## Accumulated Context
 
@@ -60,6 +61,12 @@ From 06-01 execution:
 - CosmosDocument.data typed as unknown -- each endpoint casts to specific frontend type
 - Shared libs pattern: api/src/lib/ for auth, cosmos, types
 
+From 06-02 execution:
+- Singleton docs use deterministic IDs ({docType}-{userId}) for direct item reads
+- Collection docs use compound IDs ({prefix}-{userId}-{entryId}) for per-coach uniqueness
+- Batting endpoint combines two doc types under one route via docType discriminator on PUT
+- All GET endpoints return 200 with sensible defaults (not 404) when no document exists
+
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (tech debt from v1.0)
@@ -70,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-13 (06-01 execution)
-Stopped at: Completed 06-01-PLAN.md -- API project scaffold with shared libraries
+Last session: 2026-02-13 (06-02 execution)
+Stopped at: Completed 06-02-PLAN.md -- API CRUD endpoints (phase 06 complete)
 Resume file: None
