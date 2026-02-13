@@ -1,10 +1,13 @@
 import { AuthProvider } from './auth/AuthContext'
+import { SyncProvider } from './sync/SyncContext'
 import { AppShell } from './components/app-shell/AppShell'
 
 function App() {
   return (
     <AuthProvider>
-      <AppShell />
+      <SyncProvider>
+        <AppShell />
+      </SyncProvider>
     </AuthProvider>
   )
 }

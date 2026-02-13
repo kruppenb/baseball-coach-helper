@@ -1,8 +1,8 @@
-import { useLocalStorage } from './useLocalStorage';
+import { useCloudStorage } from '../sync/useCloudStorage';
 import type { GameConfig } from '../types';
 
 export function useGameConfig() {
-  const [config, setConfig] = useLocalStorage<GameConfig>('gameConfig', { innings: 6 });
+  const [config, setConfig] = useCloudStorage<GameConfig>('gameConfig', { innings: 6 }, { endpoint: '/api/game-config', mode: 'singleton' });
 
   const setInnings = (value: 5 | 6) => {
     setConfig({ ...config, innings: value });

@@ -1,4 +1,4 @@
-import { useLocalStorage } from './useLocalStorage';
+import { useCloudStorage } from '../sync/useCloudStorage';
 import type { Player } from '../types';
 
 function autoCapitalize(name: string): string {
@@ -9,7 +9,7 @@ function autoCapitalize(name: string): string {
 }
 
 export function useRoster() {
-  const [players, setPlayers] = useLocalStorage<Player[]>('roster', []);
+  const [players, setPlayers] = useCloudStorage<Player[]>('roster', [], { endpoint: '/api/roster', mode: 'singleton' });
 
   const sortedPlayers = [...players].sort((a, b) =>
     a.name.localeCompare(b.name)

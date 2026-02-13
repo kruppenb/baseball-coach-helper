@@ -1,11 +1,11 @@
 import { useMemo, useCallback } from 'react';
-import { useLocalStorage } from './useLocalStorage';
+import { useCloudStorage } from '../sync/useCloudStorage';
 import { useRoster } from './useRoster';
 import { useGameConfig } from './useGameConfig';
 import { useGameHistory } from './useGameHistory';
 import { generateMultipleLineups, preValidate } from '../logic/lineup-generator';
 import { validateLineup } from '../logic/lineup-validator';
-import { computeFieldingFairness } from '../logic/game-history';
+import { computeFieldingFairness, computeCatcherInnings } from '../logic/game-history';
 import type { LineupState, Position, Lineup, Player } from '../types/index';
 import type { ValidationError } from '../logic/lineup-types';
 
@@ -18,7 +18,7 @@ const defaultState: LineupState = {
 };
 
 export function useLineup() {
-  const [state, setState] = useLocalStorage<LineupState>('lineupState', defaultState);
+  const [state, setState] = useCloudStorage<LineupState>('lineupState', defaultState, { endpoint: '/api/lineup-state', mode: 'singleton' });
   const { players } = useRoster();
   const { config } = useGameConfig();
 
@@ -39,6 +39,13 @@ export function useLineup() {
       priority[id] = metrics.totalBenchInnings;
     }
     return priority;
+  }, [history, presentPlayers]);
+
+  // Compute cumulative catcher innings from game history
+  const catcherInningsHistory = useMemo(() => {
+    if (history.length === 0) return {};
+    const presentIds = presentPlayers.map(p => p.id);
+    return computeCatcherInnings(history, presentIds);
   }, [history, presentPlayers]);
 
   // Clean up stale assignments when innings count changes
@@ -221,6 +228,27 @@ export function useLineup() {
       }
     }
 
+    // Check catcher-pitcher eligibility across all innings
+    const catcherCounts: Record<string, number> = {};
+    const isPitcherMap: Record<string, boolean> = {};
+    for (let inn = 1; inn <= innings; inn++) {
+      const pitcherId = cleanState.pitcherAssignments[inn];
+      const catcherId = cleanState.catcherAssignments[inn];
+      if (catcherId) {
+        catcherCounts[catcherId] = (catcherCounts[catcherId] ?? 0) + 1;
+      }
+      if (pitcherId) {
+        isPitcherMap[pitcherId] = true;
+      }
+    }
+    for (const [playerId, count] of Object.entries(catcherCounts)) {
+      if (count >= 4 && isPitcherMap[playerId]) {
+        const player = presentPlayers.find(p => p.id === playerId);
+        const name = player?.name ?? 'A player';
+        errors.push(`${name} is assigned to catch ${count} innings and also pitch — a player who catches 4+ innings cannot pitch in the same game.`);
+      }
+    }
+
     return errors;
   }, [presentPlayers, innings, cleanState.pitcherAssignments, cleanState.catcherAssignments]);
 
@@ -238,6 +266,7 @@ export function useLineup() {
     selectedLineup,
     validationErrors,
     preAssignmentErrors,
+    catcherInningsHistory,
 
     // Actions
     setPitcher,

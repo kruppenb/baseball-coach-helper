@@ -1,12 +1,13 @@
 import { useCallback } from 'react';
-import { useLocalStorage } from './useLocalStorage';
+import { useCloudStorage } from '../sync/useCloudStorage';
 import { createGameHistoryEntry } from '../logic/game-history';
 import type { GameHistoryEntry, Lineup, Player } from '../types/index';
 
 export function useGameHistory() {
-  const [history, setHistory] = useLocalStorage<GameHistoryEntry[]>(
+  const [history, setHistory] = useCloudStorage<GameHistoryEntry[]>(
     'gameHistory',
     [],
+    { endpoint: '/api/game-history', mode: 'collection' },
   );
 
   const finalizeGame = useCallback(

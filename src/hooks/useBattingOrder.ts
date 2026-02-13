@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from 'react';
-import { useLocalStorage } from './useLocalStorage';
+import { useCloudStorage } from '../sync/useCloudStorage';
 import { useRoster } from './useRoster';
 import { generateBattingOrder, calculateBandCounts } from '../logic/batting-order';
 import type { BattingOrderState, BattingHistoryEntry, Player } from '../types/index';
@@ -10,13 +10,15 @@ const defaultState: BattingOrderState = {
 };
 
 export function useBattingOrder() {
-  const [state, setState] = useLocalStorage<BattingOrderState>(
+  const [state, setState] = useCloudStorage<BattingOrderState>(
     'battingOrderState',
     defaultState,
+    { endpoint: '/api/batting', mode: 'singleton', responseKey: 'battingOrderState', pushDocType: 'battingOrderState' },
   );
-  const [history, setHistory] = useLocalStorage<BattingHistoryEntry[]>(
+  const [history, setHistory] = useCloudStorage<BattingHistoryEntry[]>(
     'battingHistory',
     [],
+    { endpoint: '/api/batting', mode: 'collection', responseKey: 'battingHistory', pushDocType: 'battingHistory' },
   );
   const { players } = useRoster();
 
