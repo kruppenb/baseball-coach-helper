@@ -69,11 +69,11 @@ Plans:
   2. Coach sees a sync status indicator in the header showing synced, syncing, offline, or error state (SYNC-03)
   3. When the same data is edited on two devices, the last write wins using Cosmos DB etag versioning without data corruption (SYNC-05)
   4. App remains fully functional when network is unavailable, and syncs automatically when connectivity returns (SYNC-02)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md — Sync types, engine module, online status hook, SyncContext, and useCloudStorage hook
+- [ ] 07-02-PLAN.md — Domain hook migration to useCloudStorage, SyncProvider wiring, sync status indicator UI
 
 ### Phase 8: Data Migration
 **Goal**: Coaches who used v1.0 have their existing localStorage data automatically migrated to their cloud account on first sign-in
@@ -115,6 +115,6 @@ Plans:
 | 4. History & Output | v1.0 | 5/5 | Complete | 2026-02-11 |
 | 5. Auth Layer | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 6. API + Database | v2.0 | 2/2 | Complete | 2026-02-13 |
-| 7. Sync Engine | v2.0 | 0/TBD | Not started | - |
+| 7. Sync Engine | v2.0 | 0/2 | Planned | - |
 | 8. Data Migration | v2.0 | 0/TBD | Not started | - |
 | 9. PWA + Deployment | v2.0 | 0/TBD | Not started | - |
