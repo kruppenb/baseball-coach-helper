@@ -24,7 +24,7 @@
 
 - [x] **Phase 5: Auth Layer** — Microsoft sign-in via SWA EasyAuth with invite-only access (completed 2026-02-12)
 - [x] **Phase 6: API + Database** — Azure Functions API with Cosmos DB per-user storage (completed 2026-02-13)
-- [ ] **Phase 7: Sync Engine** — Offline-first background sync with conflict resolution
+- [x] **Phase 7: Sync Engine** — Offline-first background sync with conflict resolution (completed 2026-02-12)
 - [ ] **Phase 8: Data Migration** — Existing localStorage data migrates to cloud on first sign-in
 - [ ] **Phase 9: PWA + Deployment** — Azure Static Web Apps hosting with installable PWA
 
@@ -72,8 +72,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Sync types, engine module, online status hook, SyncContext, and useCloudStorage hook
-- [ ] 07-02-PLAN.md — Domain hook migration to useCloudStorage, SyncProvider wiring, sync status indicator UI
+- [x] 07-01-PLAN.md — Sync types, engine module, online status hook, SyncContext, and useCloudStorage hook
+- [x] 07-02-PLAN.md — Domain hook migration to useCloudStorage, SyncProvider wiring, sync status indicator UI
 
 ### Phase 8: Data Migration
 **Goal**: Coaches who used v1.0 have their existing localStorage data automatically migrated to their cloud account on first sign-in
@@ -115,6 +115,6 @@ Plans:
 | 4. History & Output | v1.0 | 5/5 | Complete | 2026-02-11 |
 | 5. Auth Layer | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 6. API + Database | v2.0 | 2/2 | Complete | 2026-02-13 |
-| 7. Sync Engine | v2.0 | 0/2 | Planned | - |
+| 7. Sync Engine | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 8. Data Migration | v2.0 | 0/TBD | Not started | - |
 | 9. PWA + Deployment | v2.0 | 0/TBD | Not started | - |
