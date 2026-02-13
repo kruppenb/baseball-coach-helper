@@ -96,11 +96,11 @@ Plans:
   1. App is served from Azure Static Web Apps Standard plan with CI/CD deploying from GitHub on push (DEPL-01)
   2. Coach can tap "Add to Home Screen" on their phone and launch the app like a native app (DEPL-02)
   3. App loads and functions at the field with no network connectivity after initial install (DEPL-02)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 09-01-PLAN.md — PWA configuration with vite-plugin-pwa, icons, meta tags, offline caching
+- [ ] 09-02-PLAN.md — GitHub Actions CI/CD workflow for Azure Static Web Apps deployment
 
 ## Progress
 
@@ -117,4 +117,4 @@ Plans:
 | 6. API + Database | v2.0 | 2/2 | Complete | 2026-02-13 |
 | 7. Sync Engine | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 8. Data Migration | v2.0 | 1/1 | Complete | 2026-02-13 |
-| 9. PWA + Deployment | v2.0 | 0/TBD | Not started | - |
+| 9. PWA + Deployment | v2.0 | 0/2 | Not started | - |
