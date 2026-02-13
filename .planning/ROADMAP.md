@@ -83,10 +83,10 @@ Plans:
   1. On first sign-in, existing localStorage roster, game config, and game history appear in the coach's cloud account without manual action (SYNC-04)
   2. Existing hooks (useRoster, useGameConfig, useLineup, useGameHistory, useBattingOrder) use cloud-synced storage for signed-in coaches (SYNC-04)
   3. All existing tests continue to pass after the hook integration (SYNC-04)
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 08-01: TBD
+- [ ] 08-01-PLAN.md — migrateLocalData function in sync-engine and migration trigger in SyncProvider
 
 ### Phase 9: PWA + Deployment
 **Goal**: The app is hosted on Azure Static Web Apps, installable as a PWA on mobile, and works offline at the field
@@ -116,5 +116,5 @@ Plans:
 | 5. Auth Layer | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 6. API + Database | v2.0 | 2/2 | Complete | 2026-02-13 |
 | 7. Sync Engine | v2.0 | 2/2 | Complete | 2026-02-12 |
-| 8. Data Migration | v2.0 | 0/TBD | Not started | - |
+| 8. Data Migration | v2.0 | 0/1 | Planned | - |
 | 9. PWA + Deployment | v2.0 | 0/TBD | Not started | - |
