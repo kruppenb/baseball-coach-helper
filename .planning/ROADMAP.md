@@ -39,11 +39,11 @@
   2. A Microsoft user NOT assigned in Azure Portal sees an access denied page (AUTH-02)
   3. After sign-in, coach sees their display name and a sign-out button in the app header (AUTH-03)
   4. Coach can use the entire app without signing in, with all v1.0 functionality intact (AUTH-04)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — SWA config, auth types/context/hook, Vite proxy + SWA CLI dev tooling
+- [ ] 05-02-PLAN.md — AppHeader with sign-in/sign-out UI, AuthProvider integration, visual verification
 
 ### Phase 6: API + Database
 **Goal**: A secure server-side API layer stores and retrieves coach data from Cosmos DB, with credentials never exposed to the browser
@@ -113,7 +113,7 @@ Plans:
 | 3. Batting Order | v1.0 | 2/2 | Complete | 2026-02-10 |
 | 3.1 UI Fixes | v1.0 | 2/2 | Complete | 2026-02-10 |
 | 4. History & Output | v1.0 | 5/5 | Complete | 2026-02-11 |
-| 5. Auth Layer | v2.0 | 0/TBD | Not started | - |
+| 5. Auth Layer | v2.0 | 0/2 | Not started | - |
 | 6. API + Database | v2.0 | 0/TBD | Not started | - |
 | 7. Sync Engine | v2.0 | 0/TBD | Not started | - |
 | 8. Data Migration | v2.0 | 0/TBD | Not started | - |
