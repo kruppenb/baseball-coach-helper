@@ -224,3 +224,157 @@ export function cancelAllTimers(): void {
   }
   timers.clear();
 }
+
+/**
+ * Check if a localStorage key contains real user data (not just hook defaults).
+ * Returns false if the key is missing, unparseable, or contains only default values.
+ */
+export function hasNonDefaultData(key: string): boolean {
+  const raw = localStorage.getItem(key);
+  if (raw === null) return false;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return false;
+  }
+
+  switch (key) {
+    case 'roster':
+      return Array.isArray(parsed) && parsed.length > 0;
+
+    case 'gameConfig':
+      return (
+        parsed !== null &&
+        typeof parsed === 'object' &&
+        'innings' in (parsed as Record<string, unknown>) &&
+        (parsed as Record<string, unknown>).innings !== 6
+      );
+
+    case 'lineupState': {
+      const ls = parsed as Record<string, unknown>;
+      const pitcherAssignments = ls.pitcherAssignments as
+        | Record<string, unknown>
+        | undefined;
+      const catcherAssignments = ls.catcherAssignments as
+        | Record<string, unknown>
+        | undefined;
+      const positionBlocks = ls.positionBlocks as
+        | Record<string, unknown>
+        | undefined;
+      const generatedLineups = ls.generatedLineups as unknown[] | undefined;
+
+      return (
+        (pitcherAssignments !== undefined &&
+          Object.keys(pitcherAssignments).length > 0) ||
+        (catcherAssignments !== undefined &&
+          Object.keys(catcherAssignments).length > 0) ||
+        (positionBlocks !== undefined &&
+          Object.keys(positionBlocks).length > 0) ||
+        (Array.isArray(generatedLineups) && generatedLineups.length > 0)
+      );
+    }
+
+    case 'battingOrderState': {
+      const bos = parsed as Record<string, unknown>;
+      return bos?.currentOrder !== null && bos?.currentOrder !== undefined;
+    }
+
+    case 'gameHistory':
+      return Array.isArray(parsed) && parsed.length > 0;
+
+    case 'battingHistory':
+      return Array.isArray(parsed) && parsed.length > 0;
+
+    default:
+      return false;
+  }
+}
+
+/**
+ * One-time migration of existing localStorage data to the cloud.
+ *
+ * Reuses pushToCloud for all 6 sync keys. Skips keys with only default data.
+ * Sets a `migration-complete` localStorage flag on success to prevent re-runs.
+ * Does NOT set the flag on partial failure so migration retries next time.
+ */
+export async function migrateLocalData(
+  onStatus: (status: SyncStatus) => void
+): Promise<boolean> {
+  // Idempotency: skip if already completed
+  if (localStorage.getItem('migration-complete') === 'true') {
+    return true;
+  }
+
+  const migrationConfigs: { key: string; config: SyncKeyConfig }[] = [
+    { key: 'roster', config: { endpoint: '/api/roster', mode: 'singleton' } },
+    {
+      key: 'gameConfig',
+      config: { endpoint: '/api/game-config', mode: 'singleton' },
+    },
+    {
+      key: 'lineupState',
+      config: { endpoint: '/api/lineup-state', mode: 'singleton' },
+    },
+    {
+      key: 'battingOrderState',
+      config: {
+        endpoint: '/api/batting',
+        mode: 'singleton',
+        pushDocType: 'battingOrderState',
+      },
+    },
+    {
+      key: 'gameHistory',
+      config: { endpoint: '/api/game-history', mode: 'collection' },
+    },
+    {
+      key: 'battingHistory',
+      config: {
+        endpoint: '/api/batting',
+        mode: 'collection',
+        pushDocType: 'battingHistory',
+      },
+    },
+  ];
+
+  const keysToMigrate = migrationConfigs.filter(({ key }) =>
+    hasNonDefaultData(key)
+  );
+
+  // Brand-new user with only defaults -- nothing to migrate
+  if (keysToMigrate.length === 0) {
+    localStorage.setItem('migration-complete', 'true');
+    return true;
+  }
+
+  onStatus('syncing');
+
+  // Track whether any push reported an error or offline status
+  let hadError = false;
+
+  for (const { key, config } of keysToMigrate) {
+    try {
+      await pushToCloud(key, config, (status) => {
+        if (status === 'error' || status === 'offline') {
+          hadError = true;
+        }
+        onStatus(status);
+      });
+    } catch {
+      // pushToCloud catches internally, but guard against unexpected throws
+      hadError = true;
+      onStatus('error');
+    }
+  }
+
+  if (hadError) {
+    onStatus('error');
+    return false;
+  }
+
+  localStorage.setItem('migration-complete', 'true');
+  onStatus('synced');
+  return true;
+}
