@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v2.0 Azure Cloud Sync — Phase 8: Data Migration
+**Current focus:** v2.0 Azure Cloud Sync — Phase 9: PWA + Deployment
 
 ## Current Position
 
 Milestone: v2.0 Azure Cloud Sync
-Phase: 8 of 9 (Data Migration) -- COMPLETE
-Plan: 1 of 1 in current phase (done)
-Status: Phase 8 complete
-Last activity: 2026-02-13 — Completed 08-01 data migration
+Phase: 9 of 9 (PWA + Deployment)
+Plan: 1 of 2 in current phase (09-01 complete)
+Status: Executing phase 9
+Last activity: 2026-02-13 — Completed 09-01 PWA configuration
 
-Progress: [========================........] 77% (24/~31 plans across all milestones)
+Progress: [=========================.......] 80% (25/~31 plans across all milestones)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0):**
-- Total plans completed: 24
+- Total plans completed: 25
 - Average duration: 4 min
-- Total execution time: 94 min
+- Total execution time: 96 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -33,6 +33,7 @@ Progress: [========================........] 77% (24/~31 plans across all milest
 | 07-sync-engine | 01 | 2min | 2 | 5 |
 | 07-sync-engine | 02 | 2min | 2 | 9 |
 | 08-data-migration | 01 | 2min | 2 | 2 |
+| 09-pwa-deployment | 01 | 2min | 2 | 8 |
 
 ## Accumulated Context
 
@@ -90,6 +91,13 @@ From 08-01 execution:
 - migration-complete localStorage flag for idempotent one-time operation
 - __migration__ synthetic key for reportStatus integration with sync indicator
 
+From 09-01 execution:
+- generateSW strategy over injectManifest -- no custom SW code needed for app-shell caching
+- autoUpdate registerType -- new SW activates immediately without user prompt
+- navigateFallbackDenylist for /.auth and /api -- prevents SW from breaking EasyAuth flows and API requests
+- PNG icons generated from SVG via sharp -- maximum browser compatibility
+- Dual exclusion: workbox navigateFallbackDenylist AND SWA navigationFallback.exclude for SW files
+
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (tech debt from v1.0)
@@ -101,6 +109,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-13 (08-01 execution)
-Stopped at: Completed 08-01-PLAN.md -- data migration (phase 8 complete)
+Last session: 2026-02-13 (09-01 execution)
+Stopped at: Completed 09-01-PLAN.md -- PWA configuration (09-02 remaining)
 Resume file: None
