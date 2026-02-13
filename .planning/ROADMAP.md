@@ -25,7 +25,7 @@
 - [x] **Phase 5: Auth Layer** — Microsoft sign-in via SWA EasyAuth with invite-only access (completed 2026-02-12)
 - [x] **Phase 6: API + Database** — Azure Functions API with Cosmos DB per-user storage (completed 2026-02-13)
 - [x] **Phase 7: Sync Engine** — Offline-first background sync with conflict resolution (completed 2026-02-12)
-- [ ] **Phase 8: Data Migration** — Existing localStorage data migrates to cloud on first sign-in
+- [x] **Phase 8: Data Migration** — Existing localStorage data migrates to cloud on first sign-in (completed 2026-02-13)
 - [ ] **Phase 9: PWA + Deployment** — Azure Static Web Apps hosting with installable PWA
 
 ## Phase Details
@@ -86,7 +86,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 08-01-PLAN.md — migrateLocalData function in sync-engine and migration trigger in SyncProvider
+- [x] 08-01-PLAN.md — migrateLocalData function in sync-engine and migration trigger in SyncProvider
 
 ### Phase 9: PWA + Deployment
 **Goal**: The app is hosted on Azure Static Web Apps, installable as a PWA on mobile, and works offline at the field
@@ -116,5 +116,5 @@ Plans:
 | 5. Auth Layer | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 6. API + Database | v2.0 | 2/2 | Complete | 2026-02-13 |
 | 7. Sync Engine | v2.0 | 2/2 | Complete | 2026-02-12 |
-| 8. Data Migration | v2.0 | 0/1 | Planned | - |
+| 8. Data Migration | v2.0 | 1/1 | Complete | 2026-02-13 |
 | 9. PWA + Deployment | v2.0 | 0/TBD | Not started | - |
