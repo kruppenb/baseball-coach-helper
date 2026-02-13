@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v2.0 Azure Cloud Sync — Phase 6: API & Database
+**Current focus:** v2.0 Azure Cloud Sync — Phase 7: Sync Engine
 
 ## Current Position
 
 Milestone: v2.0 Azure Cloud Sync
-Phase: 6 of 9 (API & Database) -- COMPLETE
-Plan: 2 of 2 in current phase (done)
-Status: Phase complete -- ready for Phase 7
-Last activity: 2026-02-13 — Completed 06-02 API CRUD endpoints
+Phase: 7 of 9 (Sync Engine)
+Plan: 1 of 2 in current phase (done)
+Status: Executing phase 7
+Last activity: 2026-02-13 — Completed 07-01 sync engine infrastructure
 
-Progress: [=====================...........] 68% (21/~31 plans across all milestones)
+Progress: [======================..........] 71% (22/~31 plans across all milestones)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0):**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: 4 min
-- Total execution time: 88 min
+- Total execution time: 90 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -30,6 +30,7 @@ Progress: [=====================...........] 68% (21/~31 plans across all milest
 | 05-auth-layer | 02 | 3min | 3 | 5 |
 | 06-api-database | 01 | 2min | 2 | 9 |
 | 06-api-database | 02 | 2min | 2 | 5 |
+| 07-sync-engine | 01 | 2min | 2 | 5 |
 
 ## Accumulated Context
 
@@ -67,6 +68,12 @@ From 06-02 execution:
 - Batting endpoint combines two doc types under one route via docType discriminator on PUT
 - All GET endpoints return 200 with sensible defaults (not 404) when no document exists
 
+From 07-01 execution:
+- Read localStorage at push-time (not from closure) to avoid stale data after rapid edits
+- apiConfig stored in useRef to prevent object-literal dependency churn and infinite re-renders
+- All hooks called unconditionally in useCloudStorage; auth check gates behavior inside callbacks/effects
+- Collection push only sends entries since lastSyncedCount (append-only optimization)
+
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (tech debt from v1.0)
@@ -77,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-13 (06-02 execution)
-Stopped at: Completed 06-02-PLAN.md -- API CRUD endpoints (phase 06 complete)
+Last session: 2026-02-13 (07-01 execution)
+Stopped at: Completed 07-01-PLAN.md -- sync engine infrastructure
 Resume file: None
