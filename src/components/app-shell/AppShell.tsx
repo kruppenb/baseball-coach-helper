@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AppHeader } from './AppHeader';
 import { TabBar } from './TabBar';
 import { RosterPage } from '../roster/RosterPage';
 import { GameSetupPage } from '../game-setup/GameSetupPage';
@@ -26,9 +27,7 @@ export function AppShell() {
 
   return (
     <div className={styles.shell}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Lineup Builder</h1>
-      </header>
+      <AppHeader />
       <TabBar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
       <main className={styles.content}>
         {activeTab === 'roster' && (

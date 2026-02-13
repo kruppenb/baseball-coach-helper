@@ -6,17 +6,6 @@
   margin: 0 auto;
 }
 
-.header {
-  padding: var(--space-md) var(--space-lg);
-}
-
-.title {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  margin: 0;
-  color: var(--color-text);
-}
-
 .content {
   flex: 1;
   overflow-y: auto;
