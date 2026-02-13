@@ -54,11 +54,11 @@ Plans:
   2. Coach's roster, game config, lineup state, and game history are stored in Cosmos DB under their userId partition (SYNC-01)
   3. Cosmos DB connection string exists only in server-side application settings, never in client bundle (DEPL-03)
   4. API returns only data belonging to the requesting coach (SYNC-01)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — API project scaffold with shared auth and Cosmos DB infrastructure libraries
+- [ ] 06-02-PLAN.md — All function endpoints (roster, game-config, lineup-state, game-history, batting)
 
 ### Phase 7: Sync Engine
 **Goal**: The app reads/writes localStorage first and syncs to cloud in the background, with visible sync status and safe conflict resolution
@@ -114,7 +114,7 @@ Plans:
 | 3.1 UI Fixes | v1.0 | 2/2 | Complete | 2026-02-10 |
 | 4. History & Output | v1.0 | 5/5 | Complete | 2026-02-11 |
 | 5. Auth Layer | v2.0 | 2/2 | Complete | 2026-02-12 |
-| 6. API + Database | v2.0 | 0/TBD | Not started | - |
+| 6. API + Database | v2.0 | 0/2 | Planned | - |
 | 7. Sync Engine | v2.0 | 0/TBD | Not started | - |
 | 8. Data Migration | v2.0 | 0/TBD | Not started | - |
 | 9. PWA + Deployment | v2.0 | 0/TBD | Not started | - |
