@@ -5,29 +5,30 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v2.0 Azure Cloud Sync — Phase 5: Auth Layer (Complete)
+**Current focus:** v2.0 Azure Cloud Sync — Phase 6: API & Database
 
 ## Current Position
 
 Milestone: v2.0 Azure Cloud Sync
-Phase: 5 of 9 (Auth Layer) -- COMPLETE
-Plan: 2 of 2 in current phase (done)
-Status: Phase Complete
-Last activity: 2026-02-12 — Completed 05-02 auth UI integration
+Phase: 6 of 9 (API & Database)
+Plan: 1 of 2 in current phase (done)
+Status: Executing
+Last activity: 2026-02-13 — Completed 06-01 API project scaffold
 
-Progress: [===================.............] 61% (19/~31 plans across all milestones)
+Progress: [====================............] 65% (20/~31 plans across all milestones)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0):**
-- Total plans completed: 19
-- Average duration: 5 min
-- Total execution time: 84 min
+- Total plans completed: 20
+- Average duration: 4 min
+- Total execution time: 86 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 05-auth-layer | 01 | 2min | 3 | 6 |
 | 05-auth-layer | 02 | 3min | 3 | 5 |
+| 06-api-database | 01 | 2min | 2 | 9 |
 
 ## Accumulated Context
 
@@ -53,6 +54,12 @@ From 05-02 execution:
 - Auth section renders nothing during isLoading to prevent layout flash
 - Inline header in AppShell replaced entirely by AppHeader component
 
+From 06-01 execution:
+- Cosmos client is module-scope singleton reused across Azure Functions invocations
+- API ClientPrincipal simplified from frontend (no claims array -- API only needs userId)
+- CosmosDocument.data typed as unknown -- each endpoint casts to specific frontend type
+- Shared libs pattern: api/src/lib/ for auth, cosmos, types
+
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (tech debt from v1.0)
@@ -63,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-12 (05-02 execution)
-Stopped at: Completed 05-02-PLAN.md -- Phase 5 Auth Layer complete
+Last session: 2026-02-13 (06-01 execution)
+Stopped at: Completed 06-01-PLAN.md -- API project scaffold with shared libraries
 Resume file: None
