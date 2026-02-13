@@ -1,268 +1,584 @@
-# Pitfalls Research
+# Domain Pitfalls: Azure Cloud Sync Integration
 
-**Domain:** Little League Baseball Lineup Builder
-**Researched:** 2026-02-09
-**Confidence:** MEDIUM
+**Domain:** Adding Azure auth, Cosmos DB, offline sync, and Static Web Apps deployment to existing localStorage-based React SPA
+**Researched:** 2026-02-12
+**Confidence:** HIGH (official Microsoft docs verified most claims)
+
+---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Retry-Based Algorithm Fails Without Graceful Degradation
-
-**What goes wrong:**
-The algorithm attempts to generate a valid lineup through randomized retries (200 attempts in existing code), but when constraints are mathematically impossible or highly constrained, it silently fails or provides no actionable feedback. Users are left with a blank lineup and no understanding of why generation failed.
-
-**Why it happens:**
-Randomized constraint satisfaction algorithms can fail for two reasons: (1) constraints are mathematically impossible to satisfy (e.g., 8 players but need 9 positions filled), or (2) the problem space is solvable but requires more attempts than the retry limit allows. Developers often treat retry limits as a "good enough" threshold without considering what happens when the limit is exceeded.
-
-**How to avoid:**
-Implement pre-validation before attempting generation: check roster size against required positions, verify pitcher/catcher assignments don't create impossible constraints, and validate that fairness rules are mathematically feasible. When retry limit is reached, detect which constraints are failing most frequently and provide specific feedback ("Not enough players for all positions" vs. "Cannot satisfy infield rotation with current pitcher/catcher assignments"). Consider using constraint satisfaction problem (CSP) techniques with backtracking instead of pure randomization for better determinism.
-
-**Warning signs:**
-- Users report "nothing happens" when clicking generate
-- Algorithm works with some roster configurations but not others
-- Console shows repeated retry attempts without convergence
-- Specific roster sizes (odd numbers, edge cases) consistently fail
-
-**Phase to address:**
-Phase 1 (Core Algorithm Refactor) - This is foundational and blocks all other features. Pre-validation should happen before any UI work.
+Mistakes that cause rewrites, data loss, or security incidents.
 
 ---
 
-### Pitfall 2: localStorage Data Loss on Browser Restrictions
+### Pitfall 1: MSAL Instance Re-creation on React Re-renders
 
-**What goes wrong:**
-Roster data stored in localStorage disappears or fails to save when users are in private browsing mode, when storage quota is exceeded (5MB limit per origin), or when browsers disable localStorage for security policies. Safari in private mode is particularly problematic: localStorage appears available but throws exceptions on setItem().
+**What goes wrong:** The `PublicClientApplication` instance is created inside a React component, causing it to be re-instantiated on every re-render. This breaks token caching, triggers "interaction in progress" errors, and causes infinite redirect loops.
 
-**Why it happens:**
-Browsers handle private browsing inconsistently. Safari pretends localStorage exists but blocks writes, Firefox/Chrome disable it entirely, and mobile browsers may clear localStorage unpredictably. Developers test in standard browsing mode and miss these edge cases. Additionally, localStorage is synchronous and blocks the main thread, so large roster data or repeated saves can cause UI freezes.
+**Why it happens:** React developers instinctively create objects inside components or hooks. MSAL's `PublicClientApplication` is a stateful singleton that must persist across the entire app lifecycle. Creating it inside a component means every re-render produces a new instance with empty cache, which then tries to handle the redirect response again, causing a loop.
 
-**How to avoid:**
-Always wrap localStorage operations in try-catch blocks and detect availability before use. Implement a storage abstraction layer with fallback to in-memory storage. Never assume localStorage.setItem() will succeed. For feature detection, attempt a test write (not just check for existence) before relying on localStorage. Provide clear user feedback when storage is unavailable ("Rosters will not be saved between sessions due to browser restrictions"). Consider implementing export/import functionality as a workaround for users who cannot use localStorage.
+**Consequences:**
+- Infinite redirect loops between app and Entra ID login page
+- "Interaction is currently in progress" errors blocking all auth
+- Token cache lost on every re-render, forcing constant re-authentication
+- Users see blank screen or login flicker
 
-**Warning signs:**
-- Users report losing roster data between sessions
-- Bug reports mentioning "incognito mode" or "private browsing"
-- setItem() exceptions in error logs
-- QuotaExceededError exceptions when storing large rosters
+**Prevention:**
+Create the MSAL instance at module scope (outside any React component), then pass it to `MsalProvider`. In this codebase, create a dedicated `src/auth/msalInstance.ts` file:
 
-**Phase to address:**
-Phase 2 (Data Persistence) - Must be addressed before adding roster save/load features. Should include comprehensive browser compatibility testing.
+```typescript
+// src/auth/msalInstance.ts -- module scope, NOT inside a component
+import { PublicClientApplication } from '@azure/msal-browser';
 
----
+export const msalInstance = new PublicClientApplication({
+  auth: {
+    clientId: 'YOUR_CLIENT_ID',
+    authority: 'https://login.microsoftonline.com/YOUR_TENANT_ID',
+    redirectUri: window.location.origin,
+  },
+  cache: { cacheLocation: 'localStorage' },
+});
+```
 
-### Pitfall 3: Fairness Algorithm Breaks with Odd Roster Sizes
+Then in `main.tsx`, wrap the app:
 
-**What goes wrong:**
-With 9 positions to fill each inning, rosters with 10 players create uneven bench rotation (one player sits every inning). The algorithm may fail to distribute bench time fairly, or worse, violate the "no consecutive innings on bench" rule because mathematically one player must sit twice in a 5-inning game with 10 players.
+```tsx
+import { MsalProvider } from '@azure/msal-react';
+import { msalInstance } from './auth/msalInstance';
 
-**Why it happens:**
-Round-robin scheduling algorithms typically handle even numbers elegantly but require special "bye" handling for odd scenarios. When positions (9) don't divide evenly into roster size, fairness becomes mathematically impossible to achieve perfectly. Developers focus on the "happy path" (11-12 player rosters) and miss edge cases at roster boundaries.
+// Await initialization BEFORE rendering
+await msalInstance.initialize();
+await msalInstance.handleRedirectPromise();
 
-**How to avoid:**
-Detect roster size edge cases during pre-validation. For 10-player rosters, explicitly inform coaches that perfect fairness is impossible and show which player will sit twice. Provide options: "Designate which player sits twice" or "Adjust roster (add/remove player)". For rosters smaller than 9, block generation entirely with clear messaging. For larger rosters (12+), implement intelligent bye-round logic that spreads bench time as evenly as possible using modulo arithmetic or weighted rotation.
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <MsalProvider instance={msalInstance}>
+    <App />
+  </MsalProvider>
+);
+```
 
-**Warning signs:**
-- Specific roster sizes (10, 13, 16) consistently fail validation
-- Parent complaints about unfair bench time with certain roster sizes
-- Algorithm succeeds but produces lineups that feel "unfair" to users
-- No UI indication that fairness is impossible with current roster
+**Detection:** Auth redirect loops in browser, "interaction_in_progress" errors in console, MSAL instance count growing in memory profiler.
 
-**Phase to address:**
-Phase 1 (Core Algorithm Refactor) - Should be part of pre-validation logic. Edge case handling must be built into the core algorithm from the start.
-
----
-
-### Pitfall 4: Print Layout Breaks on Single-Page Requirement
-
-**What goes wrong:**
-Generated lineup must fit on a single printable dugout card, but content overflows to multiple pages when roster size increases, font size is too large for readability, or printer margins vary by device. Coaches arrive at the field with unusable multi-page printouts or text cut off at page boundaries.
-
-**Why it happens:**
-Browsers apply different default print margins, and CSS page breaks are notoriously unreliable across browsers. Developers test with small rosters (9-10 players) and don't validate with larger rosters (12+ players). Font sizes optimized for screen readability (16px) are often too large for print density. Landscape vs. portrait orientation significantly affects how much content fits on a single page.
-
-**How to avoid:**
-Use CSS @page with explicit size and margin control: `@page { size: landscape; margin: 0.5in; }`. Set print-specific font sizes (12pt is standard for printed content) using @media print rules. Test with maximum expected roster size (15 players) across different browsers and actual printers, not just print preview. Implement dynamic font scaling based on roster size: if content height exceeds page, reduce font size incrementally until it fits. Use CSS Grid or Flexbox with explicit height constraints to prevent overflow. Add "page-break-inside: avoid" to critical sections (inning blocks) to prevent awkward splits. Consider landscape orientation by default for better horizontal space utilization.
-
-**Warning signs:**
-- Users report "lineup doesn't fit on one page"
-- Content cut off at page bottom in print preview
-- Different behavior between Chrome, Firefox, Safari print dialogs
-- Font size complaints ("too small to read in dugout")
-
-**Phase to address:**
-Phase 3 (Print Layout Optimization) - After core algorithm and UI are functional. Requires extensive real-world testing with actual printers and coaches in field conditions.
+**Confidence:** HIGH -- verified via [MSAL React FAQ](https://learn.microsoft.com/en-us/entra/msal/javascript/react/faq) and [MSAL.js common errors](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/errors).
 
 ---
 
-### Pitfall 5: JSON Serialization Loses Data on Edge Cases
+### Pitfall 2: MSAL localStorage Keys Collide with App Data
 
-**What goes wrong:**
-When saving roster or lineup data to localStorage, JavaScript objects containing undefined, NaN, or Infinity values are silently corrupted during JSON.stringify(). Object properties with undefined values are omitted entirely, while array elements with undefined become null. This causes data loss or unexpected null values when the lineup is reloaded.
+**What goes wrong:** MSAL stores authentication tokens and cache entries in localStorage using `msal.` prefixed keys. The existing app uses unprefixed localStorage keys (`roster`, `gameConfig`, `lineupState`, `gameHistory`). If MSAL's cache reset logic ever clears localStorage broadly, or if a future storage-clearing operation in the app wipes MSAL tokens, both systems break.
 
-**Why it happens:**
-JSON.stringify() has asymmetric handling: undefined in objects is omitted, but undefined in arrays becomes null. NaN and Infinity both serialize as null, losing information. Developers rarely test with incomplete data states (partially filled lineups, missing player assignments) where undefined values are common. The localStorage → JSON.stringify() pipeline is often written as a single line without validation or error handling.
+**Why it happens:** This codebase's `useLocalStorage` hook writes directly to localStorage with bare keys like `roster` and `lineupState`. MSAL also writes to localStorage (when configured with `cacheLocation: 'localStorage'`). Both systems share the same origin's localStorage namespace. Historically, [MSAL's cache reset cleared all localStorage items, not just msal-prefixed ones](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/103). While newer versions scope to `msal.` prefixes, the risk of cross-contamination remains if the app implements a "clear all data" feature or if MSAL behavior changes.
 
-**How to avoid:**
-Normalize data before serialization: replace undefined with explicit empty strings or null consistently. Use a replacer function with JSON.stringify() to handle edge cases explicitly: `JSON.stringify(data, (key, value) => value === undefined ? '' : value)`. Validate data structure before saving: ensure all expected properties exist. Implement versioning in stored data format to handle schema changes gracefully. Add round-trip testing: save → load → verify data matches original. Consider using a schema validation library (like Zod or Yup) to validate data before serialization.
+**Consequences:**
+- App "clear data" button logs user out by deleting MSAL tokens
+- MSAL cache operations could theoretically affect app data
+- Debugging becomes confusing when both systems write to same storage
 
-**Warning signs:**
-- Saved lineups load with missing player names (empty strings where names should be)
-- Array positions shift unexpectedly after reload
-- Console warnings about unexpected null values
-- Users report "data corruption" after saving and reloading
+**Prevention:**
+1. Namespace all app localStorage keys with a prefix (e.g., `blb:roster`, `blb:gameConfig`, `blb:lineupState`, `blb:gameHistory`). Update the `useLocalStorage` hook to prepend this prefix automatically.
+2. Never implement a blanket `localStorage.clear()`. Instead, clear only app-prefixed keys.
+3. Use `cacheLocation: 'localStorage'` for MSAL (not sessionStorage) to get cross-tab SSO, but document that MSAL owns `msal.*` keys.
 
-**Phase to address:**
-Phase 2 (Data Persistence) - Must be addressed when implementing save/load functionality. Should include comprehensive unit tests for edge cases.
+**Detection:** Auth failures after user clears roster data, or roster data missing after MSAL token refresh.
+
+**Confidence:** HIGH -- verified via [MSAL caching docs](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/caching) and [GitHub issue #103](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/103).
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 3: Existing localStorage Data Orphaned After Auth Is Added
 
-Shortcuts that seem reasonable but create long-term problems.
+**What goes wrong:** Users who have been using the app before auth was added have roster and game history data in localStorage under an anonymous context. After auth is added, the app scopes data to the authenticated user's ID, and all pre-existing data disappears. The coach loses their entire roster and game history.
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Hardcoded roster in code instead of localStorage | Faster initial development, no storage issues | Cannot customize rosters, requires code changes for each team | Never - blocks primary use case |
-| Retry-based randomization without pre-validation | Simple to implement, works for "normal" cases | Fails silently on edge cases, no user feedback | Only for prototypes, must be replaced for production |
-| Clipboard-only export instead of PDF/print | Avoids CSS print complexity | Poor UX for coaches at field, requires paste into separate app | Acceptable for MVP, but must add print in Phase 3 |
-| Inline styles instead of @media print CSS | Quick to implement, works in development | Doesn't optimize for print, causes multi-page overflow | Acceptable for Phase 1-2, must refactor before print optimization |
-| Direct localStorage.setItem() without try-catch | Fewer lines of code, works in standard browsing | Crashes in private browsing, no error handling | Never - always wrap in try-catch |
-| Fixed innings (5) instead of configurable | Simpler algorithm, fewer edge cases | Cannot adapt to modified game rules or different leagues | Acceptable for MVP, must make configurable by Phase 4 |
+**Why it happens:** Adding user-scoped storage (keyed by user ID) means old data (keyed without user ID) is invisible to the new storage layer. Developers focus on the "new user" flow and forget that existing users have weeks or months of accumulated data in the old format.
 
-## Integration Gotchas
+**Consequences:**
+- Coaches lose entire roster, game history, and lineup configurations
+- Complete loss of trust in the app
+- No way to recover data once the old keys are overwritten or ignored
 
-Common mistakes when connecting to external services.
+**Prevention:**
+Implement a one-time data migration flow:
+1. On first authenticated login, check for existence of old unprefixed keys (`roster`, `gameHistory`, etc.)
+2. If found, prompt the user: "We found existing data. Migrate to your account?"
+3. On confirmation, read old data, write to new user-scoped storage, and optionally to Cosmos DB
+4. Mark migration as complete (store a `blb:migrated` flag) so the prompt does not repeat
+5. Do NOT delete old keys immediately -- keep them for 30 days as a safety net
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Browser Print API | Assuming @page rules work consistently across browsers | Test on Chrome, Firefox, Safari with actual printers; provide fallback export to PDF |
-| localStorage API | Using localStorage without checking availability | Wrap all operations in try-catch, detect private browsing, implement in-memory fallback |
-| window.print() | Calling print() without ensuring CSS @media print rules are loaded | Use @media print for all print styles, test in print preview before calling print() |
-| Clipboard API | Assuming navigator.clipboard is always available | Check for clipboard API support, provide fallback message if unavailable (older browsers, HTTP contexts) |
+**Detection:** User reports losing data after logging in for the first time.
 
-## Performance Traps
+**Confidence:** HIGH -- this is an inevitable consequence of the architecture change visible in the existing codebase (bare `useLocalStorage` calls in `useRoster.ts`, `useGameHistory.ts`, `useLineup.ts`, `useGameConfig.ts`).
 
-Patterns that work at small scale but fail as usage grows.
+---
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Synchronous localStorage operations block UI | UI freezes when saving/loading large roster data | Use async wrapper or debounce save operations | Rosters with 15+ players or frequent autosave |
-| N-attempt retry loop without timeout | Browser becomes unresponsive during lineup generation | Add maximum time limit (5 seconds) in addition to attempt limit | Impossible constraints cause infinite-feeling loops |
-| Re-validating entire lineup on every keystroke | Input lag when manually editing lineup positions | Debounce validation or only validate on blur/generate | Lineups with 12+ players × 5 innings = 60+ fields |
-| Deep object cloning during retry attempts | Memory bloat from creating 200+ lineup copies | Reuse lineup object, only clone on success | Rosters with 15 players × 200 attempts = high memory usage |
+### Pitfall 4: Cosmos DB Connection String Exposed to Browser
 
-## Security Mistakes
+**What goes wrong:** Developer puts the Cosmos DB connection string in the React SPA's environment variables (e.g., `VITE_COSMOS_CONNECTION_STRING`), which gets bundled into the client-side JavaScript. Anyone viewing page source can extract the connection string and directly access, modify, or delete all data in the database.
 
-Domain-specific security issues beyond general web security.
+**Why it happens:** Vite's `VITE_` prefix convention for environment variables makes them available in client-side code. Developers accustomed to server-side frameworks (where env vars are server-only) carry over the same pattern. The Cosmos DB SDK can technically run in a browser, making it easy to accidentally expose credentials.
 
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Storing player full names in localStorage | Privacy violation if device is shared or compromised | Store only first name + last initial as per requirements, clear data after season |
-| No data sanitization before display | XSS vulnerability if player names contain malicious scripts | Sanitize all user input, use React's built-in XSS protection (don't use dangerouslySetInnerHTML) |
-| Allowing arbitrary roster sizes without limit | Memory exhaustion from malicious 1000+ player rosters | Cap roster size at reasonable maximum (20 players), validate before processing |
-| Not clearing old lineups from localStorage | Accumulates sensitive data over seasons | Implement data cleanup: clear rosters older than 6 months, or provide "clear all data" button |
+**Consequences:**
+- Complete database compromise: read, write, delete all data
+- Children's personal information exposed
+- Potential regulatory violations (COPPA)
+- Unrecoverable if connection string is harvested before rotation
 
-## UX Pitfalls
+**Prevention:**
+NEVER access Cosmos DB directly from the browser. Use one of these patterns:
+1. **Azure Static Web Apps Data API** (recommended for simplicity): Configure the built-in `/data-api` endpoint which proxies requests through the server side. Connection string stays in Application Settings, never reaches the client.
+2. **Azure Functions API layer**: Write serverless functions that accept authenticated requests, validate authorization, and then call Cosmos DB. Connection strings live in Azure Application Settings.
+3. **Managed Identity** (best security): Use Azure Managed Identity from Functions to Cosmos DB, eliminating connection strings entirely.
 
-Common user experience mistakes in this domain.
+**Detection:** Search the built JavaScript bundle for "AccountEndpoint=" or "AccountKey=" strings. If found, the connection string has been leaked.
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| No feedback when generation fails | Coach doesn't know if they should wait or if something broke | Show loading indicator during generation, clear error message on failure with specific reason |
-| Jargon in error messages ("constraint satisfaction failed") | Non-technical coaches don't understand what went wrong | Use plain language: "Not enough players to fill all positions. Add more players to your roster." |
-| No undo after auto-generation overwrites manual edits | Coach loses 10 minutes of manual lineup work | Warn before overwriting, or save previous version with "Undo" button |
-| Print button hidden or unclear | Coaches don't realize they can print, use inefficient clipboard export | Make print button prominent, label as "Print Dugout Card" not just "Print" |
-| No indication of which constraints are violated | Coach doesn't know which player assignments need fixing | Highlight specific violations in UI: red background on duplicate players, yellow for unfair bench time |
-| No player availability toggle | Coach must manually delete players from lineup when player is absent | Provide checkbox to mark players as "Not playing today" that excludes them from generation |
-| Confusing pitcher/catcher slot numbers | Coaches think "Slot 1" means "Inning 1" but it covers innings 1-2 | Label slots clearly: "Slot 1 (Innings 1-2)", "Slot 2 (Innings 3-4)", "Slot 3 (Inning 5)" |
+**Confidence:** HIGH -- verified via [Azure Static Web Apps database connections docs](https://learn.microsoft.com/en-us/azure/static-web-apps/database-azure-cosmos-db) and [Cosmos DB security best practices](https://azure.microsoft.com/en-us/blog/how-to-develop-secure-applications-using-azure-cosmos-db/).
 
-## "Looks Done But Isn't" Checklist
+---
 
-Things that appear complete but are missing critical pieces.
+### Pitfall 5: Children's Names Stored Without COPPA Consideration
 
-- [ ] **Lineup generation:** Often missing pre-validation that checks for impossible constraints before attempting randomization — verify roster size, pitcher/catcher conflicts, and mathematical feasibility before first retry attempt
-- [ ] **Print functionality:** Often missing @media print CSS rules, resulting in multi-page overflow — verify single-page layout with maximum roster size across Chrome, Firefox, Safari print previews and actual printers
-- [ ] **localStorage save:** Often missing try-catch error handling and private browsing detection — verify saves work in incognito/private mode with graceful fallback to in-memory storage
-- [ ] **Fairness validation:** Often missing edge case handling for odd roster sizes (10, 13 players) — verify algorithm handles or explicitly rejects impossible fairness scenarios
-- [ ] **Player name input:** Often missing sanitization and validation — verify XSS protection and handling of special characters, empty strings, duplicate names
-- [ ] **Clipboard export:** Often missing format optimization for pasting into spreadsheets — verify tab-separated values work correctly in Excel, Google Sheets
-- [ ] **Responsive design:** Often missing mobile optimization for coaches using phones at field — verify lineup is readable and editable on mobile screens, buttons are touch-friendly
-- [ ] **Innings configuration:** Often hardcoded at 5 innings instead of configurable — verify games with modified innings (4, 6) work correctly if configurability is claimed
+**What goes wrong:** The app stores children's first names (and currently auto-capitalizes them, suggesting real names). If the app becomes cloud-synced, children's names are now stored in a cloud database, potentially subject to COPPA (Children's Online Privacy Protection Act) requirements. Even if COPPA does not technically apply (the app is used by coaches, not children), storing children's PII in a cloud database creates legal and privacy risk.
+
+**Why it happens:** The app started as a pure client-side tool where data never left the device. Moving to cloud storage fundamentally changes the privacy posture. Developers treat the cloud migration as a technical problem and overlook the legal implications of where children's data now resides.
+
+**Consequences:**
+- Potential COPPA liability if the FTC views the app as collecting children's personal information (the 2025 COPPA amendments expanded the definition of "personal information")
+- Parent trust violation if data breach exposes children's names linked to team membership
+- COPPA violations carry penalties of up to $53,088 per violation (as of 2025 amendments effective April 2026)
+
+**Prevention:**
+1. **Minimize data collection**: Store only first name + last initial (e.g., "Jake T.") rather than full names. The existing `autoCapitalize` function in `useRoster.ts` already processes names -- add truncation there.
+2. **Encrypt at rest**: Enable Cosmos DB encryption (on by default) and consider application-level encryption for the names field.
+3. **Data retention policy**: Auto-delete game data older than one season (6 months). Implement a cleanup function.
+4. **Privacy notice**: Add a clear notice that data is stored in the cloud and what data is collected.
+5. **No analytics tracking**: Do not add analytics SDKs that create persistent identifiers on the same origin as children's data. The 2025 COPPA amendments specifically target persistent identifiers.
+6. **Tenant isolation**: Each coach's data should be completely isolated by user ID in Cosmos DB partition design.
+
+**Detection:** Review the data model for any PII. Check if names stored in Cosmos DB can be linked to real children.
+
+**Confidence:** HIGH -- verified via [FTC COPPA Rule 2025 amendments](https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa), [COPPA compliance guide](https://blog.promise.legal/startup-central/coppa-compliance-in-2025-a-practical-guide-for-tech-edtech-and-kids-apps/), and [Wipfli COPPA 2026 readiness](https://www.wipfli.com/insights/articles/is-your-institution-ready-for-coppas-2026-changes-to-better-protect-childrens-online-privacy).
+
+---
+
+### Pitfall 6: Last-Write-Wins Silently Destroys Roster Changes
+
+**What goes wrong:** Coach edits roster on their phone (adds a player), then opens laptop where old cached data syncs up to Cosmos DB. The laptop's older version overwrites the phone's newer version because the laptop's write has a later timestamp (it synced later, even though the data is older). The added player vanishes with no warning.
+
+**Why it happens:** Last-write-wins (LWW) conflict resolution uses timestamps to determine which version to keep. But "last write" does not mean "latest content" -- it means "most recent sync operation." A device that was offline longer will sync later, and its stale data will overwrite fresher data from a device that synced earlier.
+
+**Consequences:**
+- Silent data loss with no user notification
+- Coach shows up to game with wrong roster (missing players, wrong lineup)
+- Extremely difficult to debug because the data looks valid -- it is just the wrong version
+- Loss of trust in cloud sync feature
+
+**Prevention:**
+1. **Version counter instead of timestamps**: Use a monotonically incrementing version number (`_etag` in Cosmos DB) rather than client timestamps. Cosmos DB provides `_etag` on every document for optimistic concurrency.
+2. **Detect conflicts, don't auto-resolve**: When a write fails due to etag mismatch, show the user both versions and let them choose, or merge non-conflicting changes.
+3. **For this app specifically**: Since it is primarily single-user (one coach), LWW with a version counter is acceptable IF paired with a "last synced" indicator in the UI showing the user when each device last synced.
+4. **Document-level granularity**: Sync roster, game history, and config as separate documents so a roster change does not conflict with a game history change.
+5. **Sync status indicator**: Always show when data was last synced and from which device, so the user can detect stale data.
+
+**Detection:** User reports data reverting to older state, or added players disappearing.
+
+**Confidence:** HIGH -- verified via [LWW implementation guide](https://oneuptime.com/blog/post/2026-01-30-last-write-wins/view), [Offline-first architecture patterns](https://medium.com/@jusuftopic/offline-first-architecture-designing-for-reality-not-just-the-cloud-e5fd18e50a79), [RxDB offline-first downsides](https://rxdb.info/downsides-of-offline-first.html).
+
+---
+
+## Moderate Pitfalls
+
+Mistakes that cause significant debugging time or degraded UX.
+
+---
+
+### Pitfall 7: MSAL Token Acquisition Fails Silently, App Appears Broken
+
+**What goes wrong:** `acquireTokenSilent` fails (expired refresh token, cache cleared, network issue) and the app does not handle the `InteractionRequiredAuthError`, so API calls fail with 401 errors. The app appears to be "logged in" (MSAL has an account in cache) but cannot actually make authenticated API calls.
+
+**Why it happens:** Developers test with fresh tokens that have not expired. The happy path works, but the silent token renewal failure path is never tested. MSAL's `acquireTokenSilent` can fail for many reasons: expired refresh token, consent revoked, conditional access policy change, or cache corruption.
+
+**Prevention:**
+Always wrap `acquireTokenSilent` with a fallback to interactive authentication:
+
+```typescript
+async function getToken(instance: IPublicClientApplication, account: AccountInfo) {
+  try {
+    const response = await instance.acquireTokenSilent({
+      scopes: ['api://YOUR_API_SCOPE/.default'],
+      account,
+    });
+    return response.accessToken;
+  } catch (error) {
+    if (error instanceof InteractionRequiredAuthError) {
+      // Fallback to popup (not redirect, to avoid losing app state)
+      const response = await instance.acquireTokenPopup({
+        scopes: ['api://YOUR_API_SCOPE/.default'],
+      });
+      return response.accessToken;
+    }
+    throw error;
+  }
+}
+```
+
+Additionally:
+- Use a blank page as `redirectUri` for silent token renewal to avoid router interference
+- Check `inProgress !== InteractionStatus.None` before initiating any interactive request
+- Never retry token acquisition in a loop -- the identity provider will throttle you
+
+**Detection:** Users report "logged in but nothing works" or API calls returning 401.
+
+**Confidence:** HIGH -- verified via [MSAL.js error handling docs](https://learn.microsoft.com/en-us/entra/identity-platform/msal-error-handling-js) and [MSAL common errors](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/errors).
+
+---
+
+### Pitfall 8: React Router Strips Hash During MSAL Redirect Flow
+
+**What goes wrong:** After authenticating with Entra ID, the user is redirected back to the app with auth response data in the URL hash. If the app uses a client-side router (React Router, or even custom routing), the router processes the URL before MSAL can extract the hash, stripping the auth response. MSAL then throws `hash_empty_error` or `monitor_window_timeout`.
+
+**Why it happens:** Client-side routers intercept URL changes (including hash changes) and navigate to matching routes. MSAL's redirect flow depends on the hash being intact when `handleRedirectPromise` runs. If the router fires first, the hash is gone.
+
+**Prevention:**
+- This app currently does NOT use React Router (it uses tab-based navigation via `TabId` state). This is actually an advantage -- keep it that way.
+- If routing is added later, ensure `handleRedirectPromise` is called and awaited BEFORE the router mounts.
+- Use a dedicated blank page as `redirectUri` for silent and popup flows:
+  ```
+  public/auth-redirect.html  (blank HTML page)
+  ```
+- Register this blank page as a redirect URI in the Entra ID app registration.
+
+**Detection:** `hash_empty_error` or `hash_does_not_contain_known_properties` in console after redirect from login.
+
+**Confidence:** HIGH -- verified via [MSAL.js common errors](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/errors).
+
+---
+
+### Pitfall 9: Azure Static Web Apps Returns index.html for Vite Asset Requests
+
+**What goes wrong:** After deploying to Azure Static Web Apps, the app loads but then shows a blank white screen. JavaScript files in `/assets/` return `text/html` content type because the SPA fallback route catches asset requests and serves `index.html` instead of the actual `.js` files.
+
+**Why it happens:** SPA deployments need a catch-all fallback route (`/* -> /index.html`) for client-side routing. But if the fallback is configured as a blanket route rewrite without excluding static assets, Vite's hashed output files (e.g., `/assets/index-abc123.js`) are matched by the fallback and served as HTML.
+
+**Prevention:**
+Create `staticwebapp.config.json` in the project root with proper asset exclusion:
+
+```json
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "*.{js,css,json,ico,png,svg,jpg,jpeg,gif,webp,woff,woff2,ttf,eot,webmanifest}"]
+  },
+  "routes": [
+    {
+      "route": "/assets/*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    }
+  ]
+}
+```
+
+Also verify that `vite.config.ts` sets `base: '/'` (default) and that the build output goes to `dist/` which Azure Static Web Apps expects.
+
+**Detection:** Blank white screen after deployment; browser console shows "Expected module script but got text/html" errors.
+
+**Confidence:** HIGH -- verified via [Azure Static Web Apps configuration docs](https://learn.microsoft.com/en-us/azure/static-web-apps/configuration) and [Azure Q&A on MIME type issues](https://learn.microsoft.com/en-us/answers/questions/5641757/azure-static-web-apps-vite-js-served-as-text-html).
+
+---
+
+### Pitfall 10: Cosmos DB Serverless vs Provisioned Throughput Cost Surprise
+
+**What goes wrong:** Developer provisions a Cosmos DB account with provisioned throughput (the default in many tutorials) at 400 RU/s minimum. For a small app with sporadic usage, this costs $20-25/month for an app that might process 10 requests per day. Alternatively, developer uses free tier provisioned but leaves indexing policies at defaults, consuming unnecessary RUs.
+
+**Why it happens:** Most Cosmos DB tutorials demonstrate provisioned throughput because it is the more common enterprise pattern. The serverless option is buried in documentation. Default indexing policies index every property in every document, which is unnecessary for a simple lookup-by-userId app and wastes RUs on writes.
+
+**Prevention:**
+1. **Use Serverless mode**: For this app's usage pattern (single coach, few devices, sporadic access), serverless is dramatically cheaper. You pay only per-request (fractions of a cent per operation) with no minimum monthly cost.
+2. **Use the Free Tier**: Cosmos DB offers a lifetime free tier with 1000 RU/s and 25 GB storage. For serverless, this means substantial free usage.
+3. **Optimize indexing**: Exclude unnecessary paths from indexing. For this app, only `/userId` (partition key) and `/id` need indexing:
+   ```json
+   {
+     "indexingMode": "consistent",
+     "includedPaths": [{ "path": "/userId/*" }],
+     "excludedPaths": [{ "path": "/*" }]
+   }
+   ```
+4. **Monitor RU consumption**: Use Azure Cost Management alerts and check RU headers on responses during development.
+
+**Detection:** Unexpected Azure bill; RU consumption in Azure Monitor higher than expected.
+
+**Confidence:** HIGH -- verified via [Cosmos DB pricing](https://azure.microsoft.com/en-us/pricing/details/cosmos-db/serverless/), [Free tier docs](https://learn.microsoft.com/en-us/azure/cosmos-db/free-tier), [Cost management docs](https://learn.microsoft.com/en-us/azure/cosmos-db/plan-manage-costs).
+
+---
+
+### Pitfall 11: Partition Key Lock-in with Wrong Design
+
+**What goes wrong:** Developer chooses a partition key that does not match access patterns (e.g., partitioning by `gameDate` or `id` instead of `userId`). Since partition keys cannot be changed after container creation, this requires migrating to a new container -- effectively rebuilding the database.
+
+**Why it happens:** Cosmos DB partition key selection is a one-time, irrevocable choice made during container creation. Developers unfamiliar with Cosmos DB choose keys based on data structure rather than access patterns. For a small app, partition key seems unimportant, so they pick something arbitrary.
+
+**Prevention:**
+For this app, the access pattern is clear: all queries are scoped to a single coach (user). The partition key should be `/userId`. This means:
+- All of one coach's data lives in the same logical partition (efficient reads)
+- Cross-user queries are unnecessary (each coach only sees their own data)
+- Perfect tenant isolation at the database level
+
+Store the data model as:
+```
+Container: "userData"
+Partition key: /userId
+Documents:
+  { id: "roster", userId: "abc123", type: "roster", data: [...] }
+  { id: "gameHistory", userId: "abc123", type: "gameHistory", data: [...] }
+  { id: "gameConfig", userId: "abc123", type: "config", data: {...} }
+  { id: "lineupState", userId: "abc123", type: "lineupState", data: {...} }
+```
+
+**Detection:** Cross-partition query warnings in Cosmos DB logs; high RU consumption on simple reads.
+
+**Confidence:** HIGH -- verified via [Cosmos DB partitioning overview](https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview).
+
+---
+
+### Pitfall 12: Custom Auth Requires Standard Plan (Not Free)
+
+**What goes wrong:** Developer builds the entire MSAL integration assuming Azure Static Web Apps will work with custom Entra ID authentication on the Free plan. At deployment time, they discover custom authentication providers require the Standard plan ($9/month). They either pay unexpectedly or must rearchitect to use the limited built-in auth.
+
+**Why it happens:** Azure Static Web Apps Free plan supports built-in authentication (GitHub, Twitter), but custom OpenID Connect providers (including custom Entra ID tenant configuration) require the Standard plan. The distinction is not prominent in getting-started tutorials.
+
+**Prevention:**
+- Plan for Standard plan from the start ($9/month) since this app requires Entra ID with single-tenant restriction.
+- The built-in Entra ID provider on the Free plan allows any Microsoft account to sign in and cannot be restricted to a specific tenant. For invite-only access, you MUST use custom authentication (Standard plan).
+- Budget: Standard plan ($9/mo) + Cosmos DB serverless (near-$0 for this usage) = approximately $10/month total.
+
+**Detection:** Deployment fails with "Custom authentication requires Standard plan" error, or any Microsoft account can sign in despite expecting tenant restriction.
+
+**Confidence:** HIGH -- verified via [Static Web Apps authentication docs](https://learn.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), [Static Web Apps plans](https://learn.microsoft.com/en-us/azure/static-web-apps/plans), [Custom authentication docs](https://learn.microsoft.com/en-us/azure/static-web-apps/authentication-custom).
+
+---
+
+## Minor Pitfalls
+
+Issues that cause friction but are easily fixed.
+
+---
+
+### Pitfall 13: `navigator.onLine` Is Unreliable for Offline Detection
+
+**What goes wrong:** The app uses `navigator.onLine` to detect offline status and toggle between localStorage-only and sync modes. But `navigator.onLine` only detects physical network disconnection, not actual internet reachability. A captive portal (hotel WiFi login page), DNS failure, or firewall blocking Azure endpoints all report `onLine: true` while the app cannot reach Cosmos DB.
+
+**Prevention:**
+- Do not rely solely on `navigator.onLine`. Use it as a fast initial hint, but verify with an actual network request (ping the API endpoint).
+- Design the sync layer to always try the network request and gracefully fall back to localStorage on any failure (timeout, 4xx, 5xx, network error).
+- Use the `online` and `offline` window events to trigger sync attempts, not to gate functionality.
+
+**Detection:** Sync fails silently when user has "internet" but cannot reach Azure.
+
+**Confidence:** MEDIUM -- based on multiple community reports and [TanStack Query's migration away from navigator.onLine](https://github.com/TanStack/query/discussions/7027).
+
+---
+
+### Pitfall 14: MSAL Token Cache Location Mismatch Between Environments
+
+**What goes wrong:** Developer uses `sessionStorage` for MSAL cache during development (the default), then deploys. Users opening a second tab find they are not logged in because sessionStorage is per-tab. Alternatively, developer uses `localStorage` but then MSAL's silent token renewal in hidden iframes fails because the iframe cannot access the parent's sessionStorage.
+
+**Prevention:**
+- Use `cacheLocation: 'localStorage'` for this app. The coach needs cross-tab SSO (open lineup in one tab, roster in another).
+- Starting in MSAL v4, localStorage tokens are encrypted by default, mitigating the XSS concern.
+- Document this decision so future developers do not change it without understanding the tradeoff.
+
+**Detection:** Users must re-login when opening new tabs; silent token renewal fails.
+
+**Confidence:** HIGH -- verified via [MSAL caching docs](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/caching).
+
+---
+
+### Pitfall 15: Service Worker Caches Stale Auth-Related Pages
+
+**What goes wrong:** A service worker (added for offline-first PWA capability) aggressively caches the app shell including the redirect URI page. When MSAL redirects back after authentication, the service worker serves a cached version that may not have the latest auth response hash, causing token acquisition to fail.
+
+**Prevention:**
+- Exclude the auth redirect URI page from service worker caching.
+- Use a `networkFirst` strategy for HTML pages and `cacheFirst` only for static assets (JS, CSS, images).
+- Do NOT enable a service worker until the auth flow is fully working and tested.
+- If using Vite PWA plugin, configure it to exclude auth-related routes.
+
+**Detection:** Auth works on first visit but fails on subsequent visits; clearing browser cache fixes the issue temporarily.
+
+**Confidence:** MEDIUM -- based on community reports of [service worker interference with MSAL](https://github.com/facebook/create-react-app/issues/11987).
+
+---
+
+### Pitfall 16: Invite-Only Access Not Actually Enforced
+
+**What goes wrong:** Developer configures the Entra ID app registration as single-tenant, assuming this restricts access to invited users. But single-tenant means "anyone in this tenant directory," which could include all employees in an organization. If the Entra ID tenant is a personal tenant, it may not restrict access at all.
+
+**Prevention:**
+1. In the Entra ID app registration, enable "Assignment required" under Enterprise Applications > Properties. This means only explicitly assigned users can sign in.
+2. Manually assign users (coaches) to the application via Enterprise Applications > Users and groups.
+3. On the API side, validate the user's `oid` claim against a list of allowed user IDs, not just that they have a valid token.
+4. Consider implementing a role assignment function in Azure Static Web Apps that checks user identity and assigns roles dynamically.
+
+**Detection:** An unintended user from the same Entra ID tenant successfully logs in and can access/modify data.
+
+**Confidence:** HIGH -- verified via [Restricting app to specific users](https://learn.microsoft.com/en-us/entra/identity-platform/howto-restrict-your-app-to-a-set-of-users).
+
+---
+
+### Pitfall 17: Sync Hydration Causes UI Flash on App Load
+
+**What goes wrong:** App loads, displays data from localStorage (fast), then cloud sync completes and replaces the data (possibly different). The UI flashes or jumps as roster data changes. If the user was mid-interaction (selecting players), their selections may be invalidated.
+
+**Prevention:**
+- Show a brief "syncing" indicator on app load before displaying mutable data.
+- Use a "stale-while-revalidate" pattern: show localStorage data immediately but mark it as "syncing" with a subtle indicator.
+- Do NOT replace in-memory state if the cloud version matches the local version (compare version numbers or hashes).
+- Never replace state while the user is actively editing. Queue the sync result and apply it on the next navigation or idle moment.
+
+**Detection:** UI flickers on load; user reports roster "jumping" or changing unexpectedly.
+
+**Confidence:** MEDIUM -- based on common offline-first UX patterns from [Offline-first architecture articles](https://medium.com/@jusuftopic/offline-first-architecture-designing-for-reality-not-just-the-cloud-e5fd18e50a79).
+
+---
+
+### Pitfall 18: Cosmos DB 2MB Document Size Limit with Growing Game History
+
+**What goes wrong:** Game history is stored as a single document containing an array of `GameHistoryEntry` objects. After a full season (20-30 games), each with detailed per-player summaries and full lineup data, the document approaches or exceeds Cosmos DB's 2MB document size limit. Writes fail with "Request size is too large."
+
+**Why it happens:** The current `GameHistoryEntry` type includes the full `Lineup` (record of all innings and positions), `battingOrder` (full array), and `playerSummaries` (array of detailed per-player stats). This is compact for 1-5 games but grows linearly. A single game entry could be 5-20KB depending on roster size, so 30+ games approaches 600KB -- still well under 2MB, but future features (notes, stats, photos) could push it over.
+
+**Prevention:**
+- Store each game history entry as its own Cosmos DB document (with `userId` partition key and `gameId` as document `id`).
+- Do NOT store the entire game history array as a single document. This also makes individual game queries more efficient (lower RU cost).
+- For the roster document, size is not a concern (well under 2MB even for large rosters).
+
+**Detection:** "413 Request Entity Too Large" or "Request size is too large" errors from Cosmos DB.
+
+**Confidence:** HIGH -- verified via [Cosmos DB limits](https://learn.microsoft.com/en-us/azure/cosmos-db/concepts-limits).
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation | Severity |
+|-------------|---------------|------------|----------|
+| MSAL.js integration | Instance re-creation on re-render (Pitfall 1) | Create instance at module scope, await initialize() | CRITICAL |
+| MSAL.js integration | Token acquisition failure not handled (Pitfall 7) | Always fallback from acquireTokenSilent to interactive | MODERATE |
+| MSAL.js integration | localStorage key collision (Pitfall 2) | Namespace all app keys with prefix | CRITICAL |
+| Entra ID setup | Custom auth requires Standard plan (Pitfall 12) | Budget for Standard plan from start | MODERATE |
+| Entra ID setup | Invite-only not actually enforced (Pitfall 16) | Enable "Assignment required" in app registration | MODERATE |
+| Cosmos DB setup | Partition key wrong, irrevocable (Pitfall 11) | Use `/userId` as partition key | CRITICAL |
+| Cosmos DB setup | Cost surprise from provisioned throughput (Pitfall 10) | Use serverless mode + free tier | MODERATE |
+| Cosmos DB setup | Single document for game history hits size limit (Pitfall 18) | One document per game entry | MINOR |
+| Data migration | Existing localStorage data orphaned (Pitfall 3) | One-time migration prompt on first login | CRITICAL |
+| Offline sync | Last-write-wins destroys data (Pitfall 6) | Use etag-based version tracking + sync indicator | CRITICAL |
+| Offline sync | navigator.onLine unreliable (Pitfall 13) | Try network request, fall back gracefully | MINOR |
+| Offline sync | Sync hydration causes UI flash (Pitfall 17) | Stale-while-revalidate pattern with sync indicator | MINOR |
+| SWA deployment | Assets served as text/html (Pitfall 9) | Proper navigationFallback with exclude patterns | MODERATE |
+| SWA deployment | Router strips auth hash (Pitfall 8) | Keep tab-based nav; use blank redirectUri page | MODERATE |
+| Privacy/security | Cosmos DB credentials in client bundle (Pitfall 4) | API layer (Functions or Data API), never direct access | CRITICAL |
+| Privacy/security | Children's names in cloud without COPPA consideration (Pitfall 5) | Minimize PII, add privacy notice, data retention | CRITICAL |
+| PWA/offline | Service worker caches stale auth pages (Pitfall 15) | Exclude auth pages from SW cache | MINOR |
+
+---
+
+## Integration-Specific Pitfalls (localStorage to Cloud)
+
+These pitfalls are unique to adding cloud sync to an EXISTING localStorage-based app, not relevant for greenfield builds.
+
+### The "Two Sources of Truth" Problem
+
+The current app has one source of truth: localStorage. After adding cloud sync, there are temporarily two: localStorage AND Cosmos DB. Every hook in the codebase (`useRoster`, `useGameHistory`, `useLineup`, `useGameConfig`) reads from and writes to localStorage via `useLocalStorage`. The migration must:
+
+1. **Preserve the localStorage-first pattern** for offline capability
+2. **Add a sync layer on top** that pushes/pulls to Cosmos DB
+3. **Handle the case where they disagree** (conflict resolution)
+
+The recommended architecture is:
+```
+React State <-> useLocalStorage (unchanged) <-> Sync Layer <-> Cosmos DB
+                                                    ^
+                                          Runs on app load + periodic
+                                          Uses etag for conflict detection
+```
+
+This means `useLocalStorage` continues to work exactly as it does today. A separate `useSyncToCloud` hook handles the push/pull to Cosmos DB without interfering with the existing data flow.
+
+### The "Custom Event Sync" Interference
+
+The existing `useLocalStorage` hook uses a `CustomEvent('local-storage-sync')` pattern to sync state across components using the same key within the same tab (see `useLocalStorage.ts` lines 31-40). When cloud sync writes new data to localStorage, it must also dispatch this custom event, or React components will show stale data until the next re-render.
+
+### The "Optimistic Write" Rollback
+
+The existing hooks (`useRoster.addPlayer`, `useGameHistory.finalizeGame`, etc.) write to localStorage immediately and synchronously. With cloud sync, a write might succeed locally but fail to sync (network error, auth expired, Cosmos DB throttled). The app must either:
+- **Accept eventual consistency**: Data is in localStorage, will sync later (recommended for this app)
+- **Rollback on sync failure**: Undo the localStorage write if cloud sync fails (complex, not recommended)
+
+---
 
 ## Recovery Strategies
 
-When pitfalls occur despite prevention, how to recover.
-
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Algorithm fails after 200 retries | LOW | Relax one constraint temporarily (e.g., allow one consecutive position violation), regenerate with relaxed rules, highlight the violation for manual fix |
-| localStorage data corrupted | MEDIUM | Implement data recovery from backup (previous save state), or provide import from clipboard to restore from coach's backup |
-| Print layout overflows one page | LOW | Dynamically reduce font size by 10% increments until content fits, or split into "Innings 1-3" and "Innings 4-5" separate prints |
-| Odd roster size makes fairness impossible | LOW | Show explicit message, let coach choose which player sits twice, or suggest roster adjustment (add/remove player) |
-| Private browsing blocks localStorage | LOW | Detect on page load, show warning banner, automatically fall back to in-memory storage with "Data will not persist" notice |
-| JSON deserialization fails | HIGH | Catch parsing errors, attempt data migration from old format, worst case: clear corrupted data and start fresh with user notification |
-| Constraint violation undetected until field | HIGH | No runtime recovery — requires algorithm fix in next version. Provide manual override in emergency: "Skip validation and print anyway" button |
+| MSAL redirect loop (Pitfall 1) | LOW | Clear localStorage MSAL entries (`msal.*` keys), refresh page |
+| localStorage key collision (Pitfall 2) | MEDIUM | Manual key migration script; one-time operation |
+| Orphaned pre-auth data (Pitfall 3) | LOW if caught early, HIGH if user deletes old keys | Read old keys, prompt user, migrate data |
+| Cosmos DB credentials exposed (Pitfall 4) | HIGH | Rotate all Cosmos DB keys immediately, audit access logs, remove credentials from client bundle |
+| COPPA violation (Pitfall 5) | HIGH | Legal review, data audit, potentially delete all children's data, add privacy notice |
+| LWW data loss (Pitfall 6) | MEDIUM | Cosmos DB has a continuous backup feature; restore from point-in-time |
+| Token acquisition failure (Pitfall 7) | LOW | Force logout and re-login |
+| SWA asset MIME type error (Pitfall 9) | LOW | Fix `staticwebapp.config.json` and redeploy |
+| Wrong partition key (Pitfall 11) | HIGH | Create new container with correct key, migrate all data |
+| Standard plan surprise (Pitfall 12) | LOW | Upgrade plan in Azure portal (no data loss) |
 
-## Pitfall-to-Phase Mapping
-
-How roadmap phases should address these pitfalls.
-
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Retry algorithm fails without feedback | Phase 1: Core Algorithm Refactor | Unit tests with impossible constraints, manual testing with edge case rosters (8, 10, 13 players) |
-| localStorage data loss on browser restrictions | Phase 2: Data Persistence | Cross-browser testing in private/incognito mode, QuotaExceeded simulation |
-| Fairness breaks with odd roster sizes | Phase 1: Core Algorithm Refactor | Unit tests with roster sizes 8-16, validation that 10-player roster shows explicit fairness warning |
-| Print layout breaks on single-page requirement | Phase 3: Print Layout Optimization | Print testing with max roster size on Chrome/Firefox/Safari, actual printer output verification |
-| JSON serialization loses data | Phase 2: Data Persistence | Round-trip testing: save with undefined/NaN → load → verify no data loss |
-| No feedback during generation | Phase 4: UX Polish | Manual testing: does UI show loading? Does failure show clear message? |
-| Coaches don't understand error messages | Phase 4: UX Polish | User testing with actual coaches (not developers), verify messages are plain language |
-| Manual edits overwritten by auto-generation | Phase 4: UX Polish | Add confirmation dialog or undo feature, manual testing of overwrite scenarios |
+---
 
 ## Sources
 
-### Constraint Satisfaction and Algorithm Failures
-- [Constraint satisfaction problem - Wikipedia](https://en.wikipedia.org/wiki/Constraint_satisfaction_problem)
-- [Constraint Satisfaction Problems (CSP) in Artificial Intelligence - GeeksforGeeks](https://www.geeksforgeeks.org/artificial-intelligence/constraint-satisfaction-problems-csp-in-artificial-intelligence/)
-- [Better Retries with Exponential Backoff and Jitter - Baeldung](https://www.baeldung.com/resilience4j-backoff-jitter)
-- [Retries Strategies in Distributed Systems - GeeksforGeeks](https://www.geeksforgeeks.org/system-design/retries-strategies-in-distributed-systems/)
-- [Best practices for retry pattern - Medium](https://harish-bhattbhatt.medium.com/best-practices-for-retry-pattern-f29d47cd5117)
+### MSAL.js / Authentication
+- [MSAL React FAQ - Microsoft Learn](https://learn.microsoft.com/en-us/entra/msal/javascript/react/faq)
+- [Common errors in MSAL.js - Microsoft Learn](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/errors)
+- [MSAL.js caching documentation - Microsoft Learn](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/caching)
+- [MSAL error handling - Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/msal-error-handling-js)
+- [@azure/msal-react npm](https://www.npmjs.com/package/@azure/msal-react)
+- [React 19 support issue #7577](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/7577)
+- [MSAL localStorage reset issue #103](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/103)
 
-### localStorage Pitfalls and Data Loss
-- [Storage quotas and eviction criteria - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria)
-- [Using localStorage in Modern Applications - RxDB](https://rxdb.info/articles/localstorage.html)
-- [Please Stop Using Local Storage - Randall Degges](https://www.rdegges.com/2018/please-stop-using-local-storage/)
-- [What is the max size of localStorage values? - GeeksforGeeks](https://www.geeksforgeeks.org/javascript/what-is-the-max-size-of-localstorage-values/)
-- [How to fix 'Failed to execute setItem on Storage' - TrackJS](https://trackjs.com/javascript-errors/failed-to-execute-setitem-on-storage/)
-- [Why using localStorage directly is a bad idea - Michal Zalecki](https://michalzalecki.com/why-using-localStorage-directly-is-a-bad-idea/)
+### Azure Static Web Apps
+- [SWA Configuration - Microsoft Learn](https://learn.microsoft.com/en-us/azure/static-web-apps/configuration)
+- [SWA Authentication - Microsoft Learn](https://learn.microsoft.com/en-us/azure/static-web-apps/authentication-authorization)
+- [SWA Custom Authentication - Microsoft Learn](https://learn.microsoft.com/en-us/azure/static-web-apps/authentication-custom)
+- [SWA Hosting Plans - Microsoft Learn](https://learn.microsoft.com/en-us/azure/static-web-apps/plans)
+- [SWA + Vite MIME type issue - Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/5641757/azure-static-web-apps-vite-js-served-as-text-html)
+- [SPA Fallback Route Configuration - Medium](https://medium.com/techhappily/azure-static-web-apps-single-page-application-fallback-route-configuration-1fc0e7c871d9)
 
-### Private Browsing Mode Detection
-- [Private browsing issue in Firefox - GitHub Issue](https://github.com/cyrilletuzi/angular-async-local-storage/issues/26)
-- [Safari Private browsing mode appears to support localStorage, but doesn't - GitHub Issue](https://github.com/marcuswestin/store.js/issues/42)
-- [localStorage not available in Chrome incognito mode - GitHub Issue](https://github.com/fluid-player/fluid-player/issues/667)
+### Cosmos DB
+- [Cosmos DB Partitioning Overview - Microsoft Learn](https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview)
+- [Cosmos DB Free Tier - Microsoft Learn](https://learn.microsoft.com/en-us/azure/cosmos-db/free-tier)
+- [Cosmos DB Serverless Pricing - Azure](https://azure.microsoft.com/en-us/pricing/details/cosmos-db/serverless/)
+- [Cosmos DB Limits - Microsoft Learn](https://learn.microsoft.com/en-us/azure/cosmos-db/concepts-limits)
+- [Cosmos DB Cost Management - Microsoft Learn](https://learn.microsoft.com/en-us/azure/cosmos-db/plan-manage-costs)
+- [SWA Database Connections - Microsoft Learn](https://learn.microsoft.com/en-us/azure/static-web-apps/database-azure-cosmos-db)
 
-### Fairness Algorithms and Odd Roster Sizes
-- [Round-robin scheduling - Wikipedia](https://en.wikipedia.org/wiki/Round-robin_scheduling)
-- [Optimizing Game Scheduling With Round-Robin Algorithms - Diamond Scheduler](https://cactusware.com/blog/round-robin-scheduling-algorithms)
-- [Sports Scheduling Simplified: The Power of the Rotation Algorithm - Medium](https://medium.com/coinmonks/sports-scheduling-simplified-the-power-of-the-rotation-algorithm-in-round-robin-tournament-eedfbd3fee8e)
-- [Fairness in Scheduling - Caltech](https://users.cms.caltech.edu/~schulman/Papers/fair-sched98.pdf)
+### Offline-First / Sync
+- [Offline-First Architecture - Medium](https://medium.com/@jusuftopic/offline-first-architecture-designing-for-reality-not-just-the-cloud-e5fd18e50a79)
+- [Downsides of Offline-First - RxDB](https://rxdb.info/downsides-of-offline-first.html)
+- [How to Implement Last-Write-Wins - OneUptime](https://oneuptime.com/blog/post/2026-01-30-last-write-wins/view)
+- [Offline-First Frontend Apps in 2025 - LogRocket](https://blog.logrocket.com/offline-first-frontend-apps-2025-indexeddb-sqlite/)
+- [Offline Data Sync Patterns - OutSystems](https://success.outsystems.com/documentation/11/building_apps/data_management/mobile_performance_strategies_and_offline_optimization/offline_data_sync_patterns/read_write_data_last_write_wins/)
 
-### JSON Serialization Edge Cases
-- [JavaScript JSON.stringify() Method: Practical Guide, Edge Cases - TheLinuxCode](https://thelinuxcode.com/javascript-jsonstringify-method-practical-guide-edge-cases-and-production-patterns/)
-- [How Does JavaScript Handle NaN in JSON Serialization? - Medium](https://medium.com/@conboys111/how-does-javascript-handle-nan-in-json-serialization-7d7e3ff77a91)
-- [JSON.stringify() - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)
-- [Null-ifying the Void: When undefined Ghosts Your JSON - Rohit Nandi](https://www.rohitnandi.com/blog/null-and-undefined)
+### Privacy / COPPA
+- [COPPA Rule - FTC](https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa)
+- [COPPA Compliance 2025 Guide - Promise Legal](https://blog.promise.legal/startup-central/coppa-compliance-in-2025-a-practical-guide-for-tech-edtech-and-kids-apps/)
+- [FTC COPPA 2025 Amendments - Securiti](https://securiti.ai/ftc-coppa-final-rule-amendments/)
+- [COPPA 2026 Readiness - Wipfli](https://www.wipfli.com/insights/articles/is-your-institution-ready-for-coppas-2026-changes-to-better-protect-childrens-online-privacy)
+- [Restricting App to Set of Users - Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/howto-restrict-your-app-to-a-set-of-users)
 
-### CSS Print Media and Layout
-- [Print CSS Cheatsheet: HTML & CSS Tips for Better PDFs](https://www.customjs.space/blog/print-css-cheatsheet/)
-- [CSS: The Perfect Print Stylesheet - Jotform Blog](https://www.jotform.com/blog/css-perfect-print-stylesheet-98272/)
-- [Designing For Print With CSS - Smashing Magazine](https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/)
-- [Print Styles Gone Wrong: Avoiding Pitfalls in Media Print CSS](https://blog.pixelfreestudio.com/print-styles-gone-wrong-avoiding-pitfalls-in-media-print-css/)
-- [page-orientation - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@page/page-orientation)
-
-### Sports Lineup Generator UX
-- [The Ultimate Baseball Lineup Generator - GameTime Lineups](https://baseballlineupgenerator.com/)
-- [Youth Sports Coaching Tools - SubTime](https://www.subtimeapp.com/)
+### Entra ID / Access Control
+- [Restrict App to Set of Users - Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/howto-restrict-your-app-to-a-set-of-users)
+- [SWA Tenant Restriction Issue #308](https://github.com/Azure/static-web-apps/issues/308)
 
 ---
-*Pitfalls research for: Little League Baseball Lineup Builder*
-*Researched: 2026-02-09*
+*Pitfalls research for: Azure Cloud Sync Integration -- Baseball Lineup Builder*
+*Researched: 2026-02-12*

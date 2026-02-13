@@ -1,523 +1,946 @@
-# Architecture Research
+# Architecture: Azure Cloud Sync Integration
 
-**Domain:** Little League Lineup Builder (Client-Side Web App)
-**Researched:** 2026-02-09
-**Confidence:** HIGH
+**Domain:** Baseball Lineup Builder -- Cloud Sync Extension
+**Researched:** 2026-02-12
+**Confidence:** HIGH (Azure SWA auth patterns), MEDIUM (MSAL React 19 compat details)
 
-## Standard Architecture
+## Executive Summary
 
-### System Overview
+This document describes how Azure authentication, Cosmos DB persistence, and offline-first sync integrate with the existing Vite + React 19 SPA. The core principle: **SWA EasyAuth for authentication, managed functions for the API layer, localStorage remains the primary data store with background cloud sync.** The existing hooks architecture is preserved by inserting a sync layer *beneath* the current `useLocalStorage` hook rather than replacing it.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     UI/Presentation Layer                    │
-├─────────────────────────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
-│  │  Roster  │  │  Lineup  │  │ Dugout   │  │ Battery  │    │
-│  │   View   │  │   Grid   │  │   Card   │  │  Config  │    │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    │
-│       │             │             │             │           │
-├───────┴─────────────┴─────────────┴─────────────┴───────────┤
-│                    Business Logic Layer                      │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │         Lineup Generation Engine                    │    │
-│  │  (Constraint solver with retry mechanism)           │    │
-│  └─────────────────────────────────────────────────────┘    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │         Validation System                           │    │
-│  │  (6-step validation rules)                          │    │
-│  └─────────────────────────────────────────────────────┘    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │         Batting Order Generator                     │    │
-│  │  (Rotation logic)                                   │    │
-│  └─────────────────────────────────────────────────────┘    │
-├─────────────────────────────────────────────────────────────┤
-│                      State Management Layer                  │
-├─────────────────────────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
-│  │  Roster  │  │  Lineup  │  │ Battery  │  │  Prefs   │    │
-│  │  State   │  │  State   │  │  Config  │  │(storage) │    │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘    │
-└─────────────────────────────────────────────────────────────┘
-```
+---
 
-### Component Responsibilities
-
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| **Roster View** | Player selection (active/inactive), display infield counts | React component with checkboxes, reads from roster state |
-| **Lineup Grid** | Display/edit 5 innings x 9 positions, show validation errors | React component with dropdowns/inputs per inning/position |
-| **Battery Config** | Pitcher/catcher slot assignments (3 slots each) | React component with dropdown selectors |
-| **Dugout Card** | Print-friendly single-page layout | React component with print-specific CSS (@media print) |
-| **Lineup Engine** | Constraint-based auto-generation with retry logic | Pure function (no UI), takes roster/battery config, returns lineup |
-| **Validation System** | 6-step validation (grid check, battery, infield count, consecutive positions, bench rotation) | Pure functions returning error arrays |
-| **Batting Order Generator** | Creates continuous batting rotation from roster | Pure function with fairness constraints |
-| **Roster State** | Manages active players list | React state or lightweight store (Zustand/Jotai) + localStorage persistence |
-| **Lineup State** | Manages 5x9 grid of player assignments | React state (object keyed by inning/position) |
-| **Battery Config** | Manages pitcher/catcher slot assignments | React state (3 slots each) |
-| **Prefs Storage** | Persists roster names to localStorage | Custom hook wrapping localStorage API |
-
-## Recommended Project Structure
+## Current Architecture (v1.0 Baseline)
 
 ```
-src/
-├── components/           # Presentational components
-│   ├── roster/
-│   │   ├── RosterSelector.tsx
-│   │   └── PlayerCheckbox.tsx
-│   ├── lineup/
-│   │   ├── LineupGrid.tsx
-│   │   ├── InningBlock.tsx
-│   │   └── PositionInput.tsx
-│   ├── battery/
-│   │   ├── BatteryConfig.tsx
-│   │   └── SlotSelector.tsx
-│   ├── dugout/
-│   │   ├── DugoutCard.tsx
-│   │   └── DugoutCard.print.css
-│   ├── validation/
-│   │   └── ValidationSummary.tsx
-│   └── batting/
-│       └── BattingOrderView.tsx
-├── logic/                # Business logic (pure functions)
-│   ├── lineup-generator.ts
-│   ├── validation.ts
-│   ├── batting-order.ts
-│   └── constraints.ts
-├── state/                # State management
-│   ├── useRoster.ts
-│   ├── useLineup.ts
-│   ├── useBattery.ts
-│   └── useLocalStorage.ts
-├── types/                # TypeScript types
-│   └── index.ts
-└── App.tsx               # Root component (composition)
+User Browser
+  |
+  v
+main.tsx --> App --> AppShell --> [RosterPage, GameSetupPage, LineupPage, HistoryPage]
+                                        |
+                                  Custom Hooks (useRoster, useGameConfig, useLineup, useGameHistory, useBattingOrder)
+                                        |
+                                  useLocalStorage (generic hook)
+                                        |
+                                  localStorage (4-6 keys)
 ```
 
-### Structure Rationale
+**localStorage keys in use:**
+| Key | Type | Hook | Size Estimate |
+|-----|------|------|---------------|
+| `roster` | `Player[]` | useRoster | ~1 KB |
+| `gameConfig` | `GameConfig` | useGameConfig | ~50 bytes |
+| `lineupState` | `LineupState` | useLineup | ~2-5 KB |
+| `gameHistory` | `GameHistoryEntry[]` | useGameHistory | ~1-2 KB per game |
+| `battingOrderState` | `BattingOrderState` | useBattingOrder | ~500 bytes |
+| `battingHistory` | `BattingHistoryEntry[]` | useBattingOrder | ~500 bytes per game |
 
-- **components/**: Feature-organized (roster, lineup, battery, dugout). Each feature owns its UI components. Makes it easy to find related components.
-- **logic/**: Pure functions separated from UI. Enables unit testing without React. The lineup generator (200+ lines) is completely isolated.
-- **state/**: Custom hooks encapsulate state management. Makes localStorage persistence transparent. Follows 2026 pattern of "hooks for shared logic."
-- **types/**: Centralized TypeScript definitions for Roster, Lineup, Position, etc.
+**Key architectural facts:**
+- All hooks call `useLocalStorage` directly -- no intermediate abstraction
+- `useLocalStorage` uses `CustomEvent('local-storage-sync')` for same-tab cross-hook sync
+- State is fully independent per hook; no global state store
+- No API calls, no network layer, no auth context
+- React 19 with Vite 7, TypeScript 5.9
 
-## Architectural Patterns
+---
 
-### Pattern 1: Container/Presentational Separation
+## Target Architecture (v2.0 with Azure Cloud Sync)
 
-**What:** Separate components that manage state/logic (containers) from components that render UI (presentational).
-
-**When to use:** For the lineup grid and roster selector where state management is complex but UI rendering is straightforward.
-
-**Trade-offs:**
-- Pros: Enhances reusability, simplifies testing, clear separation of concerns
-- Cons: More files to manage, can feel like boilerplate for simple components
-
-**Example:**
-```typescript
-// Container component (manages state)
-function LineupContainer() {
-  const { lineup, updatePosition } = useLineup();
-  const { activePlayers } = useRoster();
-
-  return (
-    <LineupGrid
-      lineup={lineup}
-      players={activePlayers}
-      onChange={updatePosition}
-    />
-  );
-}
-
-// Presentational component (just renders)
-function LineupGrid({ lineup, players, onChange }) {
-  return (
-    <div className="lineup-grid">
-      {innings.map(inn => (
-        <InningBlock
-          key={inn}
-          inning={inn}
-          lineup={lineup[inn]}
-          players={players}
-          onChange={(pos, player) => onChange(inn, pos, player)}
-        />
-      ))}
-    </div>
-  );
-}
+```
+User Browser
+  |
+  v
+main.tsx --> MsalProvider(?) or EasyAuth context
+               |
+               v
+           App --> AuthGate --> AppShell --> [Pages...]
+                                   |
+                             Custom Hooks (unchanged public API)
+                                   |
+                             useCloudStorage (new: replaces useLocalStorage calls)
+                              /          \
+                   localStorage        SyncEngine (new)
+                   (immediate,              |
+                    offline)          /api/* Azure Functions
+                                          |
+                                    Cosmos DB (NoSQL)
 ```
 
-### Pattern 2: Custom Hooks for Shared Logic
+### Authentication Decision: SWA EasyAuth (NOT MSAL.js)
 
-**What:** Encapsulate reusable state logic into custom hooks (useRoster, useLineup, useLocalStorage).
+**Recommendation: Use Azure Static Web Apps built-in authentication (EasyAuth), NOT @azure/msal-react.**
 
-**When to use:** When multiple components need access to the same state or when state has complex update logic.
+**Rationale:**
 
-**Trade-offs:**
-- Pros: Single source of truth, easy to test, follows React best practices
-- Cons: Can become complex if hook dependencies aren't carefully managed
+1. **React 19 compatibility risk with MSAL.** The `@azure/msal-react` library had no React 19 peer dependency support until a PR merged in early 2025. The current npm package may still require `--legacy-peer-deps` or overrides. SWA EasyAuth avoids this entirely -- it operates at the platform level, not in React code.
 
-**Example:**
-```typescript
-// Custom hook with localStorage persistence
-function useRoster() {
-  const [fullRoster, setFullRoster] = useLocalStorage<string[]>('roster', []);
-  const [activePlayers, setActivePlayers] = useState<string[]>(fullRoster);
+2. **Zero client-side library.** SWA EasyAuth works via platform-level redirect flows (`/.auth/login/aad`). The browser navigates to an Azure-managed login page, and after auth, SWA sets a secure cookie. No MSAL SDK needed in the bundle.
 
-  const togglePlayer = (player: string) => {
-    setActivePlayers(prev =>
-      prev.includes(player)
-        ? prev.filter(p => p !== player)
-        : [...prev, player]
-    );
-  };
+3. **Simpler token management.** With MSAL, the app must manage token acquisition, refresh, and silentAcquire. With EasyAuth, the SWA platform handles all of this -- API functions receive the authenticated user identity via the `x-ms-client-principal` header automatically.
 
-  return { fullRoster, activePlayers, togglePlayer, setFullRoster };
-}
+4. **Built-in role management.** SWA supports invite-only access via the Azure Portal Role Management UI, which maps directly to the "invite-only Microsoft accounts" requirement. Coaches are invited by email, assigned the `coach` role.
 
-// Custom hook for localStorage (with SSR-safe initialization)
-function useLocalStorage<T>(key: string, defaultValue: T) {
-  const [value, setValue] = useState<T>(() => {
-    if (typeof window === 'undefined') return defaultValue;
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : defaultValue;
-  });
+5. **Local dev story is solved.** The SWA CLI (`swa start`) provides a mock authentication emulator at `/.auth/login/<provider>` that returns configurable fake `clientPrincipal` objects -- no Entra ID app registration needed for local development.
 
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value]);
+**Confidence: HIGH** -- Based on official Microsoft documentation (updated January 2026).
 
-  return [value, setValue] as const;
-}
-```
+### What EasyAuth Provides
 
-### Pattern 3: Pure Business Logic Functions
+When a user hits `/.auth/login/aad`, SWA redirects to Microsoft Entra ID login. After authentication, SWA sets a session cookie and exposes:
 
-**What:** Separate constraint-solving and validation logic into pure functions outside React components.
-
-**When to use:** For complex algorithms (lineup generator, validation) that don't need React's lifecycle.
-
-**Trade-offs:**
-- Pros: Testable without React, reusable across contexts, easier to debug
-- Cons: Requires careful interface design to avoid tight coupling
-
-**Example:**
-```typescript
-// Pure function (no React, no side effects)
-export function autoGenerateLineup(
-  activePlayers: string[],
-  pitchers: { [slot: number]: string },
-  catchers: { [slot: number]: string }
-): { lineup: Lineup; success: boolean } {
-  const maxAttempts = 200;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const lineup = attemptLineupGeneration(activePlayers, pitchers, catchers);
-    const errors = validateLineup(lineup, activePlayers, pitchers, catchers);
-
-    if (errors.length === 0) {
-      return { lineup, success: true };
-    }
+**Frontend -- `GET /.auth/me`** returns:
+```json
+{
+  "clientPrincipal": {
+    "identityProvider": "aad",
+    "userId": "abcd12345...",
+    "userDetails": "coach@outlook.com",
+    "userRoles": ["anonymous", "authenticated", "coach"],
+    "claims": [
+      { "typ": "name", "val": "Coach Smith" }
+    ]
   }
+}
+```
 
-  return { lineup: {}, success: false };
+**API Functions** -- receive `x-ms-client-principal` header (Base64-encoded JSON):
+```typescript
+// In Azure Function
+const header = req.headers.get('x-ms-client-principal');
+const encoded = Buffer.from(header, 'base64');
+const decoded = JSON.parse(encoded.toString('ascii'));
+// decoded.userId is the partition key for Cosmos DB
+```
+
+---
+
+## Component Boundaries
+
+### New Components and Files
+
+| Component/File | Layer | Purpose |
+|----------------|-------|---------|
+| `src/auth/AuthGate.tsx` | UI | Conditionally renders login UI or app based on auth state |
+| `src/auth/useAuth.ts` | Hook | Fetches `/.auth/me`, exposes `{ user, isAuthenticated, isLoading, login, logout }` |
+| `src/auth/auth-types.ts` | Types | `ClientPrincipal`, `AuthState` interfaces |
+| `src/sync/useCloudStorage.ts` | Hook | Drop-in replacement for `useLocalStorage` with cloud sync |
+| `src/sync/sync-engine.ts` | Logic | Orchestrates localStorage-to-cloud reconciliation |
+| `src/sync/api-client.ts` | Logic | Typed fetch wrapper for `/api/*` endpoints |
+| `src/sync/sync-types.ts` | Types | `SyncStatus`, `SyncMetadata`, `CloudDocument` |
+| `api/src/functions/*.ts` | API | Azure Functions (CRUD for each data entity) |
+| `staticwebapp.config.json` | Config | Route rules, auth provider config, API routing |
+
+### Modified Existing Files
+
+| File | Change | Risk |
+|------|--------|------|
+| `src/main.tsx` | Wrap with auth context (if needed) or leave as-is | LOW |
+| `src/components/app-shell/AppShell.tsx` | Add AuthGate wrapper, add user menu/logout button in header | LOW |
+| `src/hooks/useRoster.ts` | Change `useLocalStorage` to `useCloudStorage` (one-line import swap) | LOW |
+| `src/hooks/useGameConfig.ts` | Change `useLocalStorage` to `useCloudStorage` (one-line import swap) | LOW |
+| `src/hooks/useGameHistory.ts` | Change `useLocalStorage` to `useCloudStorage` (one-line import swap) | LOW |
+| `src/hooks/useBattingOrder.ts` | Change `useLocalStorage` to `useCloudStorage` (two-line import swap) | LOW |
+| `src/hooks/useLineup.ts` | Change `useLocalStorage` to `useCloudStorage` (one-line import swap) | LOW |
+| `src/hooks/useLocalStorage.ts` | **No changes** -- preserved as fallback for unauthenticated/offline use | NONE |
+
+**Critical design point:** `useLocalStorage` is NOT modified. The new `useCloudStorage` hook wraps it, adding sync. If auth is unavailable, `useCloudStorage` degrades to pure `useLocalStorage` behavior. This means v1.0 functionality is preserved with zero risk.
+
+### Files That Do NOT Change
+
+All component files in `src/components/*` do NOT change. They consume hooks (useRoster, useLineup, etc.), and the hooks' public API does not change. The sync layer is invisible to the UI.
+
+All files in `src/logic/*` do NOT change. Business logic is pure functions with no storage dependency.
+
+---
+
+## Detailed Architecture
+
+### 1. Authentication Layer
+
+```
+src/auth/
+  auth-types.ts      -- ClientPrincipal, AuthState types
+  useAuth.ts          -- Hook: fetch /.auth/me, manage auth state
+  AuthGate.tsx        -- Component: show login or app
+```
+
+**useAuth hook:**
+```typescript
+// src/auth/useAuth.ts
+interface ClientPrincipal {
+  identityProvider: string;
+  userId: string;           // SWA-unique per-app user ID
+  userDetails: string;      // email address
+  userRoles: string[];      // ["anonymous", "authenticated", "coach"]
+  claims: { typ: string; val: string }[];
 }
 
-// Can be tested without React:
-test('generates valid lineup for 11 players', () => {
-  const result = autoGenerateLineup(players, pitchers, catchers);
-  expect(result.success).toBe(true);
-  expect(validateLineup(result.lineup)).toHaveLength(0);
+interface AuthState {
+  user: ClientPrincipal | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
+function useAuth(): AuthState & { login: () => void; logout: () => void } {
+  // 1. On mount, fetch /.auth/me
+  // 2. If clientPrincipal is null, user is not authenticated
+  // 3. login() navigates to /.auth/login/aad?post_login_redirect_uri=/
+  // 4. logout() navigates to /.auth/logout?post_logout_redirect_uri=/
+}
+```
+
+**AuthGate component:**
+```typescript
+// src/auth/AuthGate.tsx
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, login } = useAuth();
+
+  if (isLoading) return <LoadingSpinner />;
+  if (!isAuthenticated) return <LoginPage onLogin={login} />;
+  return <>{children}</>;
+}
+```
+
+**AppShell integration:**
+```typescript
+// src/components/app-shell/AppShell.tsx (modified)
+import { AuthGate } from '../../auth/AuthGate';
+
+export function AppShell() {
+  return (
+    <AuthGate>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>Lineup Builder</h1>
+          <UserMenu />  {/* new: shows email, logout button */}
+        </header>
+        {/* ... rest unchanged */}
+      </div>
+    </AuthGate>
+  );
+}
+```
+
+**staticwebapp.config.json:**
+```json
+{
+  "auth": {
+    "identityProviders": {
+      "azureActiveDirectory": {
+        "registration": {
+          "openIdIssuer": "https://login.microsoftonline.com/<TENANT_ID>/v2.0",
+          "clientIdSettingName": "AZURE_CLIENT_ID",
+          "clientSecretSettingName": "AZURE_CLIENT_SECRET"
+        }
+      }
+    }
+  },
+  "routes": [
+    { "route": "/.auth/login/github", "statusCode": 404 },
+    { "route": "/api/*", "allowedRoles": ["authenticated"] },
+    { "route": "/*", "allowedRoles": ["anonymous", "authenticated"] }
+  ],
+  "responseOverrides": {
+    "401": {
+      "redirect": "/.auth/login/aad?post_login_redirect_uri=.referrer",
+      "statusCode": 302
+    }
+  },
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  }
+}
+```
+
+**Key decisions:**
+- Block GitHub provider (only Microsoft/Entra ID allowed)
+- API routes require authentication
+- Frontend is accessible to anonymous users (AuthGate handles UX)
+- 401 on API auto-redirects to login (belt and suspenders with AuthGate)
+
+### 2. Sync Layer (Offline-First)
+
+This is the most architecturally significant addition.
+
+```
+src/sync/
+  sync-types.ts       -- SyncStatus, CloudDocument, SyncMetadata
+  useCloudStorage.ts  -- Drop-in useLocalStorage replacement with sync
+  sync-engine.ts      -- Reconciliation logic
+  api-client.ts       -- Typed /api/* fetch wrapper
+```
+
+#### useCloudStorage Hook
+
+```typescript
+// src/sync/useCloudStorage.ts
+// Same signature as useLocalStorage -- drop-in replacement
+function useCloudStorage<T>(
+  key: string,
+  initialValue: T
+): [T, (value: T | ((prev: T) => T)) => void] {
+  // 1. Use useLocalStorage internally (localStorage is ALWAYS the source of truth for reads)
+  const [value, setLocalValue] = useLocalStorage<T>(key, initialValue);
+  const { isAuthenticated } = useAuth();
+
+  // 2. On mount + when authenticated, pull from cloud and reconcile
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    syncEngine.pull(key).then(cloudValue => {
+      if (cloudValue && isNewerThan(cloudValue, value)) {
+        setLocalValue(cloudValue.data);
+      }
+    });
+  }, [isAuthenticated, key]);
+
+  // 3. On local write, push to cloud in background
+  const setValue = useCallback((newValue: T | ((prev: T) => T)) => {
+    setLocalValue(newValue);  // Immediate localStorage write (offline-safe)
+    if (isAuthenticated) {
+      syncEngine.push(key, newValue);  // Background cloud write (fire-and-forget)
+    }
+  }, [key, isAuthenticated, setLocalValue]);
+
+  return [value, setValue];
+}
+```
+
+#### Sync Strategy: Last-Write-Wins with Timestamps
+
+For a single-user, single-coach application where the same person uses it on phone and laptop, a simple **last-write-wins** (LWW) strategy is sufficient. Complex CRDT or OT conflict resolution is overkill for this use case.
+
+**Each synced document has metadata:**
+```typescript
+interface CloudDocument<T> {
+  id: string;            // e.g., "roster" or "gameConfig"
+  userId: string;        // partition key (from clientPrincipal.userId)
+  key: string;           // localStorage key name
+  data: T;               // the actual data (Player[], GameConfig, etc.)
+  updatedAt: string;     // ISO timestamp -- used for LWW comparison
+  version: number;       // monotonic counter for optimistic concurrency
+}
+```
+
+**Sync flow:**
+
+```
+LOCAL WRITE (user edits roster)
+  1. setLocalValue(newRoster)        -- immediate, synchronous
+  2. localStorage.setItem(...)       -- immediate, synchronous
+  3. UI re-renders                   -- immediate
+  4. syncEngine.push("roster", data) -- async, background
+     |
+     +--> POST /api/data/roster
+          { data: [...], updatedAt: now(), version: prev+1 }
+          |
+          +--> If 409 (version conflict):
+               GET /api/data/roster
+               Compare timestamps, take newer
+               Update local if cloud is newer
+
+CLOUD PULL (app opens, or comes online)
+  1. GET /api/data/roster
+  2. Compare cloud.updatedAt vs local updatedAt
+  3. If cloud is newer, update localStorage + React state
+  4. If local is newer, push local to cloud
+```
+
+**Sync metadata in localStorage:**
+```typescript
+// Stored alongside data in localStorage
+// Key: `_sync_meta_{key}`
+interface SyncMetadata {
+  key: string;
+  updatedAt: string;
+  version: number;
+  lastSyncedAt: string | null;
+  isDirty: boolean;  // true if local changes haven't been pushed
+}
+```
+
+#### API Client
+
+```typescript
+// src/sync/api-client.ts
+const API_BASE = '/api';
+
+async function pullDocument<T>(key: string): Promise<CloudDocument<T> | null> {
+  const res = await fetch(`${API_BASE}/data/${key}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Pull failed: ${res.status}`);
+  return res.json();
+}
+
+async function pushDocument<T>(key: string, doc: CloudDocument<T>): Promise<CloudDocument<T>> {
+  const res = await fetch(`${API_BASE}/data/${key}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(doc),
+  });
+  if (res.status === 409) throw new ConflictError(await res.json());
+  if (!res.ok) throw new Error(`Push failed: ${res.status}`);
+  return res.json();
+}
+```
+
+### 3. API Layer (Azure Functions -- Managed)
+
+**Recommendation: Use SWA managed functions (not bring-your-own).**
+
+**Rationale:**
+- The API needs are simple CRUD -- no background triggers, no Durable Functions
+- Managed functions deploy automatically with the SWA (single repo, single deploy)
+- HTTP triggers only is fine -- we only need REST endpoints
+- Cold start (15-30s worst case) is acceptable for a sync-in-background pattern where the user is never blocked waiting for API responses
+
+**Confidence: HIGH** -- managed functions support Node.js 20, HTTP triggers, and integrate directly with SWA auth.
+
+```
+api/
+  src/
+    functions/
+      getData.ts       -- GET /api/data/{key}
+      putData.ts       -- PUT /api/data/{key}
+      deleteData.ts    -- DELETE /api/data/{key}
+  host.json
+  package.json          -- @azure/cosmos, @azure/functions
+  tsconfig.json
+```
+
+**Function structure (v4 programming model):**
+
+```typescript
+// api/src/functions/getData.ts
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import { getCosmosContainer } from '../shared/cosmos';
+import { parseClientPrincipal } from '../shared/auth';
+
+async function getData(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+  const user = parseClientPrincipal(req);
+  if (!user) return { status: 401 };
+
+  const key = req.params.key;
+  const container = getCosmosContainer();
+
+  try {
+    const { resource } = await container.item(key, user.userId).read();
+    if (!resource) return { status: 404 };
+    return { status: 200, jsonBody: resource };
+  } catch (err: any) {
+    if (err.code === 404) return { status: 404 };
+    throw err;
+  }
+}
+
+app.http('getData', {
+  methods: ['GET'],
+  authLevel: 'anonymous',  // SWA handles auth via x-ms-client-principal
+  route: 'data/{key}',
+  handler: getData,
 });
 ```
 
-### Pattern 4: Validation as Data
-
-**What:** Return validation errors as structured data (arrays of error messages) rather than throwing exceptions or setting flags.
-
-**When to use:** For multi-step validation where you want to show all errors at once, not just the first failure.
-
-**Trade-offs:**
-- Pros: Users see all issues, easier to debug, validation logic is pure
-- Cons: Requires UI to handle error display consistently
-
-**Example:**
 ```typescript
-type ValidationResult = { step: string; errors: string[] };
+// api/src/functions/putData.ts
+async function putData(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+  const user = parseClientPrincipal(req);
+  if (!user) return { status: 401 };
 
-function getAllValidationResults(
-  lineup: Lineup,
-  activePlayers: string[],
-  pitchers: BatteryConfig,
-  catchers: BatteryConfig
-): ValidationResult[] {
-  return [
-    { step: 'Position Grid Check', errors: validatePositionGrid(lineup, activePlayers) },
-    { step: 'Pitching Requirements', errors: validatePitchers(lineup, pitchers) },
-    { step: 'Catching Requirements', errors: validateCatchers(lineup, catchers) },
-    { step: 'Infield Position Count', errors: validateInfieldCounts(lineup, activePlayers) },
-    { step: 'Consecutive Position Rule', errors: validateConsecutivePositions(lineup, activePlayers) },
-    { step: 'Bench Rotation', errors: validateBenchRotation(lineup, activePlayers) },
-  ];
+  const key = req.params.key;
+  const body = await req.json() as CloudDocument<unknown>;
+
+  // Ensure userId matches authenticated user (prevent data tampering)
+  body.userId = user.userId;
+  body.id = key;
+
+  const container = getCosmosContainer();
+  const { resource } = await container.items.upsert(body);
+  return { status: 200, jsonBody: resource };
 }
-
-// UI can show all errors grouped by step:
-{validationResults.map(res => (
-  <div key={res.step}>
-    <h3>{res.step}</h3>
-    {res.errors.map(err => <li>{err}</li>)}
-  </div>
-))}
 ```
 
-### Pattern 5: Component-Scoped Print Styles
-
-**What:** Use `@media print` styles scoped to print-specific components rather than global print stylesheets.
-
-**When to use:** For components like DugoutCard that need different layouts when printed vs displayed on screen.
-
-**Trade-offs:**
-- Pros: Styles stay with component, easier to maintain, no global print stylesheet conflicts
-- Cons: May duplicate some print rules if multiple components print
-
-**Example:**
 ```typescript
-// DugoutCard.tsx
-import './DugoutCard.print.css';
-
-function DugoutCard({ lineup, battingOrder }) {
-  return (
-    <div className="dugout-card">
-      {/* Screen layout */}
-      <div className="screen-only">
-        <button onClick={window.print}>Print</button>
-      </div>
-
-      {/* Print layout */}
-      <div className="print-content">
-        <h1>Game Day Lineup</h1>
-        {/* Single-page layout optimized for printing */}
-      </div>
-    </div>
-  );
-}
-
-// DugoutCard.print.css
-@media print {
-  .screen-only {
-    display: none;
-  }
-
-  .print-content {
-    /* Single-page layout */
-    page-break-inside: avoid;
-    font-size: 12pt;
-  }
-
-  .dugout-card {
-    padding: 0.5in;
-    width: 100%;
-  }
+// api/src/shared/auth.ts
+export function parseClientPrincipal(req: HttpRequest): ClientPrincipal | null {
+  const header = req.headers.get('x-ms-client-principal');
+  if (!header) return null;
+  const decoded = Buffer.from(header, 'base64').toString('ascii');
+  return JSON.parse(decoded);
 }
 ```
 
-## Data Flow
+### 4. Cosmos DB Data Model
 
-### State Flow (Top-Down)
+**Account type:** Serverless (pay-per-request, free tier eligible: 1000 RU/s + 25 GB)
 
-```
-User Action (toggle player, select pitcher, click auto-generate)
-    ↓
-Custom Hook (useRoster, useBattery, useLineup)
-    ↓
-State Update (setState)
-    ↓
-Component Re-render (React diffing)
-    ↓
-localStorage Persistence (useEffect)
-```
+**Database:** `lineup-builder`
+**Container:** `user-data`
+**Partition key:** `/userId`
 
-### Lineup Generation Flow
+All of a coach's data lives in a single logical partition (their userId). This is ideal because:
+- All reads/writes are scoped to one user
+- No cross-user queries needed
+- A single partition holds all 4-6 documents per user (~10-20 KB total)
+- Well within the 20 GB logical partition limit
 
-```
-[Auto-Generate Button Click]
-    ↓
-Read Current State (activePlayers, pitchers, catchers)
-    ↓
-Call Pure Function (autoGenerateLineup)
-    ↓ (iterative retry loop, max 200 attempts)
-[Lineup Engine] → [Constraint Solver] → [Validation]
-    ↓
-Return Result ({ lineup, success })
-    ↓
-Update State (setLineup)
-    ↓
-Component Re-render (shows new lineup + validation)
-```
+**Document structure:**
 
-### Validation Flow
+```json
+// Example: roster document
+{
+  "id": "roster",
+  "userId": "abcd12345...",
+  "key": "roster",
+  "data": [
+    { "id": "uuid-1", "name": "Alex", "isPresent": true },
+    { "id": "uuid-2", "name": "Bailey", "isPresent": true }
+  ],
+  "updatedAt": "2026-02-12T15:30:00.000Z",
+  "version": 7
+}
 
-```
-[State Change] (lineup, roster, or battery config)
-    ↓
-Trigger Validation (getAllValidationResults)
-    ↓
-Run 6 Validation Steps (each returns string[])
-    ↓
-Aggregate Results (ValidationResult[])
-    ↓
-Render Validation Summary (grouped by step)
+// Example: gameHistory document
+{
+  "id": "gameHistory",
+  "userId": "abcd12345...",
+  "key": "gameHistory",
+  "data": [
+    { "id": "game-1", "gameDate": "2026-02-01T...", "innings": 6, ... },
+    { "id": "game-2", "gameDate": "2026-02-08T...", "innings": 5, ... }
+  ],
+  "updatedAt": "2026-02-08T18:00:00.000Z",
+  "version": 3
+}
 ```
 
-### Key Data Flows
+**Why one document per localStorage key (not one per entity):**
+- Mirrors the existing data model exactly (each localStorage key = one JSON blob)
+- Minimizes Cosmos DB RU consumption (one read per key, not one per player)
+- Simplifies sync logic (sync a key, not individual records)
+- Total data per user is tiny (<50 KB) -- well within Cosmos DB's 2 MB document limit
+- No need for per-item granularity since there is only one writer (the coach)
 
-1. **Roster Management:** User toggles checkbox → useRoster updates activePlayers → localStorage persists → Lineup grid shows updated player list
-2. **Lineup Auto-Generation:** User clicks button → Engine runs constraint solver with retry → Returns valid lineup → State updates → Grid shows positions
-3. **Validation:** Any state change → All 6 validation steps run → Errors collected → ValidationSummary displays grouped errors
-4. **Print:** User clicks print button → Browser shows print preview → Component-scoped @media print styles apply → Single-page dugout card renders
+**Cost estimate for this workload:**
+- ~10 coaches, each using app 2-3 times/week during season
+- ~50 RU per sync session (3-4 reads + 1-2 writes)
+- Monthly: ~2,000 RU total -- well within free tier (1000 RU/s = ~2.6 billion RU/month)
+- Storage: <1 MB total -- well within 25 GB free tier
 
-## Scaling Considerations
+---
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 0-100 coaches | Current architecture is perfect. Single-page app with localStorage. No backend needed. |
-| 100-1K coaches | Consider adding optional cloud sync (Firebase, Supabase) for multi-device access. Still client-side first. |
-| 1K-10K coaches | Add analytics (PostHog, Plausible) to understand usage patterns. Consider PWA for offline capability. |
-| 10K+ coaches | Consider multiplayer features (share lineups with assistant coaches). May need lightweight backend (Supabase, Firebase). |
+## Data Flow Diagrams
 
-### Scaling Priorities
+### Write Flow (User Edits Roster)
 
-1. **First bottleneck:** localStorage limits (5-10MB per domain). Fix: Compress data or migrate old lineups to cloud storage.
-2. **Second bottleneck:** Lineup generation performance (200 attempts can take 1-2 seconds). Fix: Web Worker for background generation + loading spinner.
+```
+User types player name
+    |
+    v
+RosterPage.addPlayer()
+    |
+    v
+useRoster.setPlayers(...)
+    |
+    v
+useCloudStorage.setValue(...)
+    |
+    +---> [SYNC] localStorage.setItem("roster", JSON)   <-- immediate
+    |
+    +---> [SYNC] React state updates, UI re-renders      <-- immediate
+    |
+    +---> [ASYNC] syncEngine.push("roster", data)         <-- background
+              |
+              +---> PUT /api/data/roster
+                        |
+                        +---> Cosmos DB upsert (userId partition)
+                                  |
+                                  +---> 200 OK (sync complete)
+```
 
-## Anti-Patterns
+### Read Flow (App Opens)
 
-### Anti-Pattern 1: Giant Monolithic Component
+```
+App mounts
+    |
+    v
+useCloudStorage("roster", [])
+    |
+    +---> localStorage.getItem("roster")  <-- immediate, shows cached data
+    |
+    +---> [ASYNC] syncEngine.pull("roster")
+              |
+              +---> GET /api/data/roster
+                        |
+                        +---> Compare cloud.updatedAt vs local updatedAt
+                              |
+                              +---> Cloud newer? Update localStorage + setState
+                              |
+                              +---> Local newer? Push local to cloud
+                              |
+                              +---> Same? No-op
+```
 
-**What people do:** Put all logic in App.tsx (roster, lineup, battery, validation, generation) like the existing baseball-coach app (700 lines in one file).
+### Offline Flow
 
-**Why it's wrong:** Impossible to test individual pieces, hard to reason about data flow, can't reuse components, merge conflicts in team settings.
+```
+User is offline (airplane mode, bad signal at ballfield)
+    |
+    v
+useCloudStorage.setValue(...)
+    |
+    +---> localStorage write succeeds       <-- works offline
+    +---> React state updates               <-- works offline
+    +---> syncEngine.push() fails (fetch)   <-- SyncMetadata.isDirty = true
+    |
+    v
+[Later: user regains connectivity]
+    |
+    v
+syncEngine detects online (navigator.onLine + window 'online' event)
+    |
+    v
+For each dirty key: push to cloud
+    |
+    v
+Reconcile (LWW by updatedAt timestamp)
+```
 
-**Do this instead:** Separate into components/ (UI), logic/ (pure functions), and state/ (custom hooks). Each file has one clear responsibility.
+### Authentication Flow
 
-### Anti-Pattern 2: Mixing UI and Business Logic
+```
+User opens app
+    |
+    v
+AuthGate mounts
+    |
+    v
+useAuth: fetch /.auth/me
+    |
+    +---> 200 { clientPrincipal: {...} }  --> isAuthenticated = true --> render app
+    |
+    +---> 200 { clientPrincipal: null }   --> isAuthenticated = false --> show login page
+              |
+              v
+         User clicks "Sign in with Microsoft"
+              |
+              v
+         navigate to /.auth/login/aad?post_login_redirect_uri=/
+              |
+              v
+         Microsoft Entra ID login page (external)
+              |
+              v
+         Redirect back to app with SWA session cookie
+              |
+              v
+         AuthGate re-checks /.auth/me --> authenticated --> render app
+```
 
-**What people do:** Put constraint-solving logic directly in component render functions or event handlers.
+---
 
-**Why it's wrong:** Can't unit test without React, can't reuse logic, makes components slow, hard to debug algorithm issues.
+## Project File Structure (After Integration)
 
-**Do this instead:** Extract to pure functions in logic/ directory. Pass inputs, return outputs. Test without React.
+```
+baseball-coach-helper/
+  api/                              # NEW: Azure Functions API
+    src/
+      functions/
+        getData.ts                  # GET /api/data/{key}
+        putData.ts                  # PUT /api/data/{key}
+        deleteData.ts               # DELETE /api/data/{key}
+      shared/
+        cosmos.ts                   # Cosmos DB client singleton
+        auth.ts                     # x-ms-client-principal parser
+    host.json
+    package.json                    # @azure/cosmos, @azure/functions
+    tsconfig.json
+  src/
+    auth/                           # NEW: Authentication
+      auth-types.ts
+      useAuth.ts
+      AuthGate.tsx
+      LoginPage.tsx
+      UserMenu.tsx
+    sync/                           # NEW: Cloud sync
+      sync-types.ts
+      useCloudStorage.ts
+      sync-engine.ts
+      api-client.ts
+    hooks/                          # EXISTING: minimal changes
+      useLocalStorage.ts            # UNCHANGED (preserved as offline fallback)
+      useRoster.ts                  # CHANGED: import swap only
+      useGameConfig.ts              # CHANGED: import swap only
+      useLineup.ts                  # CHANGED: import swap only
+      useGameHistory.ts             # CHANGED: import swap only
+      useBattingOrder.ts            # CHANGED: import swap only
+    logic/                          # EXISTING: NO changes
+      lineup-generator.ts
+      lineup-validator.ts
+      game-history.ts
+      batting-order.ts
+      csv.ts
+    components/                     # EXISTING: minimal changes
+      app-shell/
+        AppShell.tsx                # CHANGED: add AuthGate, UserMenu
+        TabBar.tsx                  # UNCHANGED
+      roster/                       # UNCHANGED
+      game-setup/                   # UNCHANGED
+      lineup/                       # UNCHANGED
+      history/                      # UNCHANGED
+      batting-order/                # UNCHANGED
+    types/
+      index.ts                      # UNCHANGED
+  staticwebapp.config.json          # NEW: SWA configuration
+  swa-cli.config.json               # NEW: local dev configuration
+```
 
-### Anti-Pattern 3: Prop Drilling Through Multiple Levels
+---
 
-**What people do:** Pass `lineup`, `activePlayers`, `pitchers`, `catchers` down through 4-5 component levels to reach leaf components.
+## Patterns to Follow
 
-**Why it's wrong:** Intermediate components become tightly coupled, refactoring is painful, components can't be reused in different contexts.
+### Pattern 1: Transparent Sync Hook
 
-**Do this instead:** Use custom hooks (useRoster, useLineup) in leaf components directly. Avoid intermediate prop passing.
+**What:** The `useCloudStorage` hook has the exact same signature as `useLocalStorage`. Consuming hooks swap one import and change nothing else.
 
-### Anti-Pattern 4: Synchronous localStorage Writes on Every Keystroke
+**Why:** This preserves all existing tests, all existing component behavior, and makes cloud sync an invisible infrastructure concern.
 
-**What people do:** Write to localStorage on every state change, including rapid changes like typing in an input.
+**Example migration in useRoster.ts:**
+```typescript
+// Before
+import { useLocalStorage } from './useLocalStorage';
 
-**Why it's wrong:** localStorage is synchronous and can block the UI thread. Causes input lag and poor performance.
+// After
+import { useCloudStorage as useLocalStorage } from '../sync/useCloudStorage';
+// OR
+import { useCloudStorage } from '../sync/useCloudStorage';
+// and change: const [players, setPlayers] = useCloudStorage<Player[]>('roster', []);
+```
 
-**Do this instead:** Debounce localStorage writes (wait 500ms after last change) or batch updates in useEffect with dependency array.
+### Pattern 2: Optimistic Local, Eventual Cloud
 
-### Anti-Pattern 5: Printing by Hiding UI Elements
+**What:** All state mutations apply to localStorage immediately (synchronous). Cloud sync is fire-and-forget in the background. The user never waits for a network request.
 
-**What people do:** Hide screen-only elements (buttons, nav) with CSS and hope the rest prints well.
+**Why:** The app is used at baseball fields with unreliable connectivity. localStorage must be the source of truth for responsiveness. Cloud is for backup/cross-device sync.
 
-**Why it's wrong:** Screen layout rarely works on printed page (page breaks in wrong places, margins off, fonts too small).
+### Pattern 3: Platform-Level Auth
 
-**Do this instead:** Create dedicated DugoutCard component with print-specific layout. Use @media print to control page breaks, margins, font sizes for optimal single-page printing.
+**What:** Authentication is handled by Azure Static Web Apps at the infrastructure level, not by React libraries. The React app only needs to call `/.auth/me` to check status.
 
-## Integration Points
+**Why:** Eliminates MSAL.js dependency, token management complexity, and React 19 compatibility concerns. Fewer moving parts, smaller bundle.
 
-### External Services
+### Pattern 4: User-Partitioned Data
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| localStorage | Custom hook (useLocalStorage) | 5-10MB limit, synchronous API, JSON serialization |
-| Browser Print API | window.print() | Triggered by button, uses @media print CSS |
-| Clipboard API | navigator.clipboard.writeText() | For "export lineup" feature |
+**What:** All Cosmos DB documents are partitioned by `userId` (from SWA's `clientPrincipal.userId`). API functions always filter by the authenticated user's ID.
 
-### Internal Boundaries
+**Why:** Provides data isolation (coach A cannot see coach B's roster), efficient queries (single partition reads), and simple authorization (identity = partition).
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| UI ↔ State | Custom hooks (useRoster, useLineup, useBattery) | Unidirectional data flow |
-| State ↔ Logic | Function calls with plain objects | Logic layer is pure (no React) |
-| State ↔ localStorage | useEffect hook in useLocalStorage | Automatic persistence |
-| Components ↔ Components | Props (when parent/child) or hooks (when siblings) | Avoid prop drilling |
+---
 
-## Build Order Implications
+## Anti-Patterns to Avoid
 
-### Phase 1: Core Foundation
-**Build first:** Type definitions, localStorage hook, roster state management
-**Why:** Everything depends on these. Get state management right from the start.
-**Dependencies:** None
+### Anti-Pattern 1: Blocking UI on Network Requests
 
-### Phase 2: Basic UI
-**Build second:** Roster selector, basic lineup grid (read-only)
-**Why:** Need to see data before you can edit it.
-**Dependencies:** Phase 1 (state hooks)
+**What:** Making the user wait for API calls before showing data or accepting input.
 
-### Phase 3: Battery Configuration
-**Build third:** Pitcher/catcher slot selectors, battery state
-**Why:** Required input for lineup generator.
-**Dependencies:** Phase 1 (state), Phase 2 (UI patterns established)
+**Why bad:** The app is used at baseball fields. Network may be slow or unavailable. Blocking on fetch makes the app feel broken.
 
-### Phase 4: Validation System
-**Build fourth:** 6-step validation logic (pure functions) + ValidationSummary component
-**Why:** Needed before lineup generator (validates output) and manual editing (validates input).
-**Dependencies:** Phase 1 (types), Phase 2 (lineup structure)
+**Instead:** Always read from localStorage first. Show cached data immediately. Sync in background. Show a subtle sync indicator, not a spinner.
 
-### Phase 5: Lineup Generator
-**Build fifth:** Constraint-based auto-generation engine with retry mechanism
-**Why:** Most complex component, depends on validation to verify output.
-**Dependencies:** Phase 1 (state), Phase 3 (battery config), Phase 4 (validation)
+### Anti-Pattern 2: Using MSAL.js for Auth
 
-### Phase 6: Manual Editing
-**Build sixth:** Editable lineup grid with dropdowns/inputs
-**Why:** Alternative to auto-generation, uses same validation system.
-**Dependencies:** Phase 4 (validation), Phase 2 (grid UI)
+**What:** Installing `@azure/msal-browser` and `@azure/msal-react` and wrapping the app in `MsalProvider`.
 
-### Phase 7: Batting Order
-**Build seventh:** Batting order generator + display component
-**Why:** Independent feature, can be built in parallel after core lineup works.
-**Dependencies:** Phase 1 (roster state)
+**Why bad:** Adds ~50 KB to bundle, requires Entra ID app registration for local dev, had React 19 compatibility issues, requires managing token acquisition/refresh in React code.
 
-### Phase 8: Print View
-**Build eighth:** DugoutCard component with print-optimized layout
-**Why:** Consumes all other features (roster, lineup, batting order).
-**Dependencies:** Phase 5 (lineup), Phase 7 (batting order)
+**Instead:** Use SWA EasyAuth. Zero client-side SDK. Platform handles tokens. SWA CLI handles local dev mocking.
+
+### Anti-Pattern 3: Granular Document Sync
+
+**What:** Syncing individual players, individual games as separate Cosmos DB documents.
+
+**Why bad:** Massively increases RU consumption (100 reads to load a 15-player roster), requires complex merge logic for arrays, introduces partial-sync states where half the roster is updated.
+
+**Instead:** Sync at the localStorage-key level. One document = one key. Roster is one document. Game history is one document.
+
+### Anti-Pattern 4: Replacing localStorage with Cloud
+
+**What:** Making Cosmos DB the primary data store and removing localStorage.
+
+**Why bad:** App becomes unusable offline. Every interaction requires network. Latency becomes visible to users. Massive regression from v1.0.
+
+**Instead:** localStorage is always primary. Cloud is secondary. The sync layer sits between them.
+
+---
+
+## Scalability Considerations
+
+| Concern | 1-10 coaches | 100 coaches | 1000+ coaches |
+|---------|-------------|-------------|---------------|
+| Cosmos DB cost | Free tier (0$) | Free tier (0$) | ~$1-5/month serverless |
+| Cold start (managed functions) | 15-30s first call, acceptable for background sync | Same, but more frequent warm-hits | Consider bring-your-own functions |
+| Auth management | Manual invites via Azure Portal | Manual invites (still manageable) | Need automated invite flow or self-registration |
+| Data isolation | userId partition works | userId partition works | userId partition works (Cosmos DB scales partitions) |
+| localStorage size | <50 KB | <50 KB per user | <50 KB per user (client-side) |
+
+---
+
+## Build Order (Dependency-Driven)
+
+### Phase 1: SWA Configuration + Auth Hook
+
+**Build first because:** Everything else (API calls, sync) requires knowing who the user is.
+
+1. Create `staticwebapp.config.json` with Entra ID custom provider config
+2. Implement `useAuth` hook (fetch `/.auth/me`)
+3. Implement `AuthGate` component
+4. Implement `LoginPage` and `UserMenu` components
+5. Set up SWA CLI for local development with mock auth
+6. Integrate `AuthGate` into `AppShell`
+
+**Dependencies:** None (uses platform features, not libraries)
+**Test:** Local dev with SWA CLI mock auth, verify login/logout flow
+
+### Phase 2: Azure Functions API + Cosmos DB
+
+**Build second because:** The sync layer needs API endpoints to talk to.
+
+1. Initialize `api/` folder with Azure Functions v4 project
+2. Create Cosmos DB client singleton
+3. Implement `getData` function (GET /api/data/{key})
+4. Implement `putData` function (PUT /api/data/{key})
+5. Implement `deleteData` function (DELETE /api/data/{key})
+6. Add `parseClientPrincipal` auth helper
+7. Test with SWA CLI (functions run locally)
+
+**Dependencies:** Phase 1 (auth headers flow through SWA)
+**Test:** Manual API calls via curl/Postman with mock auth headers
+
+### Phase 3: Sync Engine + useCloudStorage
+
+**Build third because:** This is the bridge between existing hooks and the cloud.
+
+1. Implement `api-client.ts` (typed fetch wrapper)
+2. Implement `sync-engine.ts` (pull/push/reconcile logic)
+3. Implement `useCloudStorage` hook (wraps `useLocalStorage` + sync)
+4. Add `SyncMetadata` to localStorage for tracking dirty state
+5. Add online/offline detection and reconnection sync
+6. Add sync status indicator component (subtle, non-blocking)
+
+**Dependencies:** Phase 1 (auth state), Phase 2 (API endpoints)
+**Test:** Unit tests for sync-engine reconciliation logic, integration test with local SWA
+
+### Phase 4: Hook Migration
+
+**Build fourth because:** This is the actual integration -- swapping imports in existing hooks.
+
+1. Change `useRoster` to use `useCloudStorage`
+2. Change `useGameConfig` to use `useCloudStorage`
+3. Change `useLineup` to use `useCloudStorage`
+4. Change `useGameHistory` to use `useCloudStorage`
+5. Change `useBattingOrder` to use `useCloudStorage`
+6. Run all existing tests -- they should pass without changes
+
+**Dependencies:** Phase 3 (useCloudStorage exists)
+**Test:** All existing unit tests pass. Manual test: edit on one device, see changes on another.
+
+### Phase 5: Deployment (Azure Static Web Apps)
+
+**Build last because:** Requires all other phases working.
+
+1. Create Azure Static Web Apps resource (Standard plan for custom auth)
+2. Create Cosmos DB serverless account (free tier)
+3. Configure GitHub Actions workflow for deployment
+4. Set application settings (AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, COSMOS_CONNECTION_STRING)
+5. Configure Entra ID app registration (redirect URIs)
+6. Test end-to-end: login, create roster, verify Cosmos DB, open on another device
+
+**Dependencies:** Phases 1-4
+**Test:** Full end-to-end on staging environment
+
+---
+
+## Local Development Setup
+
+```bash
+# Install SWA CLI globally
+npm install -g @azure/static-web-apps-cli
+
+# Start local dev (Vite frontend + Functions backend + auth emulator)
+swa start http://localhost:5180 \
+  --run "npm run dev" \
+  --api-location api
+
+# Access at http://localhost:4280
+# Auth mock at http://localhost:4280/.auth/login/aad (configurable fake user)
+# API at http://localhost:4280/api/*
+```
+
+The SWA CLI reverse proxy:
+- `/.auth/**` --> Auth emulator (mock login/logout/me)
+- `/api/**` --> Azure Functions local runtime
+- `/**` --> Vite dev server (http://localhost:5180)
+
+**swa-cli.config.json:**
+```json
+{
+  "configurations": {
+    "app": {
+      "appDevserverUrl": "http://localhost:5180",
+      "apiLocation": "api",
+      "outputLocation": "dist"
+    }
+  }
+}
+```
+
+---
+
+## Security Considerations
+
+### Data Privacy (Children's Names)
+
+1. **Transport:** HTTPS enforced by SWA (automatic)
+2. **At rest:** Cosmos DB encrypts data at rest by default (Microsoft-managed keys)
+3. **Access control:** API functions validate `x-ms-client-principal` on every request -- no endpoint is accessible without authentication
+4. **Data isolation:** userId-partitioned data prevents cross-user access
+5. **Invite-only:** SWA Role Management restricts who can authenticate (not just "any Microsoft account")
+6. **No client-side tokens:** EasyAuth uses HttpOnly session cookies, not localStorage tokens
+
+### API Security
+
+1. **Authentication:** SWA strips `x-ms-client-principal` from external requests -- it can only be set by the platform, not spoofed by clients
+2. **Authorization:** `staticwebapp.config.json` restricts `/api/*` to `authenticated` role
+3. **Data validation:** API functions enforce `userId = authenticatedUser.userId` on all writes
+4. **No direct Cosmos DB access:** Connection string is only in Azure Functions environment, never exposed to browser
+
+---
 
 ## Sources
 
-**React Architecture (2026):**
-- [React Stack Patterns](https://www.patterns.dev/react/react-2026/) - Current best practices for React architecture
-- [React Architecture Patterns and Best Practices for 2026](https://www.bacancytechnology.com/blog/react-architecture-patterns-and-best-practices) - Overview of modern patterns
-- [Building Scalable Systems with React Architecture | Feature-Sliced Design](https://feature-sliced.design/blog/scalable-react-architecture) - Component architecture methodology
+**Azure Static Web Apps Authentication:**
+- [Authenticate and authorize Static Web Apps](https://learn.microsoft.com/en-us/azure/static-web-apps/authentication-authorization) -- Official docs, updated Jan 2026
+- [Custom authentication in Azure Static Web Apps](https://learn.microsoft.com/en-us/azure/static-web-apps/authentication-custom) -- Entra ID custom provider config
+- [Accessing user information](https://learn.microsoft.com/en-us/azure/static-web-apps/user-information) -- /.auth/me response format, x-ms-client-principal in functions
 
-**State Management & localStorage:**
-- [State Management in 2026: Redux, Context API, and Modern Patterns](https://www.nucamp.co/blog/state-management-in-2026-redux-context-api-and-modern-patterns) - Hybrid approach recommendations
-- [18 Best React State Management Libraries in 2026](https://fe-tool.com/awesome-react-state-management) - Zustand, Jotai, Redux Toolkit comparison
-- [Persisting React State in localStorage • Josh W. Comeau](https://www.joshwcomeau.com/react/persisting-react-state-in-localstorage/) - localStorage patterns
+**Azure Static Web Apps Functions:**
+- [API support with Azure Functions](https://learn.microsoft.com/en-us/azure/static-web-apps/apis-functions) -- Managed vs bring-your-own comparison
+- [Azure Static Web Apps configuration](https://learn.microsoft.com/en-us/azure/static-web-apps/configuration) -- staticwebapp.config.json format
 
-**Form & Validation Architecture:**
-- [9 Proven React Component Architecture Patterns for Scalable & Resilient UIs](https://medium.com/@entekumejeffrey/9-proven-react-component-architecture-patterns-for-scalable-resilient-uis-34d79382f9ba) - Container/Presentational pattern
-- [React Form Validation with Formik and Yup (2026 Edition)](https://thelinuxcode.com/react-form-validation-with-formik-and-yup-2026-edition/) - Validation separation patterns
-- [Top React Form Libraries in 2026: A Strategic Architecture Analysis](https://dev.to/cerge74_cbb3abeb75dde90f5/surveyjs-vs-other-react-form-libraries-a-strategic-architecture-analysis-32ge) - Form architecture analysis
+**MSAL React 19 Compatibility (avoided):**
+- [GitHub Issue #7455: Add react 19 to peer deps](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/7455) -- React 19 support merged late, community frustration
 
-**Print Stylesheets:**
-- [Designing for Print in React](https://dev.to/umarlqmn/designing-for-print-in-react-5c9h) - Print-specific component patterns
-- [Print CSS with Angular](https://timdeschryver.dev/blog/print-css-with-angular) - Component-scoped print styles (applies to React)
+**Azure Cosmos DB:**
+- [Partitioning and horizontal scaling](https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview) -- Partition key design
+- [Lifetime Free Tier](https://learn.microsoft.com/en-us/azure/cosmos-db/free-tier) -- 1000 RU/s + 25 GB free
+- [Serverless pricing](https://azure.microsoft.com/en-us/pricing/details/cosmos-db/serverless/) -- Pay-per-request model
 
-**Existing Codebase:**
-- C:\repos\baseball-coach\src\App.tsx (lines 219-483: proven constraint-based lineup generator with retry mechanism)
+**SWA CLI / Local Development:**
+- [SWA CLI documentation](https://azure.github.io/static-web-apps-cli/) -- Local auth emulation, reverse proxy setup
+- [Local Authentication](https://azure.github.io/static-web-apps-cli/docs/cli/local-auth/) -- Mock auth for local development
+
+**Azure Functions v4 Model:**
+- [Azure Functions TypeScript Cosmos DB](https://learn.microsoft.com/en-us/samples/azure-samples/functions-quickstart-typescript-azd-cosmosdb/starter-cosmosdb-trigger-typescript/) -- v4 programming model examples
 
 ---
-*Architecture research for: Little League Lineup Builder*
-*Researched: 2026-02-09*
+*Architecture research for: Baseball Lineup Builder -- Azure Cloud Sync Integration*
+*Researched: 2026-02-12*
