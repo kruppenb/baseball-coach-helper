@@ -22,7 +22,7 @@
 
 **Milestone Goal:** Move from localStorage-only to Azure-backed storage with Microsoft authentication, so coaches can use the app across devices with offline support at the field.
 
-- [ ] **Phase 5: Auth Layer** — Microsoft sign-in via SWA EasyAuth with invite-only access
+- [x] **Phase 5: Auth Layer** — Microsoft sign-in via SWA EasyAuth with invite-only access (completed 2026-02-12)
 - [ ] **Phase 6: API + Database** — Azure Functions API with Cosmos DB per-user storage
 - [ ] **Phase 7: Sync Engine** — Offline-first background sync with conflict resolution
 - [ ] **Phase 8: Data Migration** — Existing localStorage data migrates to cloud on first sign-in
@@ -42,8 +42,8 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — SWA config, auth types/context/hook, Vite proxy + SWA CLI dev tooling
-- [ ] 05-02-PLAN.md — AppHeader with sign-in/sign-out UI, AuthProvider integration, visual verification
+- [x] 05-01-PLAN.md — SWA config, auth types/context/hook, Vite proxy + SWA CLI dev tooling
+- [x] 05-02-PLAN.md — AppHeader with sign-in/sign-out UI, AuthProvider integration, visual verification
 
 ### Phase 6: API + Database
 **Goal**: A secure server-side API layer stores and retrieves coach data from Cosmos DB, with credentials never exposed to the browser
@@ -113,7 +113,7 @@ Plans:
 | 3. Batting Order | v1.0 | 2/2 | Complete | 2026-02-10 |
 | 3.1 UI Fixes | v1.0 | 2/2 | Complete | 2026-02-10 |
 | 4. History & Output | v1.0 | 5/5 | Complete | 2026-02-11 |
-| 5. Auth Layer | v2.0 | 0/2 | Not started | - |
+| 5. Auth Layer | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 6. API + Database | v2.0 | 0/TBD | Not started | - |
 | 7. Sync Engine | v2.0 | 0/TBD | Not started | - |
 | 8. Data Migration | v2.0 | 0/TBD | Not started | - |
