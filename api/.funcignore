@@ -1,0 +1,6 @@
+*.ts
+.funcignore
+tsconfig.json
+local.settings.json
+node_modules
+src

@@ -15,6 +15,10 @@ dist/
 *.swp
 *.swo
 
+# API
+local.settings.json
+api/dist/
+
 # OS
 .DS_Store
 Thumbs.db
