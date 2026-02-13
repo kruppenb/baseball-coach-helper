@@ -9,7 +9,12 @@ import {
 } from 'react';
 import type { SyncStatus, SyncKeyConfig } from './sync-types';
 import { useOnlineStatus } from './useOnlineStatus';
-import { retryPendingPushes, cancelAllTimers } from './sync-engine';
+import {
+  retryPendingPushes,
+  cancelAllTimers,
+  migrateLocalData,
+} from './sync-engine';
+import { useAuth } from '../auth/useAuth';
 
 interface SyncContextValue {
   status: SyncStatus;
@@ -29,6 +34,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   );
   const configsRef = useRef<Map<string, SyncKeyConfig>>(new Map());
   const prevOnlineRef = useRef<boolean>(true);
+  const { user } = useAuth();
+  const hasMigrated = useRef(false);
 
   const reportStatus = useCallback((key: string, status: SyncStatus) => {
     setKeyStatuses((prev) => ({ ...prev, [key]: status }));
@@ -68,6 +75,24 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       cancelAllTimers();
     };
   }, []);
+
+  // One-time migration of localStorage data to cloud after first authentication.
+  // 3-second delay allows useCloudStorage pull-on-mount to complete first,
+  // preventing overwrite of cloud data that already exists from another device.
+  useEffect(() => {
+    if (!user || hasMigrated.current) return;
+    if (localStorage.getItem('migration-complete') === 'true') {
+      hasMigrated.current = true;
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      hasMigrated.current = true;
+      migrateLocalData((status) => reportStatus('__migration__', status));
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [user, reportStatus]);
 
   return (
     <SyncContext.Provider value={{ status, reportStatus, registerConfig }}>
