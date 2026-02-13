@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A web app for Little League coaches to build fair, constraint-based inning-by-inning fielding lineups and continuous batting orders. The coach manages their roster, pre-assigns pitchers and catchers, auto-generates the rest with fairness constraints, and prints a single-page dugout card. Game history tracks batting order, fielding positions, and bench time across games to ensure season-long fairness. All data stored in localStorage — names never leave the coach's machine.
+A web app for Little League coaches to build fair, constraint-based inning-by-inning fielding lineups and continuous batting orders. The coach manages their roster, pre-assigns pitchers and catchers, auto-generates the rest with fairness constraints, and prints a single-page dugout card. Game history tracks batting order, fielding positions, and bench time across games to ensure season-long fairness. Coaches sign in with their Microsoft account; data syncs to Azure and works offline at the field.
 
 ## Core Value
 
@@ -42,23 +42,41 @@ Every kid gets fair playing time with a valid, printable lineup the coach can ge
 
 ### Active
 
-(None — define new requirements in next milestone)
+(Defined in REQUIREMENTS.md for v2.0)
 
 ### Out of Scope
 
-- Real-time collaboration or multi-device sync — single coach, single browser
-- Mobile app — web app works on phone browser if needed
+- Real-time collaboration — each coach manages their own data independently
+- Native mobile app — web app works on phone browser
 - Game stats or scorekeeping — this is lineup generation only
-- OAuth or user accounts — no login needed
 - 10-fielder or non-standard position layouts
-- Cloud storage — privacy-first, localStorage only
+- Self-service signup — invite-only, controlled by app owner
+
+## Current Milestone: v2.0 Azure Cloud Sync
+
+**Goal:** Move from localStorage-only to Azure-backed storage with Microsoft authentication, so coaches can use the app across devices (including phones at the field) with offline support.
+
+**Target features:**
+- Microsoft sign-in via Entra ID (MSAL.js)
+- Azure Cosmos DB for cloud persistence (per-coach data isolation)
+- Offline-first: localStorage as primary, sync to cloud when connected
+- Last-write-wins conflict resolution
+- Azure Static Web Apps deployment
+- Invite-only access control
 
 ## Context
 
 Shipped v1.0 MVP with 5,572 LOC (TypeScript/CSS).
 Tech stack: Vite + React 19 + TypeScript, CSS Modules with custom properties.
-77 tests passing (vitest). All data persisted via localStorage.
+77 tests passing (vitest). All data persisted via localStorage via custom `useLocalStorage` hook.
 Dev server runs on port 5180.
+
+**v2.0 context:**
+- User has an existing Azure subscription
+- Coaches have Microsoft accounts (work/school or personal)
+- Data contains children's names — privacy-sensitive, must stay in controlled Azure subscription
+- Offline support needed — cell signal unreliable at ball fields
+- Current `useLocalStorage` hook will become the offline cache layer
 
 **Known tech debt:**
 - Fisher-Yates shuffle duplicated in lineup-generator.ts and batting-order.ts (independent modules)
@@ -66,8 +84,10 @@ Dev server runs on port 5180.
 
 ## Constraints
 
-- **Privacy**: Player names never leave the coach's machine. All data in localStorage. No analytics, no server calls with PII.
+- **Privacy**: Player names stored only in coach's browser and their Azure Cosmos DB partition. No third-party analytics. Data encrypted at rest and in transit. Invite-only access.
 - **Printability**: Dugout card must fit one page and be readable from a few feet away in a dugout.
+- **Cloud provider**: Azure only — user has existing subscription and billing.
+- **Offline-first**: App must work without network at the field. Cloud sync is best-effort.
 
 ## Key Decisions
 
@@ -86,5 +106,11 @@ Dev server runs on port 5180.
 | Unified Finalize Game button | Prevents desync between batting order confirm and game history save | ✓ Good |
 | HTML details/summary for collapsibles | Zero JS state, native browser behavior, accessible | ✓ Good |
 
+| Azure Entra ID + MSAL.js for auth | Coaches already have Microsoft accounts, invite-only via app assignment | — Pending |
+| Azure Cosmos DB free tier for storage | Document store maps to existing data shapes, free tier sufficient, encrypted at rest | — Pending |
+| Azure Static Web Apps for hosting | Free tier, built-in auth support, serverless API functions included | — Pending |
+| Offline-first with localStorage cache | Cell signal unreliable at fields, localStorage already works, sync when online | — Pending |
+| Last-write-wins conflict resolution | Simple, coaches typically prep on one device, conflicts rare | — Pending |
+
 ---
-*Last updated: 2026-02-11 after v1.0 milestone*
+*Last updated: 2026-02-12 after v2.0 milestone start*

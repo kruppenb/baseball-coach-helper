@@ -2,41 +2,31 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-11)
+See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v1.0 complete — planning next milestone
+**Current focus:** v2.0 Azure Cloud Sync — defining requirements
 
 ## Current Position
 
-Milestone: v1.0 MVP — SHIPPED
-Status: Milestone complete
-Last activity: 2026-02-11 -- Completed v1.0 milestone
-
-Progress: [##########] 100%
+Milestone: v2.0 Azure Cloud Sync
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-12 — Milestone v2.0 started
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (from v1.0):**
 - Total plans completed: 17
 - Average duration: 5 min
 - Total execution time: 79 min
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-foundation | 3/3 | 9 min | 3 min |
-| 02-lineup-engine | 5/5 | 46 min | 9 min |
-| 03-batting-order | 2/2 | 4 min | 2 min |
-| 03.1-ui-fixes | 2/2 | 4 min | 2 min |
-| 04-history-output | 5/5 | 16 min | 3 min |
 
 ## Accumulated Context
 
 ### Decisions
 
-See PROJECT.md Key Decisions table (12 decisions, all ✓ Good).
+See PROJECT.md Key Decisions table (12 validated from v1.0, 5 pending for v2.0).
 
 ### Pending Todos
 
@@ -48,6 +38,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (milestone completion)
-Stopped at: v1.0 milestone archived
+Last session: 2026-02-12 (milestone start)
+Stopped at: Defining v2.0 requirements
 Resume file: None
