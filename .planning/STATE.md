@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v2.0 Azure Cloud Sync — Phase 7: Sync Engine
+**Current focus:** v2.0 Azure Cloud Sync — Phase 8: Data Migration
 
 ## Current Position
 
 Milestone: v2.0 Azure Cloud Sync
-Phase: 7 of 9 (Sync Engine) -- COMPLETE
-Plan: 2 of 2 in current phase (done)
-Status: Phase 7 complete
-Last activity: 2026-02-13 — Completed 07-02 hook migration and status indicator
+Phase: 8 of 9 (Data Migration) -- COMPLETE
+Plan: 1 of 1 in current phase (done)
+Status: Phase 8 complete
+Last activity: 2026-02-13 — Completed 08-01 data migration
 
-Progress: [=======================.........] 74% (23/~31 plans across all milestones)
+Progress: [========================........] 77% (24/~31 plans across all milestones)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0):**
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: 4 min
-- Total execution time: 92 min
+- Total execution time: 94 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -32,6 +32,7 @@ Progress: [=======================.........] 74% (23/~31 plans across all milest
 | 06-api-database | 02 | 2min | 2 | 5 |
 | 07-sync-engine | 01 | 2min | 2 | 5 |
 | 07-sync-engine | 02 | 2min | 2 | 9 |
+| 08-data-migration | 01 | 2min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -81,6 +82,14 @@ From 07-02 execution:
 - Batting hook uses responseKey/pushDocType for non-standard compound endpoint
 - data-status CSS attribute pattern for multi-state styling
 
+From 08-01 execution:
+- Reuse pushToCloud for all 6 migration keys (no custom fetch calls)
+- 3-second delay before migration lets useCloudStorage pulls complete first
+- Error tracking via onStatus interceptor (hadError flag) since pushToCloud doesn't throw on HTTP errors
+- Brand-new users with only default localStorage skip migration immediately
+- migration-complete localStorage flag for idempotent one-time operation
+- __migration__ synthetic key for reportStatus integration with sync indicator
+
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (tech debt from v1.0)
@@ -91,6 +100,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-13 (07-02 execution)
-Stopped at: Completed 07-02-PLAN.md -- hook migration and status indicator (phase 7 complete)
+Last session: 2026-02-13 (08-01 execution)
+Stopped at: Completed 08-01-PLAN.md -- data migration (phase 8 complete)
 Resume file: None
