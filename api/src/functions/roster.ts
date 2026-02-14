@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
 import { container } from '../lib/cosmos';
+import { logError } from '../lib/logging';
 import { rosterBodySchema, validateBody } from '../lib/validation';
 
 const DOC_TYPE = 'roster';
@@ -35,7 +36,7 @@ export async function getRoster(
       jsonBody: { data: resource.data, _etag: resource._etag },
     };
   } catch (error) {
-    context.error('Failed to read roster', error);
+    logError(context, 'Failed to read roster', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
 }
@@ -71,7 +72,7 @@ export async function putRoster(
       jsonBody: { data: resource!.data, _etag: resource!._etag },
     };
   } catch (error) {
-    context.error('Failed to upsert roster', error);
+    logError(context, 'Failed to upsert roster', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
 }

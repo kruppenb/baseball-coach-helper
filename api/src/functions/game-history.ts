@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
 import { container } from '../lib/cosmos';
+import { logError } from '../lib/logging';
 import { gameHistoryBodySchema, validateBody } from '../lib/validation';
 
 const DOC_TYPE = 'gameHistory';
@@ -38,7 +39,7 @@ export async function getGameHistory(
       jsonBody: { data: resources.map((r: { data: unknown }) => r.data) },
     };
   } catch (error) {
-    context.error('Failed to read game history', error);
+    logError(context, 'Failed to read game history', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
 }
@@ -74,7 +75,7 @@ export async function putGameHistoryEntry(
       jsonBody: { data: resource!.data, _etag: resource!._etag },
     };
   } catch (error) {
-    context.error('Failed to upsert game history entry', error);
+    logError(context, 'Failed to upsert game history entry', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
 }

@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
 import { container } from '../lib/cosmos';
+import { logError } from '../lib/logging';
 import { gameConfigBodySchema, validateBody } from '../lib/validation';
 
 const DOC_TYPE = 'gameConfig';
@@ -38,7 +39,7 @@ export async function getGameConfig(
       jsonBody: { data: resource.data, _etag: resource._etag },
     };
   } catch (error) {
-    context.error('Failed to read game config', error);
+    logError(context, 'Failed to read game config', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
 }
@@ -74,7 +75,7 @@ export async function putGameConfig(
       jsonBody: { data: resource!.data, _etag: resource!._etag },
     };
   } catch (error) {
-    context.error('Failed to upsert game config', error);
+    logError(context, 'Failed to upsert game config', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
 }

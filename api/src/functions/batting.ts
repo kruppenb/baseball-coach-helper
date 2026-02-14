@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
 import { container } from '../lib/cosmos';
+import { logError } from '../lib/logging';
 import { battingBodySchema, validateBody } from '../lib/validation';
 
 export async function getBatting(
@@ -50,7 +51,7 @@ export async function getBatting(
       },
     };
   } catch (error) {
-    context.error('Failed to read batting data', error);
+    logError(context, 'Failed to read batting data', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
 }
@@ -105,7 +106,7 @@ export async function putBatting(
       jsonBody: { data: resource!.data, _etag: resource!._etag },
     };
   } catch (error) {
-    context.error('Failed to upsert batting data', error);
+    logError(context, 'Failed to upsert batting data', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
 }
