@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-02-12)
 
 Milestone: v2.0 Azure Cloud Sync
 Phase: 9 of 9 (PWA + Deployment)
-Plan: 1 of 2 in current phase (09-01 complete)
-Status: Executing phase 9
-Last activity: 2026-02-13 — Completed 09-01 PWA configuration
+Plan: 2 of 2 in current phase (09-01, 09-02 complete)
+Status: Phase 9 complete - v2.0 milestone complete
+Last activity: 2026-02-14 — Completed 09-02 Azure Static Web Apps CI/CD
 
-Progress: [=========================.......] 80% (25/~31 plans across all milestones)
+Progress: [==========================......] 84% (26/~31 plans across all milestones)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0):**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: 4 min
-- Total execution time: 96 min
+- Total execution time: 112 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -34,6 +34,7 @@ Progress: [=========================.......] 80% (25/~31 plans across all milest
 | 07-sync-engine | 02 | 2min | 2 | 9 |
 | 08-data-migration | 01 | 2min | 2 | 2 |
 | 09-pwa-deployment | 01 | 2min | 2 | 8 |
+| 09-pwa-deployment | 02 | 16min | 2 | 1 |
 
 ## Accumulated Context
 
@@ -98,6 +99,12 @@ From 09-01 execution:
 - PNG icons generated from SVG via sharp -- maximum browser compatibility
 - Dual exclusion: workbox navigateFallbackDenylist AND SWA navigationFallback.exclude for SW files
 
+From 09-02 execution:
+- OIDC authentication for Azure SWA deployments (no deployment token needed) -- matches Azure's GitHub deployment source
+- Workflow filename must match Azure OIDC federated credential name (azure-static-web-apps-lemon-hill-0d4d7521e.yml)
+- GitHub Actions OIDC uses id-token: write permission with @actions/core.getIDToken()
+- PR events trigger preview deployments; PR close triggers cleanup job
+
 ### Pending Todos
 
 - Move position blocks UI from Lineup tab to Roster section (tech debt from v1.0)
@@ -109,6 +116,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-13 (09-01 execution)
-Stopped at: Completed 09-01-PLAN.md -- PWA configuration (09-02 remaining)
+Last session: 2026-02-14 (09-02 execution)
+Stopped at: Completed 09-02-PLAN.md -- Azure Static Web Apps CI/CD (Phase 9 complete, v2.0 milestone complete)
 Resume file: None
