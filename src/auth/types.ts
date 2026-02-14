@@ -3,7 +3,7 @@ export interface ClientPrincipal {
   userId: string;
   userDetails: string;
   userRoles: string[];
-  claims: Array<{ typ: string; val: string }>;
+  claims?: Array<{ typ: string; val: string }>;
 }
 
 export interface AuthState {
@@ -20,7 +20,7 @@ export interface AuthState {
  * 3. Fallback to "Coach"
  */
 export function getDisplayName(user: ClientPrincipal): string {
-  const nameClaim = user.claims.find((c) => c.typ === 'name');
+  const nameClaim = user.claims?.find((c) => c.typ === 'name');
   if (nameClaim?.val) {
     return nameClaim.val;
   }
