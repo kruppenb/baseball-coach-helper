@@ -15,6 +15,7 @@ permissions:
 
 env:
   SWA_NAME: coaching-app-v2
+  FUNC_APP_NAME: coaching-app-v2-api
   RESOURCE_GROUP: CoachingAppV2
   AZURE_CLIENT_ID: 119945b4-76dc-4cb3-9dc4-d95837965082
   AZURE_TENANT_ID: 6a813dbc-4178-414e-9ca4-ea7886b4ded3
@@ -68,14 +69,19 @@ jobs:
         run: npm ci && npm run build
         working-directory: api
 
-      - name: Build And Deploy
+      - name: Deploy API to Functions app
+        uses: Azure/functions-action@v2
+        with:
+          app-name: ${{ env.FUNC_APP_NAME }}
+          package: api
+
+      - name: Deploy SWA (frontend only)
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ steps.swa-token.outputs.token }}
           action: "upload"
           app_location: "/"
-          api_location: "api"
           output_location: "dist"
           github_id_token: ${{ steps.idtoken.outputs.result }}
 
