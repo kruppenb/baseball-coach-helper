@@ -79,14 +79,14 @@ export async function putLineupState(
 
 app.http('getLineupState', {
   methods: ['GET'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'lineup-state',
   handler: getLineupState,
 });
 
 app.http('putLineupState', {
   methods: ['PUT'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'lineup-state',
   handler: putLineupState,
 });

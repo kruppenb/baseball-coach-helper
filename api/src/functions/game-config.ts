@@ -82,14 +82,14 @@ export async function putGameConfig(
 
 app.http('getGameConfig', {
   methods: ['GET'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'game-config',
   handler: getGameConfig,
 });
 
 app.http('putGameConfig', {
   methods: ['PUT'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'game-config',
   handler: putGameConfig,
 });

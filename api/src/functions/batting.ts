@@ -113,14 +113,14 @@ export async function putBatting(
 
 app.http('getBatting', {
   methods: ['GET'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'batting',
   handler: getBatting,
 });
 
 app.http('putBatting', {
   methods: ['PUT'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'batting',
   handler: putBatting,
 });

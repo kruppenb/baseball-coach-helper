@@ -79,14 +79,14 @@ export async function putRoster(
 
 app.http('getRoster', {
   methods: ['GET'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'roster',
   handler: getRoster,
 });
 
 app.http('putRoster', {
   methods: ['PUT'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'roster',
   handler: putRoster,
 });
