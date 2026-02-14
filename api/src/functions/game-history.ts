@@ -82,14 +82,14 @@ export async function putGameHistoryEntry(
 
 app.http('getGameHistory', {
   methods: ['GET'],
-  authLevel: 'anonymous',
+  authLevel: 'function',
   route: 'game-history',
   handler: getGameHistory,
 });
 
 app.http('putGameHistoryEntry', {
   methods: ['PUT'],
-  authLevel: 'anonymous',
+  authLevel: 'function',
   route: 'game-history',
   handler: putGameHistoryEntry,
 });
