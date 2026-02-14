@@ -8,11 +8,12 @@
     "start": "func start"
   },
   "dependencies": {
+    "@azure/cosmos": "^4.9.0",
     "@azure/functions": "^4.11.0",
-    "@azure/cosmos": "^4.9.0"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "typescript": "~5.9.3",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "typescript": "~5.9.3"
   }
 }

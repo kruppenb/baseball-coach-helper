@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
 import { container } from '../lib/cosmos';
+import { battingBodySchema, validateBody } from '../lib/validation';
 
 export async function getBatting(
   request: HttpRequest,
@@ -64,10 +65,13 @@ export async function putBatting(
   }
 
   try {
-    const body = (await request.json()) as {
-      docType: string;
-      data: unknown;
-    };
+    const raw = await request.json();
+    const parsed = validateBody(raw, battingBodySchema);
+    if (!parsed.success) {
+      return { status: 400, jsonBody: { error: parsed.error } };
+    }
+
+    const body = parsed.data;
 
     if (body.docType === 'battingOrderState') {
       const doc = {
@@ -86,30 +90,19 @@ export async function putBatting(
       };
     }
 
-    if (body.docType === 'battingHistory') {
-      const entryData = body.data as { id: string };
-      const doc = {
-        id: `batting-${principal.userId}-${entryData.id}`,
-        userId: principal.userId,
-        docType: 'battingHistory' as const,
-        data: body.data,
-        updatedAt: new Date().toISOString(),
-      };
+    const doc = {
+      id: `batting-${principal.userId}-${body.data.id}`,
+      userId: principal.userId,
+      docType: 'battingHistory' as const,
+      data: body.data,
+      updatedAt: new Date().toISOString(),
+    };
 
-      const { resource } = await container.items.upsert(doc);
-
-      return {
-        status: 200,
-        jsonBody: { data: resource!.data, _etag: resource!._etag },
-      };
-    }
+    const { resource } = await container.items.upsert(doc);
 
     return {
-      status: 400,
-      jsonBody: {
-        error:
-          'Invalid docType. Expected battingOrderState or battingHistory',
-      },
+      status: 200,
+      jsonBody: { data: resource!.data, _etag: resource!._etag },
     };
   } catch (error) {
     context.error('Failed to upsert batting data', error);

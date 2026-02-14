@@ -19,6 +19,9 @@ dist/
 local.settings.json
 api/dist/
 
+# Planning
+.planning/
+
 # OS
 .DS_Store
 Thumbs.db

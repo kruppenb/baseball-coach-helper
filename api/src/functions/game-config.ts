@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
 import { container } from '../lib/cosmos';
+import { gameConfigBodySchema, validateBody } from '../lib/validation';
 
 const DOC_TYPE = 'gameConfig';
 
@@ -52,12 +53,17 @@ export async function putGameConfig(
   }
 
   try {
-    const body = (await request.json()) as { data: unknown };
+    const raw = await request.json();
+    const parsed = validateBody(raw, gameConfigBodySchema);
+    if (!parsed.success) {
+      return { status: 400, jsonBody: { error: parsed.error } };
+    }
+
     const doc = {
       id: `${DOC_TYPE}-${principal.userId}`,
       userId: principal.userId,
       docType: DOC_TYPE,
-      data: body.data,
+      data: parsed.data.data,
       updatedAt: new Date().toISOString(),
     };
 

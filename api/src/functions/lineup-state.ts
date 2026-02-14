@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
 import { container } from '../lib/cosmos';
+import { lineupStateBodySchema, validateBody } from '../lib/validation';
 
 const DOC_TYPE = 'lineupState';
 
@@ -49,12 +50,17 @@ export async function putLineupState(
   }
 
   try {
-    const body = (await request.json()) as { data: unknown };
+    const raw = await request.json();
+    const parsed = validateBody(raw, lineupStateBodySchema);
+    if (!parsed.success) {
+      return { status: 400, jsonBody: { error: parsed.error } };
+    }
+
     const doc = {
       id: `${DOC_TYPE}-${principal.userId}`,
       userId: principal.userId,
       docType: DOC_TYPE,
-      data: body.data,
+      data: parsed.data.data,
       updatedAt: new Date().toISOString(),
     };
 

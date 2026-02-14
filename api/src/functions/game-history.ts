@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
 import { container } from '../lib/cosmos';
+import { gameHistoryBodySchema, validateBody } from '../lib/validation';
 
 const DOC_TYPE = 'gameHistory';
 
@@ -52,14 +53,17 @@ export async function putGameHistoryEntry(
   }
 
   try {
-    const body = (await request.json()) as {
-      data: { id: string; [key: string]: unknown };
-    };
+    const raw = await request.json();
+    const parsed = validateBody(raw, gameHistoryBodySchema);
+    if (!parsed.success) {
+      return { status: 400, jsonBody: { error: parsed.error } };
+    }
+
     const doc = {
-      id: `game-${principal.userId}-${body.data.id}`,
+      id: `game-${principal.userId}-${parsed.data.data.id}`,
       userId: principal.userId,
       docType: DOC_TYPE,
-      data: body.data,
+      data: parsed.data.data,
       updatedAt: new Date().toISOString(),
     };
 
