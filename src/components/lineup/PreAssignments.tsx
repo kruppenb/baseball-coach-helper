@@ -6,6 +6,7 @@ interface PreAssignmentsProps {
   presentPlayers: Player[];
   pitcherAssignments: BatteryAssignments;
   catcherAssignments: BatteryAssignments;
+  catcherInningsHistory: Record<string, number>;
   onPitcherChange: (inning: number, playerId: string) => void;
   onCatcherChange: (inning: number, playerId: string) => void;
 }
@@ -15,10 +16,32 @@ export function PreAssignments({
   presentPlayers,
   pitcherAssignments,
   catcherAssignments,
+  catcherInningsHistory,
   onPitcherChange,
   onCatcherChange,
 }: PreAssignmentsProps) {
   const inningNumbers = Array.from({ length: innings }, (_, i) => i + 1);
+
+  // Count catcher innings assigned in this game so far
+  const thisCatcherInnings: Record<string, number> = {};
+  for (const inning of inningNumbers) {
+    const catcherId = catcherAssignments[inning];
+    if (catcherId) {
+      thisCatcherInnings[catcherId] = (thisCatcherInnings[catcherId] ?? 0) + 1;
+    }
+  }
+
+  // Format catcher label with history context
+  function catcherLabel(player: Player): string {
+    const historyCount = catcherInningsHistory[player.id] ?? 0;
+    const thisGameCount = thisCatcherInnings[player.id] ?? 0;
+    const parts: string[] = [player.name];
+    const tags: string[] = [];
+    if (historyCount > 0) tags.push(`${historyCount}C hist`);
+    if (thisGameCount >= 4) tags.push('⚠️ 4+ C');
+    if (tags.length > 0) parts.push(`(${tags.join(', ')})`);
+    return parts.join(' ');
+  }
 
   return (
     <div className={styles.preAssignments}>
@@ -55,7 +78,7 @@ export function PreAssignments({
                 <option value="">--</option>
                 {presentPlayers.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name}
+                    {catcherLabel(p)}
                   </option>
                 ))}
               </select>

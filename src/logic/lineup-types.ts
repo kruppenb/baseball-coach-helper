@@ -8,7 +8,8 @@ export type ValidationRule =
   | 'NO_CONSECUTIVE_BENCH'
   | 'INFIELD_MINIMUM'
   | 'NO_CONSECUTIVE_POSITION'
-  | 'POSITION_BLOCK';
+  | 'POSITION_BLOCK'
+  | 'CATCHER_PITCHER_ELIGIBILITY';
 
 export interface ValidationError {
   rule: ValidationRule;

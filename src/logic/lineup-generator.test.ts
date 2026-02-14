@@ -120,6 +120,29 @@ describe('preValidate', () => {
     const errors = preValidate(input);
     expect(errors).toEqual([]);
   });
+
+  it('returns error when player catches 4+ innings and also pitches', () => {
+    const input = makeDefaultInput({
+      // p1 pitches innings 1-2 and catches innings 3-6 (4 catcher innings)
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p1', 4: 'p1', 5: 'p1', 6: 'p1' },
+    });
+    const errors = preValidate(input);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.some(e => e.toLowerCase().includes('catch') && e.toLowerCase().includes('pitch'))).toBe(true);
+  });
+
+  it('does NOT warn when player catches only 3 innings and also pitches', () => {
+    const input = makeDefaultInput({
+      // p1 pitches innings 1-3 and catches innings 4-6 (3 catcher innings — ok)
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p1', 4: 'p2', 5: 'p3', 6: 'p3' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p1', 5: 'p1', 6: 'p1' },
+    });
+    const errors = preValidate(input);
+    // Should have no catcher-pitcher errors (other errors may still exist)
+    const catcherPitcherErrors = errors.filter(e => e.toLowerCase().includes('catch') && e.toLowerCase().includes('pitch') && e.includes('4'));
+    expect(catcherPitcherErrors).toEqual([]);
+  });
 });
 
 // --- generateLineup Tests ---

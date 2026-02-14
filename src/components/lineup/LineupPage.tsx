@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLineup } from '../../hooks/useLineup';
 import { useRoster } from '../../hooks/useRoster';
 import { useBattingOrder } from '../../hooks/useBattingOrder';
 import { useGameHistory } from '../../hooks/useGameHistory';
 import { PreAssignments } from './PreAssignments';
-import { PositionBlocks } from './PositionBlocks';
 import { LineupGrid } from './LineupGrid';
 import { LineupOptions } from './LineupOptions';
 import { ValidationPanel } from './ValidationPanel';
@@ -62,7 +61,6 @@ export function LineupPage() {
   const {
     pitcherAssignments,
     catcherAssignments,
-    positionBlocks,
     generatedLineups,
     selectedLineupIndex,
     presentPlayers,
@@ -70,9 +68,9 @@ export function LineupPage() {
     selectedLineup,
     validationErrors,
     preAssignmentErrors,
+    catcherInningsHistory,
     setPitcher,
     setCatcher,
-    togglePositionBlock,
     generate,
     selectLineup,
     clearLineups,
@@ -85,6 +83,9 @@ export function LineupPage() {
   const [statusMessage, setStatusMessage] = useState('');
   const [isFinalized, setIsFinalized] = useState(false);
 
+  const reviewRef = useRef<HTMLDetailsElement>(null);
+  const gamedayRef = useRef<HTMLDetailsElement>(null);
+
   // Reset finalized state when selected lineup changes
   useEffect(() => {
     setIsFinalized(false);
@@ -95,6 +96,7 @@ export function LineupPage() {
     const result = generate();
     if (result.success) {
       setStatusMessage(`Generated ${result.count} option${result.count === 1 ? '' : 's'}!`);
+      if (reviewRef.current) reviewRef.current.open = true;
     } else if (result.errors.length > 0) {
       setStatusMessage(result.errors[0]);
     } else {
@@ -105,6 +107,11 @@ export function LineupPage() {
   const handleClear = () => {
     clearLineups();
     setStatusMessage('');
+  };
+
+  const handleSelectLineup = (index: number) => {
+    selectLineup(index);
+    if (gamedayRef.current) gamedayRef.current.open = true;
   };
 
   const handleFinalize = () => {
@@ -127,123 +134,112 @@ export function LineupPage() {
       ) : (
         <>
           <details className={styles.details} open>
-            <summary className={styles.summary}>
-              Pitchers &amp; Catchers ({Object.values(pitcherAssignments).filter(Boolean).length + Object.values(catcherAssignments).filter(Boolean).length} assigned)
-            </summary>
+            <summary className={styles.summary}>Setup</summary>
             <div className={styles.detailsContent}>
               <PreAssignments
                 innings={innings}
                 presentPlayers={presentPlayers}
                 pitcherAssignments={pitcherAssignments}
                 catcherAssignments={catcherAssignments}
+                catcherInningsHistory={catcherInningsHistory}
                 onPitcherChange={setPitcher}
                 onCatcherChange={setCatcher}
               />
-            </div>
-          </details>
 
-          <PositionBlocks
-            presentPlayers={presentPlayers}
-            positionBlocks={positionBlocks}
-            onToggleBlock={togglePositionBlock}
-          />
+              <ValidationPanel errors={[]} preErrors={preAssignmentErrors} />
 
-          <ValidationPanel errors={[]} preErrors={preAssignmentErrors} />
-
-          <div className={styles.section}>
-            <div className={styles.generateSection}>
-              <button
-                type="button"
-                className={styles.generateButton}
-                disabled={presentPlayers.length < 9}
-                onClick={handleGenerate}
-              >
-                {generatedLineups.length > 0 ? 'Regenerate' : 'Generate Lineups'}
-              </button>
-              {generatedLineups.length > 0 && (
+              <div className={styles.generateSection}>
                 <button
                   type="button"
-                  className={styles.clearButton}
-                  onClick={handleClear}
+                  className={styles.generateButton}
+                  disabled={presentPlayers.length < 9}
+                  onClick={handleGenerate}
                 >
-                  Clear
+                  {generatedLineups.length > 0 ? 'Regenerate' : 'Generate Lineups'}
                 </button>
-              )}
-            </div>
-            {statusMessage && (
-              <p className={styles.statusMessage}>{statusMessage}</p>
-            )}
-          </div>
-
-          {generatedLineups.length > 0 && (
-            <div className={styles.section}>
-              <LineupOptions
-                lineups={generatedLineups}
-                selectedIndex={selectedLineupIndex}
-                innings={innings}
-                players={presentPlayers}
-                onSelect={selectLineup}
-              />
-            </div>
-          )}
-
-          {selectedLineup && (
-            <details className={styles.details} open>
-              <summary className={styles.summary}>Lineup Detail &amp; Fairness</summary>
-              <div className={styles.detailsContent}>
-                <LineupGrid
-                  lineup={selectedLineup}
-                  innings={innings}
-                  players={players}
-                  errors={validationErrors}
-                />
-                <FairnessSummary
-                  summary={computeFairnessSummary(selectedLineup, innings, players)}
-                />
+                {generatedLineups.length > 0 && (
+                  <button
+                    type="button"
+                    className={styles.clearButton}
+                    onClick={handleClear}
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
-            </details>
-          )}
-
-          {selectedLineup && (
-            <ValidationPanel errors={validationErrors} preErrors={[]} />
-          )}
-
-          <details className={styles.details} open>
-            <summary className={styles.summary}>Batting Order</summary>
-            <div className={styles.detailsContent}>
-              <BattingOrderSection />
+              {statusMessage && (
+                <p className={styles.statusMessage}>{statusMessage}</p>
+              )}
             </div>
           </details>
 
-          <div className={styles.section}>
-            <button
-              type="button"
-              className={styles.finalizeButton}
-              disabled={!selectedLineup || !currentOrder || isFinalized}
-              onClick={handleFinalize}
-            >
-              {isFinalized ? 'Game Finalized' : 'Finalize Game'}
-            </button>
-            {isFinalized && (
-              <p className={styles.finalizedMessage}>
-                Game finalized and saved to history!
-              </p>
-            )}
-          </div>
+          <details className={styles.details} ref={reviewRef}>
+            <summary className={styles.summary}>Review</summary>
+            <div className={styles.detailsContent}>
+              {generatedLineups.length > 0 ? (
+                <>
+                  <LineupOptions
+                    lineups={generatedLineups}
+                    selectedIndex={selectedLineupIndex}
+                    innings={innings}
+                    players={presentPlayers}
+                    onSelect={handleSelectLineup}
+                  />
 
-          {selectedLineup && (
-            <details className={styles.details}>
-              <summary className={styles.summary}>Dugout Card (ready to print)</summary>
-              <div className={styles.detailsContent}>
-                <DugoutCard
-                  lineup={selectedLineup}
-                  innings={innings}
-                  players={players}
-                  battingOrder={currentOrder}
-                />
-              </div>
-            </details>
-          )}
+                  {selectedLineup && (
+                    <>
+                      <LineupGrid
+                        lineup={selectedLineup}
+                        innings={innings}
+                        players={players}
+                        errors={validationErrors}
+                      />
+                      <FairnessSummary
+                        summary={computeFairnessSummary(selectedLineup, innings, players)}
+                      />
+                      <ValidationPanel errors={validationErrors} preErrors={[]} />
+                    </>
+                  )}
+                </>
+              ) : (
+                <p className={styles.emptyMessage}>Generate lineups first.</p>
+              )}
+            </div>
+          </details>
+
+          <details className={styles.details} ref={gamedayRef}>
+            <summary className={styles.summary}>Game Day</summary>
+            <div className={styles.detailsContent}>
+              {selectedLineup ? (
+                <>
+                  <BattingOrderSection />
+
+                  <button
+                    type="button"
+                    className={styles.finalizeButton}
+                    disabled={!currentOrder || isFinalized}
+                    onClick={handleFinalize}
+                  >
+                    {isFinalized ? 'Game Finalized' : 'Finalize Game'}
+                  </button>
+                  {isFinalized && (
+                    <p className={styles.finalizedMessage}>
+                      Game finalized and saved to history!
+                    </p>
+                  )}
+
+                  <DugoutCard
+                    lineup={selectedLineup}
+                    innings={innings}
+                    players={players}
+                    battingOrder={currentOrder}
+                  />
+                </>
+              ) : (
+                <p className={styles.emptyMessage}>Select a lineup first.</p>
+              )}
+            </div>
+          </details>
         </>
       )}
     </div>

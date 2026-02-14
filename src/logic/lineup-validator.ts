@@ -19,6 +19,7 @@ export function validateLineup(
     ...validateInfieldMinimum(lineup, input),
     ...validateNoConsecutivePosition(lineup, input),
     ...validatePositionBlocks(lineup, input),
+    ...validateCatcherPitcherEligibility(lineup, input),
   ];
 }
 
@@ -284,6 +285,39 @@ function validatePositionBlocks(
           });
         }
       }
+    }
+  }
+
+  return errors;
+}
+
+/**
+ * CATCHER_PITCHER_ELIGIBILITY: A player who catches 4+ innings in a game
+ * cannot pitch in that same game (Little League rule).
+ */
+function validateCatcherPitcherEligibility(
+  lineup: Lineup,
+  input: GenerateLineupInput,
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  for (const player of input.presentPlayers) {
+    let catcherInnings = 0;
+    let pitcherInnings = 0;
+
+    for (let inn = 1; inn <= input.innings; inn++) {
+      const assignment = lineup[inn];
+      if (!assignment) continue;
+      if (assignment['C'] === player.id) catcherInnings++;
+      if (assignment['P'] === player.id) pitcherInnings++;
+    }
+
+    if (catcherInnings >= 4 && pitcherInnings > 0) {
+      errors.push({
+        rule: 'CATCHER_PITCHER_ELIGIBILITY',
+        message: `${player.name} catches ${catcherInnings} innings and pitches ${pitcherInnings} — a player who catches 4+ innings cannot pitch in the same game.`,
+        playerId: player.id,
+      });
     }
   }
 

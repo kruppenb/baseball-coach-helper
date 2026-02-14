@@ -19,6 +19,35 @@
   font-size: var(--font-size-base);
 }
 
+.details {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.summary {
+  padding: var(--space-md) var(--space-lg);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+  user-select: none;
+}
+
+.summary:hover {
+  background: var(--color-surface-hover);
+}
+
+.detailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: 0 var(--space-lg) var(--space-lg);
+}
+
+.emptyMessage {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 .generateSection {
   display: flex;
   align-items: center;
@@ -65,31 +94,6 @@
 .statusMessage {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-}
-
-.section {
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-lg);
-}
-
-.details {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.summary {
-  padding: var(--space-md);
-  cursor: pointer;
-  font-weight: 500;
-  user-select: none;
-}
-
-.summary:hover {
-  background: var(--color-surface-hover);
-}
-
-.detailsContent {
-  padding: 0 var(--space-md) var(--space-md);
 }
 
 .finalizeButton {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createGameHistoryEntry, computeFieldingFairness } from './game-history.ts';
+import { createGameHistoryEntry, computeFieldingFairness, computeCatcherInnings } from './game-history.ts';
 import type { Player, Position, Lineup } from '../types/index.ts';
 
 // --- Test Helpers ---
@@ -219,5 +219,64 @@ describe('computeFieldingFairness', () => {
 
     expect(result['p_new'].totalBenchInnings).toBe(0);
     expect(result['p_new'].positionsPlayed).toEqual([]);
+  });
+});
+
+// --- computeCatcherInnings Tests ---
+
+describe('computeCatcherInnings', () => {
+  it('returns zero for all players with no history', () => {
+    const result = computeCatcherInnings([], ['p1', 'p2', 'p3']);
+    expect(Object.keys(result)).toHaveLength(3);
+    for (const id of ['p1', 'p2', 'p3']) {
+      expect(result[id]).toBe(0);
+    }
+  });
+
+  it('counts catcher innings correctly from a single game', () => {
+    // p2 catches all 6 innings in sixInningLineup
+    const game = createGameHistoryEntry(sixInningLineup, battingOrder10, 6, players10);
+    const presentIds = players10.map(p => p.id);
+    const result = computeCatcherInnings([game], presentIds);
+
+    expect(result['p2']).toBe(6);
+    expect(result['p1']).toBe(0); // p1 pitches, never catches
+    expect(result['p3']).toBe(0);
+  });
+
+  it('sums catcher innings across multiple games', () => {
+    const game1 = createGameHistoryEntry(sixInningLineup, battingOrder10, 6, players10);
+    const game2 = createGameHistoryEntry(sixInningLineup, battingOrder10, 6, players10);
+    const presentIds = players10.map(p => p.id);
+    const result = computeCatcherInnings([game1, game2], presentIds);
+
+    expect(result['p2']).toBe(12); // 6 per game × 2 games
+  });
+
+  it('skips deleted players not in presentPlayerIds', () => {
+    const game = createGameHistoryEntry(sixInningLineup, battingOrder10, 6, players10);
+    const result = computeCatcherInnings([game], ['p1', 'p2']);
+
+    expect(Object.keys(result)).toHaveLength(2);
+    expect(result['p2']).toBe(6);
+    expect(result['p3']).toBeUndefined();
+  });
+
+  it('counts correctly when catcher changes mid-game', () => {
+    // p2 catches innings 1-3, p4 catches innings 4-6
+    const mixedCatcherLineup = buildLineup({
+      1: { P: 'p1', C: 'p2', '1B': 'p3', '2B': 'p4', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      2: { P: 'p1', C: 'p2', '1B': 'p3', '2B': 'p4', '3B': 'p10', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      3: { P: 'p1', C: 'p2', '1B': 'p3', '2B': 'p10', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      4: { P: 'p1', C: 'p4', '1B': 'p3', '2B': 'p2', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      5: { P: 'p1', C: 'p4', '1B': 'p3', '2B': 'p10', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p2' },
+      6: { P: 'p1', C: 'p4', '1B': 'p3', '2B': 'p2', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p10' },
+    });
+    const game = createGameHistoryEntry(mixedCatcherLineup, battingOrder10, 6, players10);
+    const presentIds = players10.map(p => p.id);
+    const result = computeCatcherInnings([game], presentIds);
+
+    expect(result['p2']).toBe(3);
+    expect(result['p4']).toBe(3);
   });
 });

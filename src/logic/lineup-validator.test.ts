@@ -215,6 +215,60 @@ describe('validateLineup', () => {
     });
   });
 
+  describe('CATCHER_PITCHER_ELIGIBILITY', () => {
+    it('reports player who catches 4+ innings and also pitches', () => {
+      // p1 pitches inning 1, catches innings 2-6 (5 catcher innings)
+      const lineup: Lineup = {
+        1: makeInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']),
+        2: makeInning(['p3', 'p1', 'p10','p4', 'p5', 'p6', 'p7', 'p8', 'p9']),
+        3: makeInning(['p3', 'p1', 'p5', 'p10','p9', 'p4', 'p8', 'p6', 'p7']),
+        4: makeInning(['p3', 'p1', 'p8', 'p4', 'p10','p7', 'p6', 'p5', 'p9']),
+        5: makeInning(['p3', 'p1', 'p9', 'p5', 'p4', 'p8', 'p10','p7', 'p6']),
+        6: makeInning(['p3', 'p1', 'p10','p8', 'p6', 'p5', 'p4', 'p9', 'p7']),
+      };
+      const input = makeDefaultInput({
+        presentPlayers: players,
+        pitcherAssignments: { 1: 'p1', 2: 'p3', 3: 'p3', 4: 'p3', 5: 'p3', 6: 'p3' },
+        catcherAssignments: { 1: 'p2', 2: 'p1', 3: 'p1', 4: 'p1', 5: 'p1', 6: 'p1' },
+      });
+      const errors = validateLineup(lineup, input);
+      const eligErrors = errors.filter(e => e.rule === 'CATCHER_PITCHER_ELIGIBILITY');
+      expect(eligErrors.length).toBeGreaterThan(0);
+      expect(eligErrors[0].message).toContain('Alex');
+      expect(eligErrors[0].message).toContain('catches');
+      expect(eligErrors[0].message).toContain('pitch');
+    });
+
+    it('does NOT report player who catches only 3 innings and pitches', () => {
+      // p1 pitches innings 1-3, catches innings 4-6 (3 catcher innings — under threshold)
+      const lineup: Lineup = {
+        1: makeInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']),
+        2: makeInning(['p1', 'p2', 'p10','p3', 'p9', 'p4', 'p5', 'p7', 'p6']),
+        3: makeInning(['p1', 'p2', 'p5', 'p9', 'p7', 'p4', 'p8', 'p3', 'p6']),
+        4: makeInning(['p3', 'p1', 'p8', 'p10','p6', 'p7', 'p2', 'p4', 'p5']),
+        5: makeInning(['p3', 'p1', 'p9', 'p4', 'p2', 'p8', 'p5', 'p6', 'p7']),
+        6: makeInning(['p3', 'p1', 'p10','p8', 'p5', 'p6', 'p2', 'p7', 'p4']),
+      };
+      const input = makeDefaultInput({
+        presentPlayers: players,
+        pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p1', 4: 'p3', 5: 'p3', 6: 'p3' },
+        catcherAssignments: { 1: 'p2', 2: 'p2', 3: 'p2', 4: 'p1', 5: 'p1', 6: 'p1' },
+      });
+      const errors = validateLineup(lineup, input);
+      const eligErrors = errors.filter(e => e.rule === 'CATCHER_PITCHER_ELIGIBILITY');
+      expect(eligErrors).toEqual([]);
+    });
+
+    it('does NOT report player who catches 4+ innings but does not pitch', () => {
+      // p2 catches all 6 innings, never pitches
+      const lineup = makeValidLineup();
+      const input = makeDefaultInput();
+      const errors = validateLineup(lineup, input);
+      const eligErrors = errors.filter(e => e.rule === 'CATCHER_PITCHER_ELIGIBILITY');
+      expect(eligErrors).toEqual([]);
+    });
+  });
+
   describe('multiple violations', () => {
     it('returns all errors, not just the first', () => {
       const lineup = makeValidLineup();

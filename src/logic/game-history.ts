@@ -91,3 +91,33 @@ export function computeFieldingFairness(
 
   return result;
 }
+
+/**
+ * Compute per-player catcher innings from game history.
+ *
+ * Returns a map of playerId -> total innings spent at catcher across all
+ * history entries. Useful for informing coaches about catcher workload
+ * when making pitcher/catcher assignments.
+ */
+export function computeCatcherInnings(
+  history: GameHistoryEntry[],
+  presentPlayerIds: string[],
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const id of presentPlayerIds) {
+    counts[id] = 0;
+  }
+
+  for (const game of history) {
+    for (const summary of game.playerSummaries) {
+      if (counts[summary.playerId] === undefined) continue;
+      for (const pos of summary.fieldingPositions) {
+        if (pos === 'C') {
+          counts[summary.playerId]++;
+        }
+      }
+    }
+  }
+
+  return counts;
+}
