@@ -1,13 +1,21 @@
 import { CosmosClient, Container } from '@azure/cosmos';
+import { DefaultAzureCredential } from '@azure/identity';
 
-const connectionString = process.env.COSMOSDB_CONNECTION_STRING;
-if (!connectionString) {
-  throw new Error(
-    'COSMOSDB_CONNECTION_STRING environment variable is required',
-  );
+function createClient(): CosmosClient {
+  const connectionString = process.env.COSMOSDB_CONNECTION_STRING;
+  if (connectionString) {
+    return new CosmosClient(connectionString);
+  }
+
+  const endpoint = process.env.COSMOSDB_ENDPOINT;
+  if (!endpoint) {
+    throw new Error('Set COSMOSDB_ENDPOINT or COSMOSDB_CONNECTION_STRING');
+  }
+
+  return new CosmosClient({ endpoint, aadCredentials: new DefaultAzureCredential() });
 }
 
-const client = new CosmosClient(connectionString);
+const client = createClient();
 const database = client.database('baseball-coach');
 
 /** Singleton Cosmos container for all coach data. */
