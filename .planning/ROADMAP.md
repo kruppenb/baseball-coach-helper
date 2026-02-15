@@ -54,9 +54,9 @@
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 10-01-PLAN.md — App shell restructure (2-tab bottom nav, stepper hook, Settings page)
-- [ ] 10-02-PLAN.md — Game Day stepper container, Attendance step, P/C Assignment step with history
-- [ ] 10-03-PLAN.md — Generate, Review (with batting order comparison), and Print steps
+- [x] 10-01-PLAN.md — App shell restructure (2-tab bottom nav, stepper hook, Settings page)
+- [x] 10-02-PLAN.md — Game Day stepper container, Attendance step, P/C Assignment step with history
+- [x] 10-03-PLAN.md — Generate, Review (with batting order comparison), and Print steps
 
 ### Phase 11: Drag-and-Drop Editing
 **Goal**: Coach can drag players to swap fielding positions and reorder the batting order, with real-time constraint feedback on every edit
@@ -67,11 +67,11 @@ Plans:
   2. Coach can drag batting order entries to reorder them
   3. Constraint violations appear in real-time as the coach makes drag edits (no page reload or manual check needed)
   4. Drag-and-drop works on mobile touch devices using visible drag handles without stealing page scroll
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
+- [ ] 11-01-PLAN.md — Install @dnd-kit, useLineupEditor hook, DraggableLineupGrid for fielding swaps
+- [ ] 11-02-PLAN.md — SortableBattingOrder, wire DnD into ReviewStep, human verification
 
 ### Phase 12: Scored Generation and Batting Order
 **Goal**: App generates multiple lineups behind the scenes and presents the best one with a visible fairness score, plus auto-generates batting order without extra steps
@@ -120,7 +120,7 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 7. Sync Engine | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 8. Data Migration | v2.0 | 1/1 | Complete | 2026-02-13 |
 | 9. PWA + Deployment | v2.0 | 2/2 | Complete | 2026-02-13 |
-| 10. App Restructuring | v3.0 | Complete    | 2026-02-15 | - |
-| 11. Drag-and-Drop | v3.0 | 0/TBD | Not started | - |
+| 10. App Restructuring | v3.0 | 3/3 | Complete | 2026-02-15 |
+| 11. Drag-and-Drop | v3.0 | 0/2 | Not started | - |
 | 12. Scored Generation | v3.0 | 0/TBD | Not started | - |
 | 13. Sync Hardening | v3.0 | 0/TBD | Not started | - |
