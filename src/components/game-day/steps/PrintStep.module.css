@@ -1,0 +1,17 @@
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.heading {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+.instruction {
+  color: var(--color-text-muted);
+  margin: 0;
+  font-size: var(--font-size-base);
+}

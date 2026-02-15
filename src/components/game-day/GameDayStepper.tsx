@@ -2,7 +2,13 @@ import { useStepperState } from '../../hooks/useStepperState';
 import { StepperHeader } from './StepperHeader';
 import { AttendanceStep } from './steps/AttendanceStep';
 import { PCAssignmentStep } from './steps/PCAssignmentStep';
+import { GenerateStep } from './steps/GenerateStep';
+import { ReviewStep } from './steps/ReviewStep';
+import { PrintStep } from './steps/PrintStep';
+import type { StepId } from '../../types';
 import styles from './GameDayStepper.module.css';
+
+const STEP_ORDER: StepId[] = ['attendance', 'pc-assignment', 'generate', 'review', 'print'];
 
 export function GameDayStepper() {
   const {
@@ -14,6 +20,8 @@ export function GameDayStepper() {
     clearStaleWarning,
     canNavigate,
   } = useStepperState();
+
+  const currentIndex = STEP_ORDER.indexOf(currentStep);
 
   return (
     <div className={styles.stepper}>
@@ -40,6 +48,16 @@ export function GameDayStepper() {
       )}
 
       <div className={styles.stepContent}>
+        {currentIndex > 0 && (
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={() => goToStep(STEP_ORDER[currentIndex - 1])}
+          >
+            Back
+          </button>
+        )}
+
         {currentStep === 'attendance' && (
           <AttendanceStep onComplete={() => completeStep('attendance')} />
         )}
@@ -47,13 +65,13 @@ export function GameDayStepper() {
           <PCAssignmentStep onComplete={() => completeStep('pc-assignment')} />
         )}
         {currentStep === 'generate' && (
-          <div>Generate (coming in Plan 03)</div>
+          <GenerateStep onComplete={() => completeStep('generate')} />
         )}
         {currentStep === 'review' && (
-          <div>Review (coming in Plan 03)</div>
+          <ReviewStep onComplete={() => completeStep('review')} />
         )}
         {currentStep === 'print' && (
-          <div>Print (coming in Plan 03)</div>
+          <PrintStep />
         )}
       </div>
     </div>

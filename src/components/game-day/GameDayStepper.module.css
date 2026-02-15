@@ -31,3 +31,18 @@
 .stepContent {
   padding: var(--space-md) var(--space-lg);
 }
+
+.backButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  padding: var(--space-sm) 0;
+  margin-bottom: var(--space-sm);
+}
+
+.backButton:hover {
+  text-decoration: underline;
+}
