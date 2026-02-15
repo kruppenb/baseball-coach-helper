@@ -64,6 +64,26 @@ Route rules and auth config are in `staticwebapp.config.json`:
 - `/.auth/login/github` is blocked (Entra ID only)
 - 401 responses redirect to Entra ID login
 
+## Security
+
+The API is protected by multiple layers:
+
+1. **Network restriction** — The Functions app has an access restriction allowing only the `AzureCloud` service tag. This blocks all direct internet traffic; only requests originating from within Azure can reach the app.
+
+2. **SWA route rules** — `staticwebapp.config.json` requires the `authenticated` role for `/api/*`. The SWA edge enforces Entra ID login before proxying any request to the linked Functions app.
+
+3. **Code-level auth** — Every API handler validates the `x-ms-client-principal` header (parsed in `api/src/lib/auth.ts`). Requests without a valid principal are rejected with 401. This is defense-in-depth in case a request somehow bypasses the SWA auth layer.
+
+4. **Cosmos DB RBAC-only** — `disableLocalAuth: true` means no connection strings or keys exist. Only the Functions app's system-assigned managed identity (with the Cosmos DB Built-in Data Contributor role) can read/write data.
+
+### Why no VNet / private endpoints
+
+SWA linked backends proxy to the Functions app over the public internet — the SWA-to-Functions hop cannot be routed through a VNet. Adding a VNet + private endpoint would block the SWA proxy itself, since SWA has no VNet integration for outbound traffic to linked backends. The `AzureCloud` service tag restriction is the tightest network control possible in this architecture.
+
+### Residual risk
+
+The remaining attack surface is another Azure service forging the `x-ms-client-principal` header with a valid Entra ID Object ID. This requires both Azure-internal network access and knowledge of a specific user's Object ID — an acceptable risk for a youth baseball coaching app.
+
 ## Local development
 
 1. Start the Cosmos DB emulator (or set a real connection string)
