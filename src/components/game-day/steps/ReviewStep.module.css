@@ -1,0 +1,157 @@
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.heading {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+.section {
+  margin-bottom: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-md);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0 0 var(--space-md) 0;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.generateBattingButton {
+  min-height: var(--min-tap-size);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-sm) var(--space-lg);
+  font-family: inherit;
+}
+
+.generateBattingButton:hover {
+  filter: brightness(0.9);
+}
+
+.clearBattingButton {
+  min-height: var(--min-tap-size);
+  background: none;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-sm) var(--space-lg);
+  font-family: inherit;
+}
+
+.clearBattingButton:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.comparison {
+  display: flex;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.comparisonColumn {
+  flex: 1;
+}
+
+.comparisonTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.comparisonList {
+  list-style-type: decimal;
+  padding-left: var(--space-lg);
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+.comparisonList li {
+  padding: var(--space-xs) 0;
+}
+
+.comparisonLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.finalizeButton {
+  min-height: var(--min-tap-size);
+  background: var(--color-success, #16a34a);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  padding: var(--space-md) var(--space-xl);
+  font-family: inherit;
+}
+
+.finalizeButton:hover {
+  filter: brightness(0.9);
+}
+
+.finalizeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.finalizedMessage {
+  color: var(--color-success, #16a34a);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0;
+}
+
+.nextButton {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: var(--min-tap-size);
+  width: 100%;
+  font-family: inherit;
+}
+
+.nextButton:hover {
+  filter: brightness(0.9);
+}
+
+.nextButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.emptyMessage {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  margin: 0;
+}

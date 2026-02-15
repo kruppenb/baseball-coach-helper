@@ -1,0 +1,95 @@
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.heading {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+.instruction {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.buttonRow {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.generateButton {
+  min-height: var(--min-tap-size);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  font-family: inherit;
+  padding: var(--space-md) var(--space-xl);
+}
+
+.generateButton:hover {
+  filter: brightness(0.9);
+}
+
+.clearButton {
+  min-height: var(--min-tap-size);
+  background: none;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-md) var(--space-xl);
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.clearButton:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.statusMessage {
+  color: var(--color-success, #16a34a);
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+.statusError {
+  color: var(--color-error, #dc2626);
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+.nextButton {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: var(--min-tap-size);
+  width: 100%;
+  font-family: inherit;
+}
+
+.nextButton:hover {
+  filter: brightness(0.9);
+}
+
+.nextButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
