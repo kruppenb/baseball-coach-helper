@@ -1,8 +1,15 @@
 .tabBar {
   display: flex;
-  border-bottom: 2px solid var(--color-border);
+  justify-content: center;
+  gap: var(--space-xl);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--color-bg, #fff);
+  border-top: 2px solid var(--color-border);
   padding: 0 var(--space-lg);
-  gap: var(--space-xs);
 }
 
 .tab {
@@ -14,8 +21,8 @@
   color: var(--color-text-muted);
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
+  border-top: 3px solid transparent;
+  margin-top: -2px;
   cursor: pointer;
 }
 
@@ -28,7 +35,7 @@
 .tab.active {
   font-weight: 700;
   color: var(--color-text);
-  border-bottom-color: var(--color-primary);
+  border-top-color: var(--color-primary);
 }
 
 .tab:disabled {

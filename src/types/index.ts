@@ -8,7 +8,18 @@ export interface GameConfig {
   innings: 5 | 6;
 }
 
-export type TabId = 'roster' | 'game-setup' | 'lineup' | 'history';
+export type TabId = 'game-day' | 'settings';
+
+// --- Stepper Types ---
+
+export type StepId = 'attendance' | 'pc-assignment' | 'generate' | 'review' | 'print';
+
+export interface StepperState {
+  currentStep: StepId;
+  completedSteps: Set<StepId>;
+  hasCompletedAllOnce: boolean;
+  staleWarning: boolean;
+}
 
 // --- Lineup Types ---
 

@@ -1,72 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppHeader } from './AppHeader';
 import { TabBar } from './TabBar';
-import { RosterPage } from '../roster/RosterPage';
-import { GameSetupPage } from '../game-setup/GameSetupPage';
-import { LineupPage } from '../lineup/LineupPage';
-import { HistoryPage } from '../history/HistoryPage';
-import { useRoster } from '../../hooks/useRoster';
+import { SettingsPage } from '../settings/SettingsPage';
+import type { TabId } from '../../types';
 import styles from './AppShell.module.css';
 
+const tabs = [
+  { id: 'game-day', label: 'Game Day' },
+  { id: 'settings', label: 'Settings' },
+];
+
 export function AppShell() {
-  const [activeTab, setActiveTab] = useState('roster');
-  const { presentCount } = useRoster();
-
-  const tabs = [
-    { id: 'roster', label: 'Roster' },
-    { id: 'game-setup', label: 'Game Setup' },
-    { id: 'lineup', label: 'Lineup', disabled: presentCount < 9 },
-    { id: 'history', label: 'History' },
-  ];
-
-  useEffect(() => {
-    if (activeTab === 'lineup' && presentCount < 9) {
-      setActiveTab('game-setup');
-    }
-  }, [activeTab, presentCount]);
+  const [activeTab, setActiveTab] = useState<TabId>('game-day');
 
   return (
     <div className={styles.shell}>
       <AppHeader />
-      <TabBar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
       <main className={styles.content}>
-        {activeTab === 'roster' && (
+        {activeTab === 'game-day' && (
           <div
             role="tabpanel"
-            id="panel-roster"
-            aria-labelledby="tab-roster"
+            id="panel-game-day"
+            aria-labelledby="tab-game-day"
           >
-            <RosterPage />
+            <div>Game Day Stepper (coming in Plan 02)</div>
           </div>
         )}
-        {activeTab === 'game-setup' && (
+        {activeTab === 'settings' && (
           <div
             role="tabpanel"
-            id="panel-game-setup"
-            aria-labelledby="tab-game-setup"
+            id="panel-settings"
+            aria-labelledby="tab-settings"
           >
-            <GameSetupPage />
-          </div>
-        )}
-        {activeTab === 'lineup' && (
-          <div
-            role="tabpanel"
-            id="panel-lineup"
-            aria-labelledby="tab-lineup"
-          >
-            <LineupPage />
-          </div>
-        )}
-        {activeTab === 'history' && (
-          <div
-            role="tabpanel"
-            id="panel-history"
-            aria-labelledby="tab-history"
-          >
-            <HistoryPage />
+            <SettingsPage />
           </div>
         )}
       </main>
+      <TabBar tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as TabId)} />
     </div>
   );
 }
