@@ -1,0 +1,48 @@
+.page {
+  padding: var(--space-md);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xl);
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sectionTitle:first-of-type {
+  margin-top: 0;
+}
+
+.csvActions {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.csvButton {
+  min-height: var(--min-tap-size);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--font-size-base);
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.importStatus {
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.syncSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.syncInfo {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+}
