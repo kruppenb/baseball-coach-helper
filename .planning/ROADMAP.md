@@ -34,7 +34,7 @@
 
 **Milestone Goal:** Streamline the game-day experience with a simplified flow, drag-and-drop editing, best-of-N lineup generation, and user-controlled sync conflict resolution.
 
-- [ ] **Phase 10: App Restructuring and Game Day Flow** — Game-day-first tab structure with stepper flow and consolidated Settings page
+- [x] **Phase 10: App Restructuring and Game Day Flow** — Game-day-first tab structure with stepper flow and consolidated Settings page (completed 2026-02-15)
 - [ ] **Phase 11: Drag-and-Drop Editing** — Drag-and-drop fielding lineup and batting order editing with live validation
 - [ ] **Phase 12: Scored Generation and Batting Order** — Best-of-N lineup generation with fairness scoring and auto batting order
 - [ ] **Phase 13: Sync Hardening** — ETag-based conflict detection with coach-facing conflict resolution
@@ -51,7 +51,7 @@
   3. Absent players are visually greyed out and cannot be selected for P/C assignments
   4. Settings page contains roster management, CSV import/export, position blocks, innings config, and sync status — all functional
   5. Previous game's batting order is visible alongside the current auto-generated order for fairness comparison
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 10-01-PLAN.md — App shell restructure (2-tab bottom nav, stepper hook, Settings page)
@@ -120,7 +120,7 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 7. Sync Engine | v2.0 | 2/2 | Complete | 2026-02-12 |
 | 8. Data Migration | v2.0 | 1/1 | Complete | 2026-02-13 |
 | 9. PWA + Deployment | v2.0 | 2/2 | Complete | 2026-02-13 |
-| 10. App Restructuring | v3.0 | 0/TBD | Not started | - |
+| 10. App Restructuring | v3.0 | Complete    | 2026-02-15 | - |
 | 11. Drag-and-Drop | v3.0 | 0/TBD | Not started | - |
 | 12. Scored Generation | v3.0 | 0/TBD | Not started | - |
 | 13. Sync Hardening | v3.0 | 0/TBD | Not started | - |
