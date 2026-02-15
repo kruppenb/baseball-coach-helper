@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AppHeader } from './AppHeader';
 import { TabBar } from './TabBar';
+import { GameDayStepper } from '../game-day/GameDayStepper';
 import { SettingsPage } from '../settings/SettingsPage';
 import type { TabId } from '../../types';
 import styles from './AppShell.module.css';
@@ -23,7 +24,7 @@ export function AppShell() {
             id="panel-game-day"
             aria-labelledby="tab-game-day"
           >
-            <div>Game Day Stepper (coming in Plan 02)</div>
+            <GameDayStepper />
           </div>
         )}
         {activeTab === 'settings' && (
