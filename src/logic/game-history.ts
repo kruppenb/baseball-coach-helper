@@ -1,4 +1,4 @@
-import type { Player, Position, Lineup, GameHistoryEntry, PlayerGameSummary } from '../types/index.ts';
+import type { Player, Position, Lineup, GameHistoryEntry, PlayerGameSummary, InningAssignment } from '../types/index.ts';
 import { POSITIONS } from '../types/index.ts';
 
 /**
@@ -120,4 +120,70 @@ export function computeCatcherInnings(
   }
 
   return counts;
+}
+
+// --- Recent P/C History ---
+
+export interface RecentPCRecord {
+  pitchedGames: number;
+  caughtGames: number;
+  pitchedLast2Consecutive: boolean;
+}
+
+/**
+ * Compute recent pitcher/catcher history from the last 2 games.
+ *
+ * For each present player, determines how many of the last 2 games they
+ * pitched or caught (assigned to P or C in ANY inning of that game).
+ * Also flags if a player pitched in both of the last 2 consecutive games.
+ */
+export function computeRecentPCHistory(
+  history: GameHistoryEntry[],
+  presentPlayerIds: string[],
+): Record<string, RecentPCRecord> {
+  const last2 = history.slice(-2);
+
+  // For each game, determine who pitched and who caught
+  const gamePitchers: Set<string>[] = [];
+  const gameCatchers: Set<string>[] = [];
+
+  for (const game of last2) {
+    const pitchers = new Set<string>();
+    const catchers = new Set<string>();
+
+    for (let inn = 1; inn <= game.innings; inn++) {
+      const inningAssignment: InningAssignment | undefined = game.lineup[inn];
+      if (!inningAssignment) continue;
+
+      if (inningAssignment['P']) {
+        pitchers.add(inningAssignment['P']);
+      }
+      if (inningAssignment['C']) {
+        catchers.add(inningAssignment['C']);
+      }
+    }
+
+    gamePitchers.push(pitchers);
+    gameCatchers.push(catchers);
+  }
+
+  const result: Record<string, RecentPCRecord> = {};
+
+  for (const playerId of presentPlayerIds) {
+    let pitchedGames = 0;
+    let caughtGames = 0;
+
+    for (let g = 0; g < last2.length; g++) {
+      if (gamePitchers[g].has(playerId)) pitchedGames++;
+      if (gameCatchers[g].has(playerId)) caughtGames++;
+    }
+
+    result[playerId] = {
+      pitchedGames,
+      caughtGames,
+      pitchedLast2Consecutive: pitchedGames === 2 && history.length >= 2,
+    };
+  }
+
+  return result;
 }

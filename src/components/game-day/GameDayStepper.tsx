@@ -1,6 +1,7 @@
 import { useStepperState } from '../../hooks/useStepperState';
 import { StepperHeader } from './StepperHeader';
 import { AttendanceStep } from './steps/AttendanceStep';
+import { PCAssignmentStep } from './steps/PCAssignmentStep';
 import styles from './GameDayStepper.module.css';
 
 export function GameDayStepper() {
@@ -43,7 +44,7 @@ export function GameDayStepper() {
           <AttendanceStep onComplete={() => completeStep('attendance')} />
         )}
         {currentStep === 'pc-assignment' && (
-          <div>P/C Assignment (Task 2)</div>
+          <PCAssignmentStep onComplete={() => completeStep('pc-assignment')} />
         )}
         {currentStep === 'generate' && (
           <div>Generate (coming in Plan 03)</div>
