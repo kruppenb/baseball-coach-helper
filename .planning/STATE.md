@@ -11,22 +11,23 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 Milestone: v3.0 UX Overhaul
 Phase: 10 of 13 (App Restructuring and Game Day Flow)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing
-Last activity: 2026-02-15 — Completed 10-01 (App Shell Restructuring)
+Last activity: 2026-02-15 — Completed 10-02 (Game Day Stepper UI)
 
-Progress: [███████████████████████████░░░] 27/29 plans (v1+v2+v3.0 phase 10)
+Progress: [████████████████████████████░░] 28/29 plans (v1+v2+v3.0 phase 10)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0):**
-- Total plans completed: 27
+- Total plans completed: 28
 - Average duration: 4 min
-- Total execution time: 115 min
+- Total execution time: 118 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 10 | 01 | 3min | 2 | 7 |
+| 10 | 02 | 3min | 2 | 10 |
 
 ## Accumulated Context
 
@@ -40,6 +41,9 @@ Recent decisions affecting current work:
 - [10-01]: Stepper uses useReducer instead of useState for complex state transitions
 - [10-01]: Tab bar active indicator changed from bottom-border to top-border for bottom positioning
 - [10-01]: SettingsPage reuses all existing child components without modification
+- [10-02]: PCAssignmentStep uses single pitcher/catcher dropdown applied to all innings (simplified vs per-inning)
+- [10-02]: Auto-clear catcher when selected pitcher was the catcher to prevent same-player P/C conflict
+- [10-02]: Absent players shown greyed at bottom of P/C history table but excluded from dropdowns
 
 ### Pending Todos
 
@@ -52,6 +56,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15 (Phase 10 plan 01 executed)
-Stopped at: Completed 10-01-PLAN.md
-Resume file: .planning/phases/10-app-restructuring-and-game-day-flow/10-01-SUMMARY.md
+Last session: 2026-02-15 (Phase 10 plan 02 executed)
+Stopped at: Completed 10-02-PLAN.md
+Resume file: .planning/phases/10-app-restructuring-and-game-day-flow/10-02-SUMMARY.md
