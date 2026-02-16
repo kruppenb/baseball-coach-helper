@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLineup } from '../../../hooks/useLineup';
+import { useLineupEditor } from '../../../hooks/useLineupEditor';
 import { useRoster } from '../../../hooks/useRoster';
 import { useBattingOrder } from '../../../hooks/useBattingOrder';
 import { useGameHistory } from '../../../hooks/useGameHistory';
 import { LineupOptions } from '../../lineup/LineupOptions';
-import { LineupGrid } from '../../lineup/LineupGrid';
+import { DraggableLineupGrid } from '../../lineup/DraggableLineupGrid';
 import { FairnessSummary } from '../../lineup/FairnessSummary';
 import type { PlayerFairness } from '../../lineup/FairnessSummary';
 import { ValidationPanel } from '../../lineup/ValidationPanel';
-import { BattingOrderList } from '../../batting-order/BattingOrderList';
+import { SortableBattingOrder } from '../../batting-order/SortableBattingOrder';
 import type { Lineup, Player, Position } from '../../../types/index';
 import { POSITIONS, INFIELD_POSITIONS } from '../../../types/index';
+import type { GenerateLineupInput } from '../../../logic/lineup-types';
 import styles from './ReviewStep.module.css';
 
 function computeFairnessSummary(
@@ -69,10 +71,12 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     generatedLineups,
     selectedLineupIndex,
     selectedLineup,
-    validationErrors,
     innings,
     selectLineup,
     presentPlayers,
+    pitcherAssignments,
+    catcherAssignments,
+    positionBlocks,
   } = useLineup();
 
   const { players } = useRoster();
@@ -86,6 +90,21 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   } = useBattingOrder();
 
   const { history, finalizeGame } = useGameHistory();
+
+  const validationInput: GenerateLineupInput = useMemo(() => ({
+    presentPlayers,
+    innings,
+    pitcherAssignments,
+    catcherAssignments,
+    positionBlocks,
+  }), [presentPlayers, innings, pitcherAssignments, catcherAssignments, positionBlocks]);
+
+  const editor = useLineupEditor(selectedLineup, validationInput);
+
+  useEffect(() => {
+    editor.setBattingOrder(currentOrder);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentOrder]);
 
   const [isFinalized, setIsFinalized] = useState(false);
   const [hasGeneratedBatting, setHasGeneratedBatting] = useState(currentOrder !== null);
@@ -105,9 +124,9 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   };
 
   const handleFinalize = () => {
-    if (!selectedLineup || !currentOrder) return;
+    if (!editor.lineup || !editor.battingOrder) return;
     confirmBatting();
-    finalizeGame(selectedLineup, currentOrder, innings, players);
+    finalizeGame(editor.lineup, editor.battingOrder, innings, players);
     setIsFinalized(true);
   };
 
@@ -117,7 +136,12 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
 
   return (
     <div className={styles.step}>
-      <h2 className={styles.heading}>Review Lineup</h2>
+      <h2 className={styles.heading}>
+        Review Lineup
+        {editor.hasEdits && (
+          <span className={styles.editsBadge}>Edited</span>
+        )}
+      </h2>
 
       {/* Lineup Options section */}
       <div className={styles.section}>
@@ -131,18 +155,19 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
       </div>
 
       {/* Lineup Grid, Fairness, Validation */}
-      {selectedLineup && (
+      {editor.lineup && (
         <div className={styles.section}>
-          <LineupGrid
-            lineup={selectedLineup}
+          <DraggableLineupGrid
+            lineup={editor.lineup}
             innings={innings}
             players={players}
-            errors={validationErrors}
+            errors={editor.validationErrors}
+            onSwap={editor.swapPositions}
           />
           <FairnessSummary
-            summary={computeFairnessSummary(selectedLineup, innings, players)}
+            summary={computeFairnessSummary(editor.lineup, innings, players)}
           />
-          <ValidationPanel errors={validationErrors} preErrors={[]} />
+          <ValidationPanel errors={editor.validationErrors} preErrors={[]} />
         </div>
       )}
 
@@ -169,13 +194,17 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
           )}
         </div>
 
-        {currentOrder && (
-          <BattingOrderList order={currentOrder} players={battingPresentPlayers} />
+        {editor.battingOrder && (
+          <SortableBattingOrder
+            order={editor.battingOrder}
+            players={battingPresentPlayers}
+            onReorder={editor.reorderBattingOrder}
+          />
         )}
       </div>
 
       {/* Previous Batting Order comparison (FLOW-05) */}
-      {previousBattingOrder && currentOrder && (
+      {previousBattingOrder && editor.battingOrder && (
         <div className={styles.section}>
           <p className={styles.comparisonLabel}>
             Last game's batting order for reference
@@ -194,7 +223,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
             <div className={styles.comparisonColumn}>
               <h4 className={styles.comparisonTitle}>Current Game</h4>
               <ol className={styles.comparisonList}>
-                {currentOrder.map((playerId, index) => (
+                {editor.battingOrder!.map((playerId, index) => (
                   <li key={`curr-${index}`}>
                     {getPlayerName(playerId, players)}
                   </li>
@@ -210,7 +239,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
         <button
           type="button"
           className={styles.finalizeButton}
-          disabled={!currentOrder || isFinalized}
+          disabled={!editor.battingOrder || isFinalized}
           onClick={handleFinalize}
         >
           {isFinalized ? 'Game Finalized' : 'Finalize Game'}

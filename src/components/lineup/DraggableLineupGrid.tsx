@@ -45,7 +45,7 @@ export function DraggableLineupGrid({
     if (event.canceled) return;
 
     const { source, target } = event.operation;
-    if (!target) return;
+    if (!source || !target) return;
 
     const sourcePosition = source.data?.position as Position | undefined;
     const targetPosition = target.data?.position as Position | undefined;
