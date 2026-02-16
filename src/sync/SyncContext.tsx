@@ -7,25 +7,31 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import type { SyncStatus, SyncKeyConfig } from './sync-types';
+import type { SyncStatus, SyncKeyConfig, ConflictInfo } from './sync-types';
 import { useOnlineStatus } from './useOnlineStatus';
 import {
   retryPendingPushes,
   cancelAllTimers,
   migrateLocalData,
+  pushToCloud,
+  setStoredEtag,
+  clearDirty,
 } from './sync-engine';
 import { useAuth } from '../auth/useAuth';
+import { ConflictDialog } from './ConflictDialog';
 
 interface SyncContextValue {
   status: SyncStatus;
   reportStatus: (key: string, status: SyncStatus) => void;
   registerConfig: (key: string, config: SyncKeyConfig) => void;
+  onConflict: (info: ConflictInfo) => void;
 }
 
 const SyncContext = createContext<SyncContextValue>({
   status: 'synced',
   reportStatus: () => {},
   registerConfig: () => {},
+  onConflict: () => {},
 });
 
 export function SyncProvider({ children }: { children: ReactNode }) {
@@ -44,6 +50,42 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const registerConfig = useCallback((key: string, config: SyncKeyConfig) => {
     configsRef.current.set(key, config);
   }, []);
+
+  const [activeConflict, setActiveConflict] = useState<ConflictInfo | null>(null);
+
+  const handleConflict = useCallback((info: ConflictInfo) => {
+    setActiveConflict(info);
+  }, []);
+
+  const resolveConflict = useCallback((choice: 'local' | 'cloud') => {
+    if (!activeConflict) return;
+    const { key, cloudData, cloudEtag } = activeConflict;
+
+    if (choice === 'cloud') {
+      // Write cloud data to localStorage and update ETag
+      localStorage.setItem(key, JSON.stringify(cloudData));
+      window.dispatchEvent(
+        new CustomEvent('local-storage-sync', {
+          detail: { key, value: cloudData },
+        })
+      );
+      if (cloudEtag) {
+        setStoredEtag(key, cloudEtag);
+      }
+      clearDirty(key);
+      reportStatus(key, 'synced');
+    } else {
+      // "Keep this device": re-push with the fresh cloud ETag so next upsert succeeds
+      if (cloudEtag) {
+        setStoredEtag(key, cloudEtag);
+      }
+      const config = configsRef.current.get(key);
+      if (config) {
+        pushToCloud(key, config, (status) => reportStatus(key, status), handleConflict);
+      }
+    }
+    setActiveConflict(null);
+  }, [activeConflict, reportStatus, handleConflict]);
 
   // Derive aggregated status: error > syncing > offline > synced
   const statusValues = Object.values(keyStatuses);
@@ -95,8 +137,9 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   }, [user, reportStatus]);
 
   return (
-    <SyncContext.Provider value={{ status, reportStatus, registerConfig }}>
+    <SyncContext.Provider value={{ status, reportStatus, registerConfig, onConflict: handleConflict }}>
       {children}
+      <ConflictDialog conflict={activeConflict} onResolve={resolveConflict} />
     </SyncContext.Provider>
   );
 }

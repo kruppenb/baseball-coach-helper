@@ -22,7 +22,7 @@ export function useCloudStorage<T>(
 ): [T, (value: T | ((prev: T) => T)) => void] {
   const [value, setLocalValue] = useLocalStorage<T>(key, initialValue);
   const { user } = useAuth();
-  const { reportStatus, registerConfig } = useSyncContext();
+  const { reportStatus, registerConfig, onConflict } = useSyncContext();
 
   // Use ref for apiConfig to avoid stale closures and dependency array churn
   // (apiConfig is typically an object literal, new reference every render)
@@ -40,12 +40,15 @@ export function useCloudStorage<T>(
       setLocalValue(newValue);
       if (user) {
         markDirty(key);
-        debouncedPush(key, apiConfigRef.current, (status) =>
-          reportStatus(key, status)
+        debouncedPush(
+          key,
+          apiConfigRef.current,
+          (status) => reportStatus(key, status),
+          onConflict
         );
       }
     },
-    [key, setLocalValue, user, reportStatus]
+    [key, setLocalValue, user, reportStatus, onConflict]
   );
 
   // Pull from cloud on mount (authenticated only)

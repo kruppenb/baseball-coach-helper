@@ -1,0 +1,84 @@
+.dialog {
+  max-width: 480px;
+  width: calc(100% - 2 * var(--space-lg));
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  padding: var(--space-xl);
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.title {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-xl);
+}
+
+.description {
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-lg);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+.columns {
+  display: flex;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.column {
+  flex: 1;
+  text-align: center;
+}
+
+.column h3 {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-base);
+}
+
+.divider {
+  width: 1px;
+  background-color: var(--color-border);
+}
+
+.timestamp {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  min-height: 1.25rem;
+  margin: 0 0 var(--space-md);
+}
+
+.choiceButton {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  min-height: var(--min-tap-size);
+  transition: opacity 0.15s;
+}
+
+.choiceButton:hover {
+  opacity: 0.9;
+}
+
+.choiceButtonPrimary {
+  composes: choiceButton;
+  background: var(--color-primary);
+  color: #ffffff;
+  border: 1px solid var(--color-primary);
+}
+
+.choiceButtonSecondary {
+  composes: choiceButton;
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+}
