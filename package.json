@@ -12,6 +12,8 @@
     "dev:swa": "swa start http://localhost:5180 --run \"npm run dev\""
   },
   "dependencies": {
+    "@dnd-kit/helpers": "~0.2.4",
+    "@dnd-kit/react": "~0.2.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
