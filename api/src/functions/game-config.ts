@@ -80,8 +80,8 @@ export async function putGameConfig(
       jsonBody: { data: resource!.data, _etag: resource!._etag },
     };
   } catch (error) {
-    const cosmosErr = error as { statusCode?: number };
-    if (cosmosErr.statusCode === 412) {
+    const cosmosErr = error as { code?: number; statusCode?: number };
+    if (cosmosErr.code === 412 || cosmosErr.statusCode === 412) {
       const docId = `${DOC_TYPE}-${principal.userId}`;
       try {
         const { resource: current } = await container
