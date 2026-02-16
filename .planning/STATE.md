@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v3.0 UX Overhaul — Phase 12 complete, Phase 13 (Sync Hardening) next
+**Current focus:** v3.0 UX Overhaul — Phase 13 (Sync Hardening) in progress
 
 ## Current Position
 
 Milestone: v3.0 UX Overhaul
-Phase: 12 of 13 (Scored Generation) -- COMPLETE
-Plan: 2 of 2 in current phase (done)
-Status: Phase 12 Complete
-Last activity: 2026-02-15 — Completed 12-02 (Scored Generation UI Integration)
+Phase: 13 of 13 (Sync Hardening) -- IN PROGRESS
+Plan: 1 of 2 in current phase (done)
+Status: Executing Phase 13
+Last activity: 2026-02-15 — Completed 13-01 (API ETag Concurrency)
 
-Progress: [█████████████████████████████████] 33/33 plans (v1+v2+v3.0 through phase 12-02)
+Progress: [██████████████████████████████████] 34/35 plans (v1+v2+v3.0 through phase 13-01)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0):**
-- Total plans completed: 33
+- Total plans completed: 34
 - Average duration: 4 min
-- Total execution time: 135 min
+- Total execution time: 137 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -33,6 +33,7 @@ Progress: [███████████████████████
 | 11 | 02 | 4min | 3 | 7 |
 | 12 | 01 | 5min | 2 | 6 |
 | 12 | 02 | 3min | 2 | 5 |
+| 13 | 01 | 2min | 2 | 4 |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Recent decisions affecting current work:
 - [12-02]: FairnessScoreCard is presentational-only -- score computed ephemerally via useMemo, never persisted
 - [12-02]: Batting order auto-generates on mount and regenerate -- manual button removed entirely
 - [12-02]: LineupState type unchanged -- generatedLineups still holds [bestLineup] array for cloud sync stability
+- [13-01]: accessCondition only on singleton doc upserts -- collection-mode endpoints (gameHistory, battingHistory) remain unconditional
+- [13-01]: 412 response includes cloudData/cloudEtag/cloudUpdatedAt so frontend can resolve conflicts without extra GET
+- [13-01]: If-Match header is optional -- omitting it allows unconditional upsert for backward compatibility
 
 ### Pending Todos
 
@@ -75,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15 (Phase 12 complete)
-Stopped at: Completed 12-02-PLAN.md — Phase 12 (Scored Generation) fully complete
-Resume file: .planning/phases/12-scored-generation/12-02-SUMMARY.md
+Last session: 2026-02-15 (Phase 13 plan 01 complete)
+Stopped at: Completed 13-01-PLAN.md — API ETag Concurrency
+Resume file: .planning/phases/13-sync-hardening/13-01-SUMMARY.md
