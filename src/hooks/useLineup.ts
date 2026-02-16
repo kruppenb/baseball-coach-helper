@@ -3,7 +3,7 @@ import { useCloudStorage } from '../sync/useCloudStorage';
 import { useRoster } from './useRoster';
 import { useGameConfig } from './useGameConfig';
 import { useGameHistory } from './useGameHistory';
-import { generateMultipleLineups, preValidate } from '../logic/lineup-generator';
+import { generateBestLineup, preValidate } from '../logic/lineup-generator';
 import { validateLineup } from '../logic/lineup-validator';
 import { computeFieldingFairness, computeCatcherInnings } from '../logic/game-history';
 import type { LineupState, Position, Lineup, Player } from '../types/index';
@@ -144,24 +144,28 @@ export function useLineup() {
       return { success: false, count: 0, errors: preErrors };
     }
 
-    const results = generateMultipleLineups(input, 1);
-    const validLineups: Lineup[] = results.filter(r => r.valid).map(r => r.lineup);
+    const result = generateBestLineup(input, 10);
 
-    setState((prev: LineupState) => ({
-      ...prev,
-      generatedLineups: validLineups,
-      selectedLineupIndex: validLineups.length > 0 ? 0 : null,
-    }));
-
-    if (validLineups.length === 0) {
+    if (!result.valid) {
+      setState((prev: LineupState) => ({
+        ...prev,
+        generatedLineups: [],
+        selectedLineupIndex: null,
+      }));
       return {
         success: false,
         count: 0,
-        errors: ['Could not generate a valid lineup with these settings. Try adjusting pitcher/catcher assignments or position blocks.'],
+        errors: result.errors.map(e => e.message),
       };
     }
 
-    return { success: true, count: validLineups.length, errors: [] };
+    setState((prev: LineupState) => ({
+      ...prev,
+      generatedLineups: [result.lineup],
+      selectedLineupIndex: 0,
+    }));
+
+    return { success: true, count: 1, errors: [] };
   }, [presentPlayers, innings, cleanState, setState, benchPriority]);
 
   const selectLineup = useCallback((index: number) => {

@@ -1,0 +1,89 @@
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  background: var(--color-surface, #fff);
+  margin-top: var(--space-md);
+}
+
+.heading {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.totalScore {
+  font-size: var(--font-size-xxl, 2rem);
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+}
+
+.totalMax {
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.dimension {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.dimensionLabel {
+  flex: 0 0 120px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.dimensionValue {
+  flex: 0 0 32px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-align: right;
+}
+
+.bar {
+  flex: 1;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: var(--radius-sm, 4px);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: var(--radius-sm, 4px);
+  transition: width 0.3s ease;
+}
+
+/* Score color variants */
+.scoreGood {
+  color: var(--color-success, #16a34a);
+}
+
+.scoreOk {
+  color: #d97706;
+}
+
+.scoreLow {
+  color: var(--color-error, #dc2626);
+}
+
+.barFill.scoreGood {
+  background: var(--color-success, #16a34a);
+}
+
+.barFill.scoreOk {
+  background: #d97706;
+}
+
+.barFill.scoreLow {
+  background: var(--color-error, #dc2626);
+}

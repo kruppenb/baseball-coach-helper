@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v3.0 UX Overhaul — Phase 11 (Drag-and-Drop Editing)
+**Current focus:** v3.0 UX Overhaul — Phase 12 (Scored Generation)
 
 ## Current Position
 
 Milestone: v3.0 UX Overhaul
-Phase: 11 of 13 (Drag-and-Drop Editing)
-Plan: 2 of 2 in current phase
-Status: Phase Complete (pending verification)
-Last activity: 2026-02-15 — Completed 11-02 (SortableBattingOrder + ReviewStep DnD Integration)
+Phase: 12 of 13 (Scored Generation)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-15 — Completed 12-01 (Scored Generation Logic)
 
-Progress: [███████████████████████████████] 31/31 plans (v1+v2+v3.0 through phase 11-02)
+Progress: [████████████████████████████████] 32/33 plans (v1+v2+v3.0 through phase 12-01)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0):**
-- Total plans completed: 31
+- Total plans completed: 32
 - Average duration: 4 min
-- Total execution time: 127 min
+- Total execution time: 132 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -31,6 +31,7 @@ Progress: [███████████████████████
 | 10 | 03 | 2min | 2 | 8 |
 | 11 | 01 | 3min | 2 | 6 |
 | 11 | 02 | 4min | 3 | 7 |
+| 12 | 01 | 5min | 2 | 6 |
 
 ## Accumulated Context
 
@@ -56,10 +57,13 @@ Recent decisions affecting current work:
 - [11-02]: PrintStep reads from last game history entry (finalized edited data) instead of original context hooks
 - [11-02]: useBattingOrder.confirm accepts optional orderOverride for edited batting order to batting history
 - [11-02]: SortableBattingOrder uses isSortable type guard with initialIndex/index for reorder
+- [12-01]: Scoring weights: bench equity 0.5, infield balance 0.3, position variety 0.2 -- bench fairness most important for youth baseball
+- [12-01]: scoreLineup is a pure function (no side effects) -- enables live recomputation after DnD edits via useMemo
+- [12-01]: generateBestLineup uses simple loop without deduplication since scoring handles ranking
 
 ### Pending Todos
 
-- Fisher-Yates shuffle deduplication (tech debt — address during Phase 12 scoring logic work)
+None.
 
 ### Blockers/Concerns
 
@@ -67,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15 (Phase 11 complete)
-Stopped at: Completed 11-02-PLAN.md — all plans in phase 11 done
-Resume file: .planning/phases/11-drag-and-drop-editing/11-02-SUMMARY.md
+Last session: 2026-02-15 (Phase 12 in progress)
+Stopped at: Completed 12-01-PLAN.md — scored generation logic done, Plan 02 (UI integration) next
+Resume file: .planning/phases/12-scored-generation/12-01-SUMMARY.md
