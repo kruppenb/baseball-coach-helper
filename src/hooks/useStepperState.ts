@@ -1,7 +1,8 @@
-import { useReducer, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import type { StepId } from '../types';
 
 const STEPS: StepId[] = ['attendance', 'pc-assignment', 'review', 'print'];
+const STEPPER_STORAGE_KEY = 'stepperState';
 
 interface StepperInternalState {
   currentStep: StepId;
@@ -17,6 +18,28 @@ type StepperAction =
   | { type: 'RESET' };
 
 function getInitialState(): StepperInternalState {
+  try {
+    const raw = localStorage.getItem(STEPPER_STORAGE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw) as {
+        currentStep: StepId;
+        completedSteps: StepId[];
+        hasCompletedAllOnce: boolean;
+      };
+      if (saved.currentStep && STEPS.includes(saved.currentStep)) {
+        return {
+          currentStep: saved.currentStep,
+          completedSteps: new Set<StepId>(
+            (saved.completedSteps ?? []).filter((s) => STEPS.includes(s)),
+          ),
+          hasCompletedAllOnce: saved.hasCompletedAllOnce ?? false,
+          staleWarning: false,
+        };
+      }
+    }
+  } catch {
+    // Corrupted storage — fall through to defaults
+  }
   return {
     currentStep: 'attendance',
     completedSteps: new Set<StepId>(),
@@ -91,7 +114,13 @@ function stepperReducer(state: StepperInternalState, action: StepperAction): Ste
       return { ...state, staleWarning: false };
 
     case 'RESET':
-      return getInitialState();
+      localStorage.removeItem(STEPPER_STORAGE_KEY);
+      return {
+        currentStep: 'attendance' as StepId,
+        completedSteps: new Set<StepId>(),
+        hasCompletedAllOnce: false,
+        staleWarning: false,
+      };
 
     default:
       return state;
@@ -100,6 +129,19 @@ function stepperReducer(state: StepperInternalState, action: StepperAction): Ste
 
 export function useStepperState() {
   const [state, dispatch] = useReducer(stepperReducer, undefined, getInitialState);
+
+  // Persist stepper position to localStorage so it survives page reloads
+  // (e.g. SWA auth redirect on sign-in)
+  useEffect(() => {
+    localStorage.setItem(
+      STEPPER_STORAGE_KEY,
+      JSON.stringify({
+        currentStep: state.currentStep,
+        completedSteps: [...state.completedSteps],
+        hasCompletedAllOnce: state.hasCompletedAllOnce,
+      }),
+    );
+  }, [state.currentStep, state.completedSteps, state.hasCompletedAllOnce]);
 
   const goToStep = useCallback((step: StepId) => {
     dispatch({ type: 'GO_TO_STEP', step });
