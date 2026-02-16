@@ -15,6 +15,20 @@ const etagStore = new Map<string, string>();
 /** Keys with unsaved local edits — prevents pullFromCloud from overwriting active work */
 const dirtyKeys = new Set<string>();
 
+/**
+ * Snapshot of localStorage values captured at module load, before React component
+ * effects can modify them. Used by pullFromCloud for conflict detection because
+ * components like PCAssignmentStep clear lineupState on mount before the pull runs.
+ */
+const localSnapshots = new Map<string, string>();
+const SYNC_KEYS = ['roster', 'gameConfig', 'lineupState', 'battingOrderState'];
+for (const k of SYNC_KEYS) {
+  const raw = localStorage.getItem(k);
+  if (raw !== null) {
+    localSnapshots.set(k, raw);
+  }
+}
+
 export function getStoredEtag(key: string): string | undefined {
   return etagStore.get(key);
 }
@@ -241,27 +255,33 @@ export async function pullFromCloud(
           return;
         }
 
-        // Pull-time conflict check: detect local offline edits vs. cloud data
-        if (onConflict && hasNonDefaultData(key)) {
-          const localRaw = localStorage.getItem(key);
-          if (localRaw !== null) {
+        // Pull-time conflict check: detect local offline edits vs. cloud data.
+        // Uses module-load snapshot instead of live localStorage because React
+        // component effects (e.g. PCAssignmentStep) can clear lineupState
+        // before this async pull completes.
+        if (onConflict) {
+          const snapshotRaw = localSnapshots.get(key);
+          if (snapshotRaw !== undefined) {
             try {
-              const localData = JSON.parse(localRaw);
-              if (JSON.stringify(localData) !== JSON.stringify(data)) {
+              const snapshotData = JSON.parse(snapshotRaw);
+              if (hasNonDefaultValue(key, snapshotData) &&
+                  JSON.stringify(snapshotData) !== JSON.stringify(data)) {
                 onConflict({
                   key,
-                  localData,
+                  localData: snapshotData,
                   cloudData: data,
                   cloudEtag: typeof json._etag === 'string' ? json._etag : null,
                   cloudUpdatedAt: typeof json.updatedAt === 'string' ? json.updatedAt : null,
                 });
                 pulledKeys.add(key);
+                localSnapshots.delete(key);
                 onStatus('error');
                 return;
               }
             } catch {
-              // JSON parse failure on local data -- safe to overwrite
+              // JSON parse failure on snapshot data -- safe to overwrite
             }
+            localSnapshots.delete(key);
           }
         }
 
@@ -325,20 +345,10 @@ export function cancelAllTimers(): void {
 }
 
 /**
- * Check if a localStorage key contains real user data (not just hook defaults).
- * Returns false if the key is missing, unparseable, or contains only default values.
+ * Check if a parsed value for the given key represents real user data
+ * (not just hook defaults).
  */
-export function hasNonDefaultData(key: string): boolean {
-  const raw = localStorage.getItem(key);
-  if (raw === null) return false;
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return false;
-  }
-
+function hasNonDefaultValue(key: string, parsed: unknown): boolean {
   switch (key) {
     case 'roster':
       return Array.isArray(parsed) && parsed.length > 0;
@@ -389,6 +399,24 @@ export function hasNonDefaultData(key: string): boolean {
     default:
       return false;
   }
+}
+
+/**
+ * Check if a localStorage key contains real user data (not just hook defaults).
+ * Returns false if the key is missing, unparseable, or contains only default values.
+ */
+export function hasNonDefaultData(key: string): boolean {
+  const raw = localStorage.getItem(key);
+  if (raw === null) return false;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return false;
+  }
+
+  return hasNonDefaultValue(key, parsed);
 }
 
 /**
