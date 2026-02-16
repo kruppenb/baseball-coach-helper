@@ -162,42 +162,6 @@ describe('validateLineup', () => {
     });
   });
 
-  describe('NO_CONSECUTIVE_POSITION', () => {
-    it('reports player at same non-P/C position in consecutive innings', () => {
-      const lineup = makeValidLineup();
-      lineup[3]['SS'] = 'p5';
-      lineup[4]['SS'] = 'p5';
-      const input = makeDefaultInput();
-      const errors = validateLineup(lineup, input);
-      const consecErrors = errors.filter(
-        e => e.rule === 'NO_CONSECUTIVE_POSITION' && e.playerId === 'p5'
-      );
-      expect(consecErrors.length).toBeGreaterThan(0);
-      expect(consecErrors[0].message).toContain('Emery');
-      expect(consecErrors[0].message).toContain('SS');
-    });
-
-    it('does NOT report P playing pitcher in consecutive innings', () => {
-      const lineup = makeValidLineup();
-      const input = makeDefaultInput();
-      const errors = validateLineup(lineup, input);
-      const pErrors = errors.filter(
-        e => e.rule === 'NO_CONSECUTIVE_POSITION' && e.position === 'P'
-      );
-      expect(pErrors).toEqual([]);
-    });
-
-    it('does NOT report C playing catcher in consecutive innings', () => {
-      const lineup = makeValidLineup();
-      const input = makeDefaultInput();
-      const errors = validateLineup(lineup, input);
-      const cErrors = errors.filter(
-        e => e.rule === 'NO_CONSECUTIVE_POSITION' && e.position === 'C'
-      );
-      expect(cErrors).toEqual([]);
-    });
-  });
-
   describe('POSITION_BLOCK', () => {
     it('reports player assigned to a blocked position', () => {
       const lineup = makeValidLineup();

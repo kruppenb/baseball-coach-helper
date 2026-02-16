@@ -144,7 +144,7 @@ export function useLineup() {
       return { success: false, count: 0, errors: preErrors };
     }
 
-    const results = generateMultipleLineups(input, 3);
+    const results = generateMultipleLineups(input, 1);
     const validLineups: Lineup[] = results.filter(r => r.valid).map(r => r.lineup);
 
     setState((prev: LineupState) => ({

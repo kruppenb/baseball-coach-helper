@@ -4,7 +4,6 @@ import styles from './StepperHeader.module.css';
 const STEPS: { id: StepId; label: string }[] = [
   { id: 'attendance', label: 'Attend' },
   { id: 'pc-assignment', label: 'P/C' },
-  { id: 'generate', label: 'Generate' },
   { id: 'review', label: 'Review' },
   { id: 'print', label: 'Print' },
 ];

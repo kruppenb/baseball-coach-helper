@@ -17,7 +17,6 @@ export function validateLineup(
     ...validateCatcherAssignments(lineup, input),
     ...validateNoConsecutiveBench(lineup, input),
     ...validateInfieldMinimum(lineup, input),
-    ...validateNoConsecutivePosition(lineup, input),
     ...validatePositionBlocks(lineup, input),
     ...validateCatcherPitcherEligibility(lineup, input),
   ];
@@ -216,42 +215,6 @@ function validateInfieldMinimum(
         message: `${player.name} only has ${infieldCount} infield position${infieldCount === 1 ? '' : 's'} in the first 4 innings. Every player needs at least 2.`,
         playerId: player.id,
       });
-    }
-  }
-
-  return errors;
-}
-
-/**
- * NO_CONSECUTIVE_POSITION: No player should play the same position in consecutive innings,
- * except P and C which are exempt (per LINE-06).
- */
-function validateNoConsecutivePosition(
-  lineup: Lineup,
-  input: GenerateLineupInput,
-): ValidationError[] {
-  const errors: ValidationError[] = [];
-  const exemptPositions: Position[] = ['P', 'C'];
-
-  for (const player of input.presentPlayers) {
-    for (let inn = 2; inn <= input.innings; inn++) {
-      const prevAssignment = lineup[inn - 1];
-      const currAssignment = lineup[inn];
-      if (!prevAssignment || !currAssignment) continue;
-
-      for (const pos of POSITIONS) {
-        if (exemptPositions.includes(pos)) continue;
-
-        if (prevAssignment[pos] === player.id && currAssignment[pos] === player.id) {
-          errors.push({
-            rule: 'NO_CONSECUTIVE_POSITION',
-            message: `${player.name} plays ${pos} in both innings ${inn - 1} and ${inn}.`,
-            inning: inn,
-            playerId: player.id,
-            position: pos,
-          });
-        }
-      }
     }
   }
 

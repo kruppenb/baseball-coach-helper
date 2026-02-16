@@ -2,13 +2,12 @@ import { useStepperState } from '../../hooks/useStepperState';
 import { StepperHeader } from './StepperHeader';
 import { AttendanceStep } from './steps/AttendanceStep';
 import { PCAssignmentStep } from './steps/PCAssignmentStep';
-import { GenerateStep } from './steps/GenerateStep';
 import { ReviewStep } from './steps/ReviewStep';
 import { PrintStep } from './steps/PrintStep';
 import type { StepId } from '../../types';
 import styles from './GameDayStepper.module.css';
 
-const STEP_ORDER: StepId[] = ['attendance', 'pc-assignment', 'generate', 'review', 'print'];
+const STEP_ORDER: StepId[] = ['attendance', 'pc-assignment', 'review', 'print'];
 
 export function GameDayStepper() {
   const {
@@ -63,9 +62,6 @@ export function GameDayStepper() {
         )}
         {currentStep === 'pc-assignment' && (
           <PCAssignmentStep onComplete={() => completeStep('pc-assignment')} />
-        )}
-        {currentStep === 'generate' && (
-          <GenerateStep onComplete={() => completeStep('generate')} />
         )}
         {currentStep === 'review' && (
           <ReviewStep onComplete={() => completeStep('review')} />

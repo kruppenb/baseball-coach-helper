@@ -6,6 +6,9 @@ const timers = new Map<string, ReturnType<typeof setTimeout>>();
 /** Keys with pending pushes that failed due to network errors (retry on reconnect) */
 const pendingPushKeys = new Set<string>();
 
+/** Keys already pulled from cloud this session (prevents duplicate pulls on component re-mount) */
+const pulledKeys = new Set<string>();
+
 /**
  * Schedule a debounced push for the given key.
  * Clears any existing timer for this key and sets a new 2-second delay.
@@ -139,6 +142,13 @@ export async function pullFromCloud(
   config: SyncKeyConfig,
   onStatus: (status: SyncStatus) => void
 ): Promise<void> {
+  // Skip if already pulled this session to prevent stale cloud data
+  // from overwriting local changes made in earlier steps
+  if (pulledKeys.has(key)) {
+    onStatus('synced');
+    return;
+  }
+
   onStatus('syncing');
 
   try {
@@ -192,6 +202,7 @@ export async function pullFromCloud(
       }
     }
 
+    pulledKeys.add(key);
     onStatus('synced');
   } catch {
     // Network error -- user works offline

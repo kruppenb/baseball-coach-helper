@@ -292,11 +292,6 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
         if (pitcherByInning[slot.inn] === pid || catcherByInning[slot.inn] === pid) return false;
         // Can't play blocked position
         if (isBlockedFrom(pid, slot.pos, positionBlocks)) return false;
-        // Can't play same position in consecutive innings
-        const hasConsecutive = slotAssignments[pid].some(
-          prev => prev.pos === slot.pos && Math.abs(prev.inn - slot.inn) === 1,
-        );
-        if (hasConsecutive) return false;
         // Can't play twice in same inning
         const hasInning = slotAssignments[pid].some(prev => prev.inn === slot.inn);
         if (hasInning) return false;
@@ -313,11 +308,10 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
   }
 
   // Helper: find eligible players for a position in a given inning
-  function findEligible(pos: Position, inn: number, used: Set<string>): string[] {
+  function findEligible(pos: Position, _inn: number, used: Set<string>): string[] {
     return shuffle(playerIds.filter(p => {
       if (used.has(p)) return false;
       if (isBlockedFrom(p, pos, positionBlocks)) return false;
-      if (inn > 1 && lineup[inn - 1] && lineup[inn - 1][pos] === p) return false;
       return true;
     }));
   }
@@ -371,7 +365,6 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
       const eligibleSatOut = satLastInning.filter(p => {
         if (used.has(p)) return false;
         if (isBlockedFrom(p, pos, positionBlocks)) return false;
-        if (inn > 1 && lineup[inn - 1] && lineup[inn - 1][pos] === p) return false;
         return true;
       });
 
@@ -380,7 +373,6 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
         : shuffle(playerIds.filter(p => {
             if (used.has(p)) return false;
             if (isBlockedFrom(p, pos, positionBlocks)) return false;
-            if (inn > 1 && lineup[inn - 1] && lineup[inn - 1][pos] === p) return false;
             return true;
           }));
 

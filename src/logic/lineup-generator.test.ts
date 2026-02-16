@@ -254,24 +254,6 @@ describe('generateLineup', () => {
     }
   });
 
-  it('no same position in consecutive innings (except P/C)', () => {
-    const input = makeDefaultInput();
-    const result = generateLineup(input);
-    expect(result.valid).toBe(true);
-    const exemptPositions: Position[] = ['P', 'C'];
-    for (const player of input.presentPlayers) {
-      for (let inn = 2; inn <= input.innings; inn++) {
-        for (const pos of POSITIONS) {
-          if (exemptPositions.includes(pos)) continue;
-          if (result.lineup[inn - 1][pos] === player.id && result.lineup[inn][pos] === player.id) {
-            // Should never happen
-            expect(true).toBe(false);
-          }
-        }
-      }
-    }
-  });
-
   it('fails gracefully with coach-friendly error for impossible constraints', () => {
     const input = makeDefaultInput({
       presentPlayers: players11.slice(0, 8), // Only 8 players

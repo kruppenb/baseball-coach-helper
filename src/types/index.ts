@@ -6,13 +6,15 @@ export interface Player {
 
 export interface GameConfig {
   innings: 5 | 6;
+  pitchersPerGame: number;
+  catchersPerGame: number;
 }
 
 export type TabId = 'game-day' | 'settings';
 
 // --- Stepper Types ---
 
-export type StepId = 'attendance' | 'pc-assignment' | 'generate' | 'review' | 'print';
+export type StepId = 'attendance' | 'pc-assignment' | 'review' | 'print';
 
 export interface StepperState {
   currentStep: StepId;

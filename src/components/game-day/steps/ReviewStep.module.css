@@ -16,6 +16,31 @@
   padding-top: var(--space-md);
 }
 
+.regenerateButton {
+  min-height: var(--min-tap-size);
+  background: none;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-sm) var(--space-lg);
+  font-family: inherit;
+}
+
+.regenerateButton:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.generateError {
+  color: var(--color-error, #dc2626);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: var(--space-sm) 0 0;
+}
+
 .sectionTitle {
   font-size: var(--font-size-lg);
   font-weight: 600;

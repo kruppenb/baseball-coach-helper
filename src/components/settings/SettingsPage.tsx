@@ -14,7 +14,7 @@ import styles from './SettingsPage.module.css';
 
 export function SettingsPage() {
   const { players, addPlayer, renamePlayer, removePlayer, importPlayers } = useRoster();
-  const { config, setInnings } = useGameConfig();
+  const { config, setInnings, setPitchersPerGame, setCatchersPerGame } = useGameConfig();
   const { presentPlayers, positionBlocks, togglePositionBlock } = useLineup();
   const { user, isLoading } = useAuth();
 
@@ -98,7 +98,14 @@ export function SettingsPage() {
 
       {/* SETT-04: Innings Config */}
       <h3 className={styles.sectionTitle}>Innings</h3>
-      <SettingsPanel innings={config.innings} onInningsChange={setInnings} />
+      <SettingsPanel
+        innings={config.innings}
+        onInningsChange={setInnings}
+        pitchersPerGame={config.pitchersPerGame}
+        onPitchersPerGameChange={setPitchersPerGame}
+        catchersPerGame={config.catchersPerGame}
+        onCatchersPerGameChange={setCatchersPerGame}
+      />
 
       {/* SETT-05: Sync Status */}
       <h3 className={styles.sectionTitle}>Sync Status</h3>

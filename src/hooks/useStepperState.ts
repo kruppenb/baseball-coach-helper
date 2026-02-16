@@ -1,7 +1,7 @@
 import { useReducer, useCallback, useMemo } from 'react';
 import type { StepId } from '../types';
 
-const STEPS: StepId[] = ['attendance', 'pc-assignment', 'generate', 'review', 'print'];
+const STEPS: StepId[] = ['attendance', 'pc-assignment', 'review', 'print'];
 
 interface StepperInternalState {
   currentStep: StepId;
@@ -31,10 +31,10 @@ function getNextStep(step: StepId): StepId | null {
   return STEPS[idx + 1];
 }
 
-function isBeforeGenerate(step: StepId): boolean {
+function isBeforeReview(step: StepId): boolean {
   const idx = STEPS.indexOf(step);
-  const generateIdx = STEPS.indexOf('generate');
-  return idx < generateIdx;
+  const reviewIdx = STEPS.indexOf('review');
+  return idx < reviewIdx;
 }
 
 function getNextIncompleteStep(completed: Set<StepId>): StepId {
@@ -51,7 +51,7 @@ function stepperReducer(state: StepperInternalState, action: StepperAction): Ste
       if (state.hasCompletedAllOnce) {
         // Free navigation after completing all steps once
         const staleWarning =
-          isBeforeGenerate(step) && state.completedSteps.has('generate')
+          isBeforeReview(step) && state.completedSteps.has('review')
             ? true
             : state.staleWarning;
         return { ...state, currentStep: step, staleWarning };
@@ -61,7 +61,7 @@ function stepperReducer(state: StepperInternalState, action: StepperAction): Ste
       const nextIncomplete = getNextIncompleteStep(state.completedSteps);
       if (state.completedSteps.has(step) || step === nextIncomplete) {
         const staleWarning =
-          isBeforeGenerate(step) && state.completedSteps.has('generate')
+          isBeforeReview(step) && state.completedSteps.has('review')
             ? true
             : state.staleWarning;
         return { ...state, currentStep: step, staleWarning };

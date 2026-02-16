@@ -8,14 +8,21 @@ import styles from './GameSetupPage.module.css';
 
 export function GameSetupPage() {
   const { players, togglePresent } = useRoster();
-  const { config, setInnings } = useGameConfig();
+  const { config, setInnings, setPitchersPerGame, setCatchersPerGame } = useGameConfig();
   const { presentPlayers, positionBlocks, togglePositionBlock } = useLineup();
 
   return (
     <div className={styles.page}>
       <h2 className={styles.title}>Game Setup</h2>
       <AttendanceList players={players} onToggle={togglePresent} />
-      <SettingsPanel innings={config.innings} onInningsChange={setInnings} />
+      <SettingsPanel
+        innings={config.innings}
+        onInningsChange={setInnings}
+        pitchersPerGame={config.pitchersPerGame}
+        onPitchersPerGameChange={setPitchersPerGame}
+        catchersPerGame={config.catchersPerGame}
+        onCatchersPerGameChange={setCatchersPerGame}
+      />
       <PositionBlocks
         presentPlayers={presentPlayers}
         positionBlocks={positionBlocks}
