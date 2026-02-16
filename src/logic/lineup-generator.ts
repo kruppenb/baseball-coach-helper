@@ -2,18 +2,9 @@ import type { Position, Lineup, InningAssignment } from '../types/index.ts';
 import { POSITIONS, INFIELD_POSITIONS, OUTFIELD_POSITIONS } from '../types/index.ts';
 import type { GenerateLineupInput, GenerateLineupResult } from './lineup-types.ts';
 import { validateLineup } from './lineup-validator.ts';
-
-// --- Utility ---
-
-/** Fisher-Yates shuffle (unbiased) */
-function shuffle<T>(arr: T[]): T[] {
-  const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
+import { shuffle } from './shuffle.ts';
+import { scoreLineup } from './lineup-scorer.ts';
+import type { LineupScore } from './lineup-scorer.ts';
 
 const NON_BATTERY_INFIELD: Position[] = ['1B', '2B', '3B', 'SS'];
 
@@ -426,6 +417,61 @@ export function generateMultipleLineups(
   }
 
   return results;
+}
+
+// --- Best-of-N Scored Generation ---
+
+export interface GenerateBestLineupResult extends GenerateLineupResult {
+  score: LineupScore;
+}
+
+/**
+ * Generates N lineups, scores each, and returns the highest-scoring valid lineup.
+ * Falls back to an error result if no valid lineup can be generated.
+ */
+export function generateBestLineup(
+  input: GenerateLineupInput,
+  count: number = 10,
+): GenerateBestLineupResult {
+  const preErrors = preValidate(input);
+  if (preErrors.length > 0) {
+    return {
+      lineup: {} as Lineup,
+      valid: false,
+      errors: preErrors.map(msg => ({
+        rule: 'GRID_COMPLETE' as const,
+        message: msg,
+      })),
+      attemptCount: 0,
+      score: { total: 0, benchEquity: 0, infieldBalance: 0, positionVariety: 0 },
+    };
+  }
+
+  const scored: GenerateBestLineupResult[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const result = generateLineup(input);
+    if (result.valid) {
+      const score = scoreLineup(result.lineup, input);
+      scored.push({ ...result, score });
+    }
+  }
+
+  if (scored.length === 0) {
+    return {
+      lineup: {} as Lineup,
+      valid: false,
+      errors: [{
+        rule: 'GRID_COMPLETE',
+        message: 'Could not generate a valid lineup with these settings. Try adjusting pitcher/catcher assignments or position blocks.',
+      }],
+      attemptCount: count * 200,
+      score: { total: 0, benchEquity: 0, infieldBalance: 0, positionVariety: 0 },
+    };
+  }
+
+  scored.sort((a, b) => b.score.total - a.score.total);
+  return scored[0];
 }
 
 // --- Helper Functions ---

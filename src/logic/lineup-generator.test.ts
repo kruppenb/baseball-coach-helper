@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { preValidate, generateLineup, generateMultipleLineups } from './lineup-generator.ts';
+import { preValidate, generateLineup, generateMultipleLineups, generateBestLineup } from './lineup-generator.ts';
 import type { GenerateLineupInput } from './lineup-types.ts';
 import type { Player, Position } from '../types/index.ts';
 import { POSITIONS, INFIELD_POSITIONS } from '../types/index.ts';
@@ -445,6 +445,57 @@ describe('benchPriority', () => {
         if (isInfield) infieldCount++;
       }
       expect(infieldCount).toBeGreaterThanOrEqual(2);
+    }
+  });
+});
+
+// --- generateBestLineup Tests ---
+
+describe('generateBestLineup', () => {
+  it('returns a valid lineup with a score', () => {
+    const input = makeDefaultInput();
+    const result = generateBestLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.score).toBeDefined();
+    expect(result.score.total).toBeGreaterThanOrEqual(0);
+    expect(result.score.total).toBeLessThanOrEqual(100);
+  });
+
+  it('returns a valid result with score when count=5', () => {
+    const input = makeDefaultInput();
+    const result = generateBestLineup(input, 5);
+    expect(result.valid).toBe(true);
+    expect(result.score.total).toBeGreaterThanOrEqual(0);
+    expect(result.score.total).toBeLessThanOrEqual(100);
+    expect(result.score.benchEquity).toBeGreaterThanOrEqual(0);
+    expect(result.score.infieldBalance).toBeGreaterThanOrEqual(0);
+    expect(result.score.positionVariety).toBeGreaterThanOrEqual(0);
+  });
+
+  it('handles impossible input gracefully (fewer than 9 players)', () => {
+    const input = makeDefaultInput({
+      presentPlayers: players11.slice(0, 8),
+    });
+    const result = generateBestLineup(input);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.score.total).toBe(0);
+  });
+
+  it('respects pitcher and catcher pre-assignments', () => {
+    const input = makeDefaultInput();
+    const result = generateBestLineup(input);
+    expect(result.valid).toBe(true);
+    for (let inn = 1; inn <= input.innings; inn++) {
+      const expectedPitcher = input.pitcherAssignments[inn];
+      if (expectedPitcher) {
+        expect(result.lineup[inn]['P']).toBe(expectedPitcher);
+      }
+      const expectedCatcher = input.catcherAssignments[inn];
+      if (expectedCatcher) {
+        expect(result.lineup[inn]['C']).toBe(expectedCatcher);
+      }
     }
   });
 });
