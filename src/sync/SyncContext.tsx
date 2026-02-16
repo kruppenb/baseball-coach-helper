@@ -51,18 +51,17 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     configsRef.current.set(key, config);
   }, []);
 
-  const [activeConflict, setActiveConflict] = useState<ConflictInfo | null>(null);
+  const [conflictQueue, setConflictQueue] = useState<ConflictInfo[]>([]);
+  const activeConflict = conflictQueue[0] ?? null;
 
   const handleConflict = useCallback((info: ConflictInfo) => {
-    setActiveConflict(info);
+    setConflictQueue((prev) => [...prev, info]);
   }, []);
 
-  const resolveConflict = useCallback((choice: 'local' | 'cloud') => {
-    if (!activeConflict) return;
-    const { key, cloudData, cloudEtag } = activeConflict;
+  const resolveOne = useCallback((conflict: ConflictInfo, choice: 'local' | 'cloud') => {
+    const { key, cloudData, cloudEtag } = conflict;
 
     if (choice === 'cloud') {
-      // Write cloud data to localStorage and update ETag
       localStorage.setItem(key, JSON.stringify(cloudData));
       window.dispatchEvent(
         new CustomEvent('local-storage-sync', {
@@ -75,16 +74,15 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       clearDirty(key);
       reportStatus(key, 'synced');
     } else {
-      // "Keep this device": re-push with the fresh cloud ETag so next upsert succeeds
       if (cloudEtag) {
         setStoredEtag(key, cloudEtag);
       }
       // Restore local data to localStorage — React effects (e.g. PCAssignmentStep)
       // may have cleared it since the module-load snapshot was taken
-      localStorage.setItem(key, JSON.stringify(activeConflict.localData));
+      localStorage.setItem(key, JSON.stringify(conflict.localData));
       window.dispatchEvent(
         new CustomEvent('local-storage-sync', {
-          detail: { key, value: activeConflict.localData },
+          detail: { key, value: conflict.localData },
         })
       );
       const config = configsRef.current.get(key);
@@ -92,8 +90,15 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         pushToCloud(key, config, (status) => reportStatus(key, status), handleConflict);
       }
     }
-    setActiveConflict(null);
-  }, [activeConflict, reportStatus, handleConflict]);
+  }, [reportStatus, handleConflict]);
+
+  const resolveConflict = useCallback((choice: 'local' | 'cloud') => {
+    // Apply the user's choice to every queued conflict at once
+    for (const conflict of conflictQueue) {
+      resolveOne(conflict, choice);
+    }
+    setConflictQueue([]);
+  }, [conflictQueue, resolveOne]);
 
   // Derive aggregated status: error > syncing > offline > synced
   const statusValues = Object.values(keyStatuses);
