@@ -5,9 +5,11 @@ import { useRoster } from '../../../hooks/useRoster';
 import { useBattingOrder } from '../../../hooks/useBattingOrder';
 import { useGameHistory } from '../../../hooks/useGameHistory';
 import { DraggableLineupGrid } from '../../lineup/DraggableLineupGrid';
+import { FairnessScoreCard } from '../../lineup/FairnessScoreCard';
 import { FairnessSummary } from '../../lineup/FairnessSummary';
 import type { PlayerFairness } from '../../lineup/FairnessSummary';
 import { ValidationPanel } from '../../lineup/ValidationPanel';
+import { scoreLineup } from '../../../logic/lineup-scorer';
 import { SortableBattingOrder } from '../../batting-order/SortableBattingOrder';
 import type { Lineup, Player, Position } from '../../../types/index';
 import { POSITIONS, INFIELD_POSITIONS } from '../../../types/index';
@@ -84,7 +86,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     presentPlayers: battingPresentPlayers,
     generate: generateBattingOrder,
     confirm: confirmBatting,
-    clear: clearBattingOrder,
   } = useBattingOrder();
 
   const { history, finalizeGame } = useGameHistory();
@@ -98,6 +99,11 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   }), [presentPlayers, innings, pitcherAssignments, catcherAssignments, positionBlocks]);
 
   const editor = useLineupEditor(selectedLineup, validationInput);
+
+  const lineupScore = useMemo(() => {
+    if (!editor.lineup) return null;
+    return scoreLineup(editor.lineup, validationInput);
+  }, [editor.lineup, validationInput]);
 
   useEffect(() => {
     editor.setBattingOrder(currentOrder);
@@ -117,25 +123,24 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
       const result = generate();
       if (!result.success && result.errors.length > 0) {
         setGenerateError(result.errors[0]);
+      } else if (result.success) {
+        // Auto-generate batting order alongside lineup (GEN-04)
+        generateBattingOrder();
+        setHasGeneratedBatting(true);
       }
     }
-  }, [generatedLineups.length, generate]);
+  }, [generatedLineups.length, generate, generateBattingOrder]);
 
   const handleRegenerate = () => {
     setGenerateError('');
     const result = generate();
     if (!result.success && result.errors.length > 0) {
       setGenerateError(result.errors[0]);
+    } else if (result.success) {
+      // Regenerate batting order with new lineup (GEN-04)
+      generateBattingOrder();
+      setHasGeneratedBatting(true);
     }
-  };
-
-  const handleGenerateBattingOrder = () => {
-    generateBattingOrder();
-    setHasGeneratedBatting(true);
-  };
-
-  const handleClearBattingOrder = () => {
-    clearBattingOrder();
   };
 
   const handleFinalize = () => {
@@ -182,6 +187,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
             errors={editor.validationErrors}
             onSwap={editor.swapPositions}
           />
+          {lineupScore && <FairnessScoreCard score={lineupScore} />}
           <FairnessSummary
             summary={computeFairnessSummary(editor.lineup, innings, players)}
           />
@@ -192,32 +198,17 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
       {/* Batting Order section */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Batting Order</h3>
-
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.generateBattingButton}
-            onClick={handleGenerateBattingOrder}
-          >
-            {hasGeneratedBatting ? 'Regenerate' : 'Generate Batting Order'}
-          </button>
-          {currentOrder && (
-            <button
-              type="button"
-              className={styles.clearBattingButton}
-              onClick={handleClearBattingOrder}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-
         {editor.battingOrder && (
           <SortableBattingOrder
             order={editor.battingOrder}
             players={battingPresentPlayers}
             onReorder={editor.reorderBattingOrder}
           />
+        )}
+        {!editor.battingOrder && (
+          <p className={styles.emptyMessage}>
+            Batting order will be generated with the lineup.
+          </p>
         )}
       </div>
 

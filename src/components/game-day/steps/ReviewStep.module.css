@@ -47,46 +47,6 @@
   margin: 0 0 var(--space-md) 0;
 }
 
-.actions {
-  display: flex;
-  gap: var(--space-md);
-  margin-bottom: var(--space-md);
-}
-
-.generateBattingButton {
-  min-height: var(--min-tap-size);
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  cursor: pointer;
-  padding: var(--space-sm) var(--space-lg);
-  font-family: inherit;
-}
-
-.generateBattingButton:hover {
-  filter: brightness(0.9);
-}
-
-.clearBattingButton {
-  min-height: var(--min-tap-size);
-  background: none;
-  color: var(--color-primary);
-  border: 2px solid var(--color-primary);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  cursor: pointer;
-  padding: var(--space-sm) var(--space-lg);
-  font-family: inherit;
-}
-
-.clearBattingButton:hover {
-  background: var(--color-primary);
-  color: white;
-}
 
 .comparison {
   display: flex;
