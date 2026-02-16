@@ -1,0 +1,113 @@
+.grid {
+  display: grid;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.cornerCell {
+  background: var(--color-surface);
+  padding: var(--space-sm);
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+}
+
+.headerCell {
+  background: var(--color-surface);
+  padding: var(--space-sm);
+  text-align: center;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  border-bottom: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+}
+
+.positionRow {
+  display: contents;
+}
+
+.positionLabel {
+  background: var(--color-surface);
+  padding: var(--space-sm);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+}
+
+.benchLabel {
+  font-style: italic;
+}
+
+.cell {
+  padding: var(--space-sm);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  border-bottom: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+  min-height: var(--min-tap-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.errorCell {
+  background: #fff3cd;
+  border-left: 3px solid var(--color-danger);
+}
+
+.dropTarget {
+  background: var(--color-primary-light, #dbeafe);
+  outline: 2px dashed var(--color-primary);
+}
+
+.draggableWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.dragging {
+  opacity: 0.4;
+}
+
+.dragHandle {
+  touch-action: none;
+  cursor: grab;
+  padding: var(--space-xs);
+  color: var(--color-text-muted);
+  user-select: none;
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-base);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.playerName {
+  font-size: var(--font-size-sm);
+}
+
+.dragOverlay {
+  background: white;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.benchCell {
+  padding: var(--space-sm);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  border-bottom: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+}
