@@ -36,7 +36,7 @@
 
 - [x] **Phase 10: App Restructuring and Game Day Flow** — Game-day-first tab structure with stepper flow and consolidated Settings page (completed 2026-02-15)
 - [x] **Phase 11: Drag-and-Drop Editing** — Drag-and-drop fielding lineup and batting order editing with live validation (completed 2026-02-16)
-- [ ] **Phase 12: Scored Generation and Batting Order** — Best-of-N lineup generation with fairness scoring and auto batting order
+- [x] **Phase 12: Scored Generation and Batting Order** — Best-of-N lineup generation with fairness scoring and auto batting order (completed 2026-02-16)
 - [ ] **Phase 13: Sync Hardening** — ETag-based conflict detection with coach-facing conflict resolution
 
 ## Phase Details
@@ -82,7 +82,7 @@ Plans:
   2. Coach can regenerate to get a fresh best lineup
   3. Fairness score is visible showing lineup quality breakdown (bench equity, infield balance, position variety)
   4. Batting order is auto-generated as part of the flow without a separate confirmation step
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 12-01-PLAN.md — Lineup scoring algorithm, best-of-N generation, shared shuffle utility (TDD)
@@ -122,5 +122,5 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 9. PWA + Deployment | v2.0 | 2/2 | Complete | 2026-02-13 |
 | 10. App Restructuring | v3.0 | 3/3 | Complete | 2026-02-15 |
 | 11. Drag-and-Drop | v3.0 | Complete    | 2026-02-16 | - |
-| 12. Scored Generation | v3.0 | 0/TBD | Not started | - |
+| 12. Scored Generation | v3.0 | Complete    | 2026-02-16 | - |
 | 13. Sync Hardening | v3.0 | 0/TBD | Not started | - |

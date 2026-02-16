@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v3.0 UX Overhaul — Phase 12 (Scored Generation)
+**Current focus:** v3.0 UX Overhaul — Phase 12 complete, Phase 13 (Sync Hardening) next
 
 ## Current Position
 
 Milestone: v3.0 UX Overhaul
-Phase: 12 of 13 (Scored Generation)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-02-15 — Completed 12-01 (Scored Generation Logic)
+Phase: 12 of 13 (Scored Generation) -- COMPLETE
+Plan: 2 of 2 in current phase (done)
+Status: Phase 12 Complete
+Last activity: 2026-02-15 — Completed 12-02 (Scored Generation UI Integration)
 
-Progress: [████████████████████████████████] 32/33 plans (v1+v2+v3.0 through phase 12-01)
+Progress: [█████████████████████████████████] 33/33 plans (v1+v2+v3.0 through phase 12-02)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0):**
-- Total plans completed: 32
+- Total plans completed: 33
 - Average duration: 4 min
-- Total execution time: 132 min
+- Total execution time: 135 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -32,6 +32,7 @@ Progress: [███████████████████████
 | 11 | 01 | 3min | 2 | 6 |
 | 11 | 02 | 4min | 3 | 7 |
 | 12 | 01 | 5min | 2 | 6 |
+| 12 | 02 | 3min | 2 | 5 |
 
 ## Accumulated Context
 
@@ -60,6 +61,9 @@ Recent decisions affecting current work:
 - [12-01]: Scoring weights: bench equity 0.5, infield balance 0.3, position variety 0.2 -- bench fairness most important for youth baseball
 - [12-01]: scoreLineup is a pure function (no side effects) -- enables live recomputation after DnD edits via useMemo
 - [12-01]: generateBestLineup uses simple loop without deduplication since scoring handles ranking
+- [12-02]: FairnessScoreCard is presentational-only -- score computed ephemerally via useMemo, never persisted
+- [12-02]: Batting order auto-generates on mount and regenerate -- manual button removed entirely
+- [12-02]: LineupState type unchanged -- generatedLineups still holds [bestLineup] array for cloud sync stability
 
 ### Pending Todos
 
@@ -71,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15 (Phase 12 in progress)
-Stopped at: Completed 12-01-PLAN.md — scored generation logic done, Plan 02 (UI integration) next
-Resume file: .planning/phases/12-scored-generation/12-01-SUMMARY.md
+Last session: 2026-02-15 (Phase 12 complete)
+Stopped at: Completed 12-02-PLAN.md — Phase 12 (Scored Generation) fully complete
+Resume file: .planning/phases/12-scored-generation/12-02-SUMMARY.md
