@@ -192,7 +192,8 @@ export async function pushToCloud(
 export async function pullFromCloud(
   key: string,
   config: SyncKeyConfig,
-  onStatus: (status: SyncStatus) => void
+  onStatus: (status: SyncStatus) => void,
+  onConflict?: (info: ConflictInfo) => void,
 ): Promise<void> {
   // Skip if already pulled this session to prevent stale cloud data
   // from overwriting local changes made in earlier steps
@@ -239,6 +240,31 @@ export async function pullFromCloud(
           onStatus('synced');
           return;
         }
+
+        // Pull-time conflict check: detect local offline edits vs. cloud data
+        if (onConflict && hasNonDefaultData(key)) {
+          const localRaw = localStorage.getItem(key);
+          if (localRaw !== null) {
+            try {
+              const localData = JSON.parse(localRaw);
+              if (JSON.stringify(localData) !== JSON.stringify(data)) {
+                onConflict({
+                  key,
+                  localData,
+                  cloudData: data,
+                  cloudEtag: typeof json._etag === 'string' ? json._etag : null,
+                  cloudUpdatedAt: typeof json.updatedAt === 'string' ? json.updatedAt : null,
+                });
+                pulledKeys.add(key);
+                onStatus('error');
+                return;
+              }
+            } catch {
+              // JSON parse failure on local data -- safe to overwrite
+            }
+          }
+        }
+
         localStorage.setItem(key, JSON.stringify(data));
         window.dispatchEvent(
           new CustomEvent('local-storage-sync', {
