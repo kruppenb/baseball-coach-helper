@@ -36,8 +36,34 @@ function distributeAcrossInnings(
   return assignments;
 }
 
+/**
+ * Extract unique player IDs from inning-level assignments, preserving order.
+ * Converts {1: 'a', 2: 'a', 3: 'b'} → ['a', 'b'], padded to slotCount.
+ */
+function slotsFromAssignments(
+  assignments: Record<number, string>,
+  slotCount: number,
+): string[] {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  // Iterate in inning order
+  const innings = Object.keys(assignments).map(Number).sort((a, b) => a - b);
+  for (const inn of innings) {
+    const id = assignments[inn];
+    if (id && !seen.has(id)) {
+      seen.add(id);
+      unique.push(id);
+    }
+  }
+  const slots = Array(slotCount).fill('');
+  for (let i = 0; i < Math.min(unique.length, slotCount); i++) {
+    slots[i] = unique[i];
+  }
+  return slots;
+}
+
 export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
-  const { setPitcher, setCatcher, presentPlayers, innings } = useLineup();
+  const { setPitcher, setCatcher, presentPlayers, innings, pitcherAssignments, catcherAssignments } = useLineup();
   const { config } = useGameConfig();
   const { history } = useGameHistory();
   const { players } = useRoster();
@@ -45,12 +71,13 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
   const pitcherCount = config.pitchersPerGame;
   const catcherCount = config.catchersPerGame;
 
-  // Slot arrays: selectedPitchers[0] = pitcher slot 1's playerId, etc.
+  // Slot arrays: initialized from existing lineupState assignments to preserve
+  // selections across page reloads (e.g. after SWA auth redirect).
   const [selectedPitchers, setSelectedPitchers] = useState<string[]>(
-    () => Array(pitcherCount).fill(''),
+    () => slotsFromAssignments(pitcherAssignments, pitcherCount),
   );
   const [selectedCatchers, setSelectedCatchers] = useState<string[]>(
-    () => Array(catcherCount).fill(''),
+    () => slotsFromAssignments(catcherAssignments, catcherCount),
   );
 
   // Resize slot arrays when config changes
