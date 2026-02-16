@@ -82,11 +82,11 @@ Plans:
   2. Coach can regenerate to get a fresh best lineup
   3. Fairness score is visible showing lineup quality breakdown (bench equity, infield balance, position variety)
   4. Batting order is auto-generated as part of the flow without a separate confirmation step
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
+- [ ] 12-01-PLAN.md — Lineup scoring algorithm, best-of-N generation, shared shuffle utility (TDD)
+- [ ] 12-02-PLAN.md — FairnessScoreCard UI, auto batting order, live scoring in ReviewStep
 
 ### Phase 13: Sync Hardening
 **Goal**: Cloud sync detects conflicts and lets the coach choose which version to keep instead of silently overwriting
