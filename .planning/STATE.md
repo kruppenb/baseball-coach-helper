@@ -5,30 +5,31 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v3.0 UX Overhaul — Phase 10 (App Restructuring and Game Day Flow)
+**Current focus:** v3.0 UX Overhaul — Phase 11 (Drag-and-Drop Editing)
 
 ## Current Position
 
 Milestone: v3.0 UX Overhaul
-Phase: 10 of 13 (App Restructuring and Game Day Flow)
-Plan: 3 of 3 in current phase (COMPLETE)
-Status: Phase Complete
-Last activity: 2026-02-15 — Completed 10-03 (Generate, Review, Print Steps)
+Phase: 11 of 13 (Drag-and-Drop Editing)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-15 — Completed 11-01 (DnD Foundation)
 
-Progress: [██████████████████████████████] 29/29 plans (v1+v2+v3.0 phase 10)
+Progress: [██████████████████████████████] 30/31 plans (v1+v2+v3.0 through phase 11-01)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0):**
-- Total plans completed: 29
+- Total plans completed: 30
 - Average duration: 4 min
-- Total execution time: 120 min
+- Total execution time: 123 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 10 | 01 | 3min | 2 | 7 |
 | 10 | 02 | 3min | 2 | 10 |
 | 10 | 03 | 2min | 2 | 8 |
+| 11 | 01 | 3min | 2 | 6 |
 
 ## Accumulated Context
 
@@ -48,11 +49,13 @@ Recent decisions affecting current work:
 - [10-03]: ReviewStep inlines computeFairnessSummary rather than extracting to shared util
 - [10-03]: Previous batting order comparison uses side-by-side flex layout
 - [10-03]: PrintStep is terminal step with no onComplete prop
+- [11-01]: Pin @dnd-kit packages to tilde (~0.2.4) for patch-only updates since pre-1.0
+- [11-01]: Single DragDropProvider for entire grid with accept filter rather than per-inning providers
+- [11-01]: useLineupEditor uses JSON.stringify comparison for hasEdits (sufficient for small lineup objects)
 
 ### Pending Todos
 
 - Fisher-Yates shuffle deduplication (tech debt — address during Phase 12 scoring logic work)
-- Validate @dnd-kit/core v6.3.1 with React 19 before Phase 11 commits (research flag)
 
 ### Blockers/Concerns
 
@@ -60,6 +63,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15 (Phase 10 plan 03 executed)
-Stopped at: Completed 10-03-PLAN.md — Phase 10 fully complete
-Resume file: .planning/phases/10-app-restructuring-and-game-day-flow/10-03-SUMMARY.md
+Last session: 2026-02-15 (Phase 11 plan 01 executed)
+Stopped at: Completed 11-01-PLAN.md
+Resume file: .planning/phases/11-drag-and-drop-editing/11-01-SUMMARY.md

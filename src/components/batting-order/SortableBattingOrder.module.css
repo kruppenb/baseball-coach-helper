@@ -1,0 +1,50 @@
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-md);
+  min-height: var(--min-tap-size);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-sm) 0;
+  transition: background 0.15s ease;
+}
+
+.dragging {
+  opacity: 0.4;
+  background: var(--color-surface);
+}
+
+.dragHandle {
+  touch-action: none;
+  cursor: grab;
+  padding: var(--space-xs);
+  color: var(--color-text-muted);
+  user-select: none;
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-base);
+  flex-shrink: 0;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.position {
+  width: 2ch;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.name {
+  flex: 1;
+  font-size: var(--font-size-base);
+}
