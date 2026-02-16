@@ -97,11 +97,11 @@ Plans:
   2. Coach sees a conflict dialog with "this device" vs "cloud" options and timestamps when a conflict is detected
   3. Active in-progress edits are not overwritten by background cloud pulls (dirty flag protection)
   4. API endpoints enforce optimistic concurrency via If-Match headers, returning 412 on conflicts
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
+- [ ] 13-01-PLAN.md — API optimistic concurrency (If-Match / accessCondition / 412 on all singleton PUT endpoints)
+- [ ] 13-02-PLAN.md — Frontend ETag tracking, dirty flag, ConflictDialog, SyncContext wiring
 
 ## Progress
 
