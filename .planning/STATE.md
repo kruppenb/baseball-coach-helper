@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 Milestone: v3.0 UX Overhaul
 Phase: 11 of 13 (Drag-and-Drop Editing)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-02-15 — Completed 11-01 (DnD Foundation)
+Plan: 2 of 2 in current phase
+Status: Phase Complete (pending verification)
+Last activity: 2026-02-15 — Completed 11-02 (SortableBattingOrder + ReviewStep DnD Integration)
 
-Progress: [██████████████████████████████] 30/31 plans (v1+v2+v3.0 through phase 11-01)
+Progress: [███████████████████████████████] 31/31 plans (v1+v2+v3.0 through phase 11-02)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0):**
-- Total plans completed: 30
+- Total plans completed: 31
 - Average duration: 4 min
-- Total execution time: 123 min
+- Total execution time: 127 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -30,6 +30,7 @@ Progress: [███████████████████████
 | 10 | 02 | 3min | 2 | 10 |
 | 10 | 03 | 2min | 2 | 8 |
 | 11 | 01 | 3min | 2 | 6 |
+| 11 | 02 | 4min | 3 | 7 |
 
 ## Accumulated Context
 
@@ -52,6 +53,9 @@ Recent decisions affecting current work:
 - [11-01]: Pin @dnd-kit packages to tilde (~0.2.4) for patch-only updates since pre-1.0
 - [11-01]: Single DragDropProvider for entire grid with accept filter rather than per-inning providers
 - [11-01]: useLineupEditor uses JSON.stringify comparison for hasEdits (sufficient for small lineup objects)
+- [11-02]: PrintStep reads from last game history entry (finalized edited data) instead of original context hooks
+- [11-02]: useBattingOrder.confirm accepts optional orderOverride for edited batting order to batting history
+- [11-02]: SortableBattingOrder uses isSortable type guard with initialIndex/index for reorder
 
 ### Pending Todos
 
@@ -63,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15 (Phase 11 plan 01 executed)
-Stopped at: Completed 11-01-PLAN.md
-Resume file: .planning/phases/11-drag-and-drop-editing/11-01-SUMMARY.md
+Last session: 2026-02-15 (Phase 11 complete)
+Stopped at: Completed 11-02-PLAN.md — all plans in phase 11 done
+Resume file: .planning/phases/11-drag-and-drop-editing/11-02-SUMMARY.md
