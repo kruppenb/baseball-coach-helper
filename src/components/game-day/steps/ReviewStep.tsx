@@ -111,7 +111,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   }, [currentOrder]);
 
   const [isFinalized, setIsFinalized] = useState(false);
-  const [hasGeneratedBatting, setHasGeneratedBatting] = useState(currentOrder !== null);
+  const [_hasGeneratedBatting, setHasGeneratedBatting] = useState(currentOrder !== null);
   const [generateError, setGenerateError] = useState('');
 
   // Auto-generate on mount if no lineups exist

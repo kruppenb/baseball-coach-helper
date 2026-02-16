@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { scoreLineup } from './lineup-scorer.ts';
-import type { LineupScore } from './lineup-scorer.ts';
 import { generateLineup } from './lineup-generator.ts';
 import type { GenerateLineupInput } from './lineup-types.ts';
 import type { Player, Lineup, Position, InningAssignment } from '../types/index.ts';
-import { POSITIONS } from '../types/index.ts';
 
 // --- Test Helpers ---
 
@@ -120,58 +118,8 @@ describe('scoreLineup', () => {
     });
 
     // Each player benches exactly 1 inning out of 4
-    // Inning 1: bench p5, p6, p7 (3 benched). Wait, 12-9=3 bench per inning * 4 innings = 12 slots. 12/12=1. Each benches once!
+    // 12-9=3 bench per inning * 4 innings = 12 slots. 12/12=1. Each benches once!
     const lineup = buildLineup({
-      1: { P: 'p1', C: 'p3', '1B': 'p5', '2B': 'p8', '3B': 'p9', SS: 'p10', LF: 'p11', CF: 'p12', RF: 'p2' },
-      // bench: p4, p6, p7
-      2: { P: 'p1', C: 'p3', '1B': 'p4', '2B': 'p6', '3B': 'p7', SS: 'p9', LF: 'p10', CF: 'p11', RF: 'p2' },
-      // bench: p5, p8, p12
-      3: { P: 'p2', C: 'p4', '1B': 'p5', '2B': 'p8', '3B': 'p12', SS: 'p6', LF: 'p7', CF: 'p1', RF: 'p3' },
-      // bench: p9, p10, p11
-      4: { P: 'p2', C: 'p4', '1B': 'p9', '2B': 'p10', '3B': 'p11', SS: 'p5', LF: 'p8', CF: 'p12', RF: 'p3' },
-      // bench: p1, p6, p7  -- wait, p1 is pitcher. Let me redo.
-      // Actually p2 is pitcher inn 4. So bench can't include p2 or p4.
-    });
-
-    // Let me verify bench per player. This is getting complex. Let me just verify the simpler property:
-    // verify each of the 12 players appears in exactly 3 out of 4 innings.
-    // Actually let me just build it correctly:
-    // Inn 1: play p1,p3,p2,p5,p8,p9,p10,p11,p12 -> bench p4,p6,p7
-    // Inn 2: play p1,p3,p2,p4,p6,p7,p9,p10,p11 -> bench p5,p8,p12
-    // Inn 3: play p2,p4,p1,p3,p5,p8,p12,p6,p7 -> bench p9,p10,p11
-    // Inn 4: play p2,p4,p3,p9,p10,p11,p5,p8,p12 -> bench p1,p6,p7
-    // p1: bench inn4 (1 time)
-    // p2: bench never (0 times) -- p2 is always playing (pitcher inn 3,4 or field inn 1,2)
-    // Hmm, p2 plays inn1 (RF), inn2 (RF), inn3 (P), inn4 (P) -- plays all 4. benches 0.
-    // That breaks even distribution. Let me fix it.
-
-    // With p1 pitching inn 1,2 and p2 pitching inn 3,4, and p3 catching inn 1,2 and p4 catching inn 3,4:
-    // p1 plays inn 1 (P), inn 2 (P) -- must bench inn 3 or 4
-    // p3 plays inn 1 (C), inn 2 (C) -- must bench inn 3 or 4
-    // p2 plays inn 3 (P), inn 4 (P) -- must bench inn 1 or 2
-    // p4 plays inn 3 (C), inn 4 (C) -- must bench inn 1 or 2
-
-    // Good, now let's distribute evenly: each player benches exactly 1 inning.
-    // Bench per inning: 3 players. 4 innings * 3 = 12 slots for 12 players = 1 each.
-
-    const lineup2 = buildLineup({
-      1: { P: 'p1', C: 'p3', '1B': 'p5', '2B': 'p6', '3B': 'p7', SS: 'p8', LF: 'p9', CF: 'p10', RF: 'p11' },
-      // bench: p2, p4, p12
-      2: { P: 'p1', C: 'p3', '1B': 'p2', '2B': 'p4', '3B': 'p12', SS: 'p9', LF: 'p10', CF: 'p11', RF: 'p6' },
-      // bench: p5, p7, p8
-      3: { P: 'p2', C: 'p4', '1B': 'p1', '2B': 'p3', '3B': 'p5', SS: 'p7', LF: 'p8', CF: 'p12', RF: 'p11' },
-      // bench: p6, p9, p10
-      4: { P: 'p2', C: 'p4', '1B': 'p6', '2B': 'p9', '3B': 'p10', SS: 'p3', LF: 'p1', CF: 'p5', RF: 'p12' },
-      // bench: p7, p8, p11
-    });
-
-    // Verify: p1 benches inn (none of 1,2 since P; inn 3 plays 1B; inn 4 plays LF) -> benches 0 times.
-    // Hmm, p1 plays all 4 innings. That doesn't work.
-    // The issue: p1 is pitcher inn 1,2 and also plays inn 3,4. So p1 benches 0.
-    // We need to force p1 to bench once. But p1 is pitcher in inn 1,2 so we can't bench p1 then.
-    // We CAN bench p1 in inn 3 or 4.
-
-    const lineup3 = buildLineup({
       1: { P: 'p1', C: 'p3', '1B': 'p5', '2B': 'p6', '3B': 'p7', SS: 'p8', LF: 'p9', CF: 'p10', RF: 'p11' },
       // bench: p2, p4, p12
       2: { P: 'p1', C: 'p3', '1B': 'p2', '2B': 'p12', '3B': 'p4', SS: 'p9', LF: 'p10', CF: 'p6', RF: 'p8' },
@@ -197,7 +145,7 @@ describe('scoreLineup', () => {
     // p12: plays 2(2B),3(SS),4(RF) -> bench 1 -> 1 time
     // All bench exactly 1 time! max-min = 0. benchEquity = 100.
 
-    const score = scoreLineup(lineup3, input);
+    const score = scoreLineup(lineup, input);
     expect(score.benchEquity).toBe(100);
   });
 
@@ -213,36 +161,9 @@ describe('scoreLineup', () => {
     // p11 benched 4 times, p10 benched 0 times -> max-min = 4
     // benchEquity = 100 * (1 - 4/6) = 33.3
 
+    // p11 benched innings 1-4, plays 5-6. p10 never benched.
+    // max=4, min=0, benchEquity = 100 * (1 - 4/6) = 33.3
     const lineup = buildLineup({
-      1: { P: 'p1', C: 'p4', '1B': 'p3', '2B': 'p5', '3B': 'p6', SS: 'p7', LF: 'p8', CF: 'p9', RF: 'p10' },
-      // bench: p2, p11
-      2: { P: 'p1', C: 'p4', '1B': 'p3', '2B': 'p5', '3B': 'p6', SS: 'p7', LF: 'p8', CF: 'p9', RF: 'p10' },
-      // bench: p2, p11
-      3: { P: 'p2', C: 'p5', '1B': 'p3', '2B': 'p6', '3B': 'p7', SS: 'p8', LF: 'p9', CF: 'p10', RF: 'p4' },
-      // bench: p1, p11
-      4: { P: 'p2', C: 'p5', '1B': 'p3', '2B': 'p6', '3B': 'p7', SS: 'p8', LF: 'p9', CF: 'p10', RF: 'p4' },
-      // bench: p1, p11
-      5: { P: 'p3', C: 'p6', '1B': 'p1', '2B': 'p2', '3B': 'p4', SS: 'p5', LF: 'p7', CF: 'p8', RF: 'p10' },
-      // bench: p9, p11 -- actually that's 5 bench for p11. Let me make it 4.
-      5: { P: 'p3', C: 'p6', '1B': 'p1', '2B': 'p2', '3B': 'p11', SS: 'p5', LF: 'p7', CF: 'p8', RF: 'p10' },
-      // bench: p4, p9
-      6: { P: 'p3', C: 'p6', '1B': 'p1', '2B': 'p2', '3B': 'p4', SS: 'p5', LF: 'p7', CF: 'p8', RF: 'p10' },
-      // bench: p9, p11
-    });
-
-    // Bench counts: p11=4 (inn 1,2,3,4... wait let me recount)
-    // inn 1: bench p2, p11
-    // inn 2: bench p2, p11
-    // inn 3: bench p1, p11
-    // inn 4: bench p1, p11
-    // inn 5: bench p4, p9
-    // inn 6: bench p9, p11
-    // p11 benched: 1,2,3,4,6 = 5 times. Oops. Need to fix.
-    // Let me bench p11 exactly 4 times:
-    // inn 5 already doesn't bench p11 (p11 plays 3B in inn 5).
-    // inn 6: let's put p11 in the lineup.
-
-    const lineup2 = buildLineup({
       1: { P: 'p1', C: 'p4', '1B': 'p3', '2B': 'p5', '3B': 'p6', SS: 'p7', LF: 'p8', CF: 'p9', RF: 'p10' },
       // bench: p2, p11
       2: { P: 'p1', C: 'p4', '1B': 'p3', '2B': 'p5', '3B': 'p6', SS: 'p7', LF: 'p8', CF: 'p9', RF: 'p10' },
@@ -257,22 +178,7 @@ describe('scoreLineup', () => {
       // bench: p1, p9
     });
 
-    // Bench counts:
-    // p1: inn 3,4,5,6 = 4
-    // p2: inn 1,2 = 2
-    // p3: 0
-    // p4: 0  (plays 1,2 as C, 5,6 as 3B, 3,4 as RF)
-    // p5: 0  (plays 1,2 as 2B, 3,4 as C, 5,6 as SS)
-    // p6: 0  (plays 1,2 as 3B, 3,4 as 2B, 5,6 as C)
-    // p7: 0  (plays 1,2 as SS, 3,4 as 3B, 5,6 as LF)
-    // p8: 0  (plays 1,2 as LF, 3,4 as SS, 5,6 as CF)
-    // p9: inn 5,6 = 2  (plays 1,2 as CF, 3,4 as LF)
-    // p10: 0 (plays all innings as RF or CF)
-    // p11: inn 1,2,3,4 = 4
-    // max=4, min=0, spread=4
-    // benchEquity = 100 * (1 - 4/6) = 33.3
-
-    const score = scoreLineup(lineup2, input);
+    const score = scoreLineup(lineup, input);
     expect(score.benchEquity).toBeLessThan(70);
     expect(score.benchEquity).toBeGreaterThanOrEqual(0);
   });
