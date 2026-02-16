@@ -129,7 +129,7 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 
 **Goal:** Local changes made while logged out trigger the ConflictDialog on login instead of being silently overwritten by cloud data
 **Depends on:** Phase 13
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 13.1-01-PLAN.md — Pull-time conflict detection in sync-engine and useCloudStorage
