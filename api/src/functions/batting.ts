@@ -74,6 +74,8 @@ export async function putBatting(
 
     const body = parsed.data;
 
+    const ifMatch = request.headers.get('if-match');
+
     if (body.docType === 'battingOrderState') {
       const doc = {
         id: `battingOrderState-${principal.userId}`,
@@ -83,7 +85,11 @@ export async function putBatting(
         updatedAt: new Date().toISOString(),
       };
 
-      const { resource } = await container.items.upsert(doc);
+      const options = ifMatch
+        ? { accessCondition: { type: 'IfMatch' as const, condition: ifMatch } }
+        : {};
+
+      const { resource } = await container.items.upsert(doc, options);
 
       return {
         status: 200,
@@ -106,6 +112,28 @@ export async function putBatting(
       jsonBody: { data: resource!.data, _etag: resource!._etag },
     };
   } catch (error) {
+    const cosmosErr = error as { statusCode?: number };
+    if (cosmosErr.statusCode === 412) {
+      // Only battingOrderState uses accessCondition, so conflict is for that doc
+      const docId = `battingOrderState-${principal.userId}`;
+      try {
+        const { resource: current } = await container
+          .item(docId, principal.userId)
+          .read();
+        return {
+          status: 412,
+          jsonBody: {
+            error: 'Conflict: data was modified by another device',
+            cloudData: current?.data ?? null,
+            cloudEtag: current?._etag ?? null,
+            cloudUpdatedAt: current?.updatedAt ?? null,
+          },
+        };
+      } catch (readError) {
+        logError(context, 'Failed to read current doc during conflict', readError);
+        return { status: 412, jsonBody: { error: 'Conflict detected' } };
+      }
+    }
     logError(context, 'Failed to upsert batting data', error);
     return { status: 500, jsonBody: { error: 'Internal server error' } };
   }
