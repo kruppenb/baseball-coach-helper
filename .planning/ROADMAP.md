@@ -35,7 +35,7 @@
 **Milestone Goal:** Streamline the game-day experience with a simplified flow, drag-and-drop editing, best-of-N lineup generation, and user-controlled sync conflict resolution.
 
 - [x] **Phase 10: App Restructuring and Game Day Flow** — Game-day-first tab structure with stepper flow and consolidated Settings page (completed 2026-02-15)
-- [ ] **Phase 11: Drag-and-Drop Editing** — Drag-and-drop fielding lineup and batting order editing with live validation
+- [x] **Phase 11: Drag-and-Drop Editing** — Drag-and-drop fielding lineup and batting order editing with live validation (completed 2026-02-16)
 - [ ] **Phase 12: Scored Generation and Batting Order** — Best-of-N lineup generation with fairness scoring and auto batting order
 - [ ] **Phase 13: Sync Hardening** — ETag-based conflict detection with coach-facing conflict resolution
 
@@ -67,7 +67,7 @@ Plans:
   2. Coach can drag batting order entries to reorder them
   3. Constraint violations appear in real-time as the coach makes drag edits (no page reload or manual check needed)
   4. Drag-and-drop works on mobile touch devices using visible drag handles without stealing page scroll
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 11-01-PLAN.md — Install @dnd-kit, useLineupEditor hook, DraggableLineupGrid for fielding swaps
@@ -121,6 +121,6 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 8. Data Migration | v2.0 | 1/1 | Complete | 2026-02-13 |
 | 9. PWA + Deployment | v2.0 | 2/2 | Complete | 2026-02-13 |
 | 10. App Restructuring | v3.0 | 3/3 | Complete | 2026-02-15 |
-| 11. Drag-and-Drop | v3.0 | 0/2 | Not started | - |
+| 11. Drag-and-Drop | v3.0 | Complete    | 2026-02-16 | - |
 | 12. Scored Generation | v3.0 | 0/TBD | Not started | - |
 | 13. Sync Hardening | v3.0 | 0/TBD | Not started | - |
