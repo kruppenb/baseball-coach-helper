@@ -37,7 +37,7 @@
 - [x] **Phase 10: App Restructuring and Game Day Flow** — Game-day-first tab structure with stepper flow and consolidated Settings page (completed 2026-02-15)
 - [x] **Phase 11: Drag-and-Drop Editing** — Drag-and-drop fielding lineup and batting order editing with live validation (completed 2026-02-16)
 - [x] **Phase 12: Scored Generation and Batting Order** — Best-of-N lineup generation with fairness scoring and auto batting order (completed 2026-02-16)
-- [ ] **Phase 13: Sync Hardening** — ETag-based conflict detection with coach-facing conflict resolution
+- [x] **Phase 13: Sync Hardening** — ETag-based conflict detection with coach-facing conflict resolution (completed 2026-02-16)
 
 ## Phase Details
 
@@ -97,7 +97,7 @@ Plans:
   2. Coach sees a conflict dialog with "this device" vs "cloud" options and timestamps when a conflict is detected
   3. Active in-progress edits are not overwritten by background cloud pulls (dirty flag protection)
   4. API endpoints enforce optimistic concurrency via If-Match headers, returning 412 on conflicts
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 13-01-PLAN.md — API optimistic concurrency (If-Match / accessCondition / 412 on all singleton PUT endpoints)
@@ -123,4 +123,4 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 10. App Restructuring | v3.0 | 3/3 | Complete | 2026-02-15 |
 | 11. Drag-and-Drop | v3.0 | Complete    | 2026-02-16 | - |
 | 12. Scored Generation | v3.0 | Complete    | 2026-02-16 | - |
-| 13. Sync Hardening | v3.0 | 0/TBD | Not started | - |
+| 13. Sync Hardening | v3.0 | Complete    | 2026-02-16 | - |
