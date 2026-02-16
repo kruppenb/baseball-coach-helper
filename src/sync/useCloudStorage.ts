@@ -3,7 +3,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useAuth } from '../auth/useAuth';
 import { useSyncContext } from './SyncContext';
 import type { SyncKeyConfig } from './sync-types';
-import { debouncedPush, pullFromCloud } from './sync-engine';
+import { debouncedPush, pullFromCloud, markDirty } from './sync-engine';
 
 /**
  * Drop-in replacement for useLocalStorage that adds background cloud sync
@@ -39,6 +39,7 @@ export function useCloudStorage<T>(
     (newValue: T | ((prev: T) => T)) => {
       setLocalValue(newValue);
       if (user) {
+        markDirty(key);
         debouncedPush(key, apiConfigRef.current, (status) =>
           reportStatus(key, status)
         );

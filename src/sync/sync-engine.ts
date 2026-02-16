@@ -1,4 +1,4 @@
-import type { SyncKeyConfig, SyncStatus } from './sync-types';
+import type { SyncKeyConfig, SyncStatus, ConflictInfo } from './sync-types';
 
 /** Debounce timers keyed by localStorage key */
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -9,6 +9,32 @@ const pendingPushKeys = new Set<string>();
 /** Keys already pulled from cloud this session (prevents duplicate pulls on component re-mount) */
 const pulledKeys = new Set<string>();
 
+/** ETags from the last successful GET or PUT per sync key */
+const etagStore = new Map<string, string>();
+
+/** Keys with unsaved local edits — prevents pullFromCloud from overwriting active work */
+const dirtyKeys = new Set<string>();
+
+export function getStoredEtag(key: string): string | undefined {
+  return etagStore.get(key);
+}
+
+export function setStoredEtag(key: string, etag: string): void {
+  etagStore.set(key, etag);
+}
+
+export function markDirty(key: string): void {
+  dirtyKeys.add(key);
+}
+
+export function clearDirty(key: string): void {
+  dirtyKeys.delete(key);
+}
+
+export function isDirty(key: string): boolean {
+  return dirtyKeys.has(key);
+}
+
 /**
  * Schedule a debounced push for the given key.
  * Clears any existing timer for this key and sets a new 2-second delay.
@@ -16,8 +42,11 @@ const pulledKeys = new Set<string>();
 export function debouncedPush(
   key: string,
   config: SyncKeyConfig,
-  onStatus: (status: SyncStatus) => void
+  onStatus: (status: SyncStatus) => void,
+  onConflict?: (info: ConflictInfo) => void,
 ): void {
+  dirtyKeys.add(key);
+
   const existing = timers.get(key);
   if (existing) clearTimeout(existing);
 
@@ -25,7 +54,7 @@ export function debouncedPush(
     key,
     setTimeout(() => {
       timers.delete(key);
-      pushToCloud(key, config, onStatus);
+      pushToCloud(key, config, onStatus, onConflict);
     }, 2000)
   );
 }
@@ -39,7 +68,8 @@ export function debouncedPush(
 export async function pushToCloud(
   key: string,
   config: SyncKeyConfig,
-  onStatus: (status: SyncStatus) => void
+  onStatus: (status: SyncStatus) => void,
+  onConflict?: (info: ConflictInfo) => void,
 ): Promise<void> {
   const raw = localStorage.getItem(key);
   if (raw === null) return;
@@ -59,11 +89,28 @@ export async function pushToCloud(
       if (config.pushDocType) {
         body.docType = config.pushDocType;
       }
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const storedEtag = etagStore.get(key);
+      if (storedEtag) {
+        headers['If-Match'] = storedEtag;
+      }
       const response = await fetch(config.endpoint, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(body),
       });
+      if (response.status === 412 && onConflict) {
+        const conflict = await response.json();
+        onConflict({
+          key,
+          localData: parsed,
+          cloudData: conflict.cloudData ?? null,
+          cloudEtag: conflict.cloudEtag ?? null,
+          cloudUpdatedAt: conflict.cloudUpdatedAt ?? null,
+        });
+        onStatus('error');
+        return;
+      }
       if (!response.ok) {
         if (response.status === 401) {
           onStatus('error');
@@ -76,6 +123,11 @@ export async function pushToCloud(
         onStatus('error');
         return;
       }
+      const result = await response.json();
+      if (result._etag) {
+        etagStore.set(key, result._etag);
+      }
+      dirtyKeys.delete(key);
     } else {
       // collection mode
       const entries = parsed as unknown[];
@@ -149,6 +201,12 @@ export async function pullFromCloud(
     return;
   }
 
+  // Skip if the key has unsaved local edits to prevent overwriting active work
+  if (dirtyKeys.has(key)) {
+    onStatus('synced');
+    return;
+  }
+
   onStatus('syncing');
 
   try {
@@ -169,6 +227,10 @@ export async function pullFromCloud(
     const json = (await response.json()) as Record<string, unknown>;
 
     if (config.mode === 'singleton') {
+      // Store ETag from GET response for singleton mode
+      if (typeof json._etag === 'string') {
+        etagStore.set(key, json._etag);
+      }
       const data = config.responseKey ? json[config.responseKey] : json.data;
 
       if (data !== null && data !== undefined) {

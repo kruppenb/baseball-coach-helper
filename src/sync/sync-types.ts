@@ -19,3 +19,12 @@ export interface BattingApiResponse {
   battingOrderState: unknown;
   battingHistory: unknown[];
 }
+
+/** Conflict details returned when a push receives HTTP 412 (ETag mismatch) */
+export interface ConflictInfo {
+  key: string;
+  localData: unknown;
+  cloudData: unknown;
+  cloudEtag: string | null;
+  cloudUpdatedAt: string | null;
+}
