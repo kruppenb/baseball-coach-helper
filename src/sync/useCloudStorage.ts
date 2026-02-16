@@ -54,10 +54,13 @@ export function useCloudStorage<T>(
   // Pull from cloud on mount (authenticated only)
   useEffect(() => {
     if (!user) return;
-    pullFromCloud(key, apiConfigRef.current, (status) =>
-      reportStatus(key, status)
+    pullFromCloud(
+      key,
+      apiConfigRef.current,
+      (status) => reportStatus(key, status),
+      onConflict,
     );
-  }, [key, user, reportStatus]);
+  }, [key, user, reportStatus, onConflict]);
 
   // For unauthenticated users, return plain localStorage setter
   if (!user) {
