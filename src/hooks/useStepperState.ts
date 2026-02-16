@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useMemo, useEffect } from 'react';
+import { useReducer, useCallback, useMemo } from 'react';
 import type { StepId } from '../types';
 
 const STEPS: StepId[] = ['attendance', 'pc-assignment', 'review', 'print'];
@@ -67,7 +67,7 @@ function getNextIncompleteStep(completed: Set<StepId>): StepId {
   return STEPS[STEPS.length - 1];
 }
 
-function stepperReducer(state: StepperInternalState, action: StepperAction): StepperInternalState {
+function stepperReducerCore(state: StepperInternalState, action: StepperAction): StepperInternalState {
   switch (action.type) {
     case 'GO_TO_STEP': {
       const { step } = action;
@@ -127,21 +127,25 @@ function stepperReducer(state: StepperInternalState, action: StepperAction): Ste
   }
 }
 
+// Wrap the pure reducer with synchronous localStorage persistence.
+// Writing inside the reducer (before React commits) guarantees the value
+// is in storage even if the page unloads immediately after dispatch.
+function stepperReducer(state: StepperInternalState, action: StepperAction): StepperInternalState {
+  const next = stepperReducerCore(state, action);
+  if (next !== state) {
+    try {
+      localStorage.setItem(STEPPER_STORAGE_KEY, JSON.stringify({
+        currentStep: next.currentStep,
+        completedSteps: [...next.completedSteps],
+        hasCompletedAllOnce: next.hasCompletedAllOnce,
+      }));
+    } catch { /* quota exceeded — non-critical */ }
+  }
+  return next;
+}
+
 export function useStepperState() {
   const [state, dispatch] = useReducer(stepperReducer, undefined, getInitialState);
-
-  // Persist stepper position to localStorage so it survives page reloads
-  // (e.g. SWA auth redirect on sign-in)
-  useEffect(() => {
-    localStorage.setItem(
-      STEPPER_STORAGE_KEY,
-      JSON.stringify({
-        currentStep: state.currentStep,
-        completedSteps: [...state.completedSteps],
-        hasCompletedAllOnce: state.hasCompletedAllOnce,
-      }),
-    );
-  }, [state.currentStep, state.completedSteps, state.hasCompletedAllOnce]);
 
   const goToStep = useCallback((step: StepId) => {
     dispatch({ type: 'GO_TO_STEP', step });
