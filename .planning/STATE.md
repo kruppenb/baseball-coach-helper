@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v3.0 UX Overhaul — Phase 13 (Sync Hardening) in progress
+**Current focus:** v3.0 UX Overhaul — Phase 13 (Sync Hardening) COMPLETE
 
 ## Current Position
 
 Milestone: v3.0 UX Overhaul
-Phase: 13 of 13 (Sync Hardening) -- IN PROGRESS
-Plan: 1 of 2 in current phase (done)
-Status: Executing Phase 13
-Last activity: 2026-02-15 — Completed 13-01 (API ETag Concurrency)
+Phase: 13 of 13 (Sync Hardening) -- COMPLETE
+Plan: 2 of 2 in current phase (done)
+Status: Phase 13 complete -- v3.0 UX Overhaul milestone complete
+Last activity: 2026-02-15 — Completed 13-02 (Frontend ETag Conflict Resolution)
 
-Progress: [██████████████████████████████████] 34/35 plans (v1+v2+v3.0 through phase 13-01)
+Progress: [███████████████████████████████████] 35/35 plans (v1+v2+v3.0 all phases complete)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0):**
-- Total plans completed: 34
+- Total plans completed: 35
 - Average duration: 4 min
-- Total execution time: 137 min
+- Total execution time: 141 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -34,6 +34,7 @@ Progress: [███████████████████████
 | 12 | 01 | 5min | 2 | 6 |
 | 12 | 02 | 3min | 2 | 5 |
 | 13 | 01 | 2min | 2 | 4 |
+| 13 | 02 | 4min | 2 | 6 |
 
 ## Accumulated Context
 
@@ -68,6 +69,10 @@ Recent decisions affecting current work:
 - [13-01]: accessCondition only on singleton doc upserts -- collection-mode endpoints (gameHistory, battingHistory) remain unconditional
 - [13-01]: 412 response includes cloudData/cloudEtag/cloudUpdatedAt so frontend can resolve conflicts without extra GET
 - [13-01]: If-Match header is optional -- omitting it allows unconditional upsert for backward compatibility
+- [13-02]: ConflictDialog uses native HTML dialog with showModal() -- no modal library dependency, automatic focus trapping and backdrop
+- [13-02]: Escape key blocked on conflict dialog to force deliberate choice between local and cloud
+- [13-02]: Keep This Device updates stored ETag to cloud's current value then re-pushes -- ensures next upsert wins
+- [13-02]: retryPendingPushes does not pass onConflict -- offline-to-online retries fail silently on 412, next manual edit triggers proper handling
 
 ### Pending Todos
 
@@ -79,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15 (Phase 13 plan 01 complete)
-Stopped at: Completed 13-01-PLAN.md — API ETag Concurrency
-Resume file: .planning/phases/13-sync-hardening/13-01-SUMMARY.md
+Last session: 2026-02-15 (Phase 13 complete -- v3.0 UX Overhaul milestone complete)
+Stopped at: Completed 13-02-PLAN.md — Frontend ETag Conflict Resolution
+Resume file: .planning/phases/13-sync-hardening/13-02-SUMMARY.md
