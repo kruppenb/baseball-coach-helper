@@ -124,3 +124,12 @@ Phases execute in numeric order: 10 -> 11 -> 12 -> 13
 | 11. Drag-and-Drop | v3.0 | Complete    | 2026-02-16 | - |
 | 12. Scored Generation | v3.0 | Complete    | 2026-02-16 | - |
 | 13. Sync Hardening | v3.0 | Complete    | 2026-02-16 | - |
+
+### Phase 13.1: Offline-to-Online Data Preservation (INSERTED)
+
+**Goal:** Local changes made while logged out trigger the ConflictDialog on login instead of being silently overwritten by cloud data
+**Depends on:** Phase 13
+**Plans:** 1 plan
+
+Plans:
+- [ ] 13.1-01-PLAN.md — Pull-time conflict detection in sync-engine and useCloudStorage
