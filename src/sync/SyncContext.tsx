@@ -79,6 +79,14 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       if (cloudEtag) {
         setStoredEtag(key, cloudEtag);
       }
+      // Restore local data to localStorage — React effects (e.g. PCAssignmentStep)
+      // may have cleared it since the module-load snapshot was taken
+      localStorage.setItem(key, JSON.stringify(activeConflict.localData));
+      window.dispatchEvent(
+        new CustomEvent('local-storage-sync', {
+          detail: { key, value: activeConflict.localData },
+        })
+      );
       const config = configsRef.current.get(key);
       if (config) {
         pushToCloud(key, config, (status) => reportStatus(key, status), handleConflict);

@@ -48,6 +48,7 @@ export async function getBatting(
         battingHistory: historyResources.map(
           (r: { data: unknown }) => r.data,
         ),
+        updatedAt: orderResource?.updatedAt ?? null,
       },
     };
   } catch (error) {

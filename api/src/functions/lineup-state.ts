@@ -33,7 +33,7 @@ export async function getLineupState(
 
     return {
       status: 200,
-      jsonBody: { data: resource.data, _etag: resource._etag },
+      jsonBody: { data: resource.data, _etag: resource._etag, updatedAt: resource.updatedAt ?? null },
     };
   } catch (error) {
     logError(context, 'Failed to read lineup state', error);
