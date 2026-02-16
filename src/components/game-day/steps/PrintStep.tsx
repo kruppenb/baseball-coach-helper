@@ -1,13 +1,13 @@
-import { useLineup } from '../../../hooks/useLineup';
 import { useRoster } from '../../../hooks/useRoster';
-import { useBattingOrder } from '../../../hooks/useBattingOrder';
+import { useGameHistory } from '../../../hooks/useGameHistory';
 import { DugoutCard } from '../../lineup/DugoutCard';
 import styles from './PrintStep.module.css';
 
 export function PrintStep() {
-  const { selectedLineup, innings } = useLineup();
   const { players } = useRoster();
-  const { currentOrder } = useBattingOrder();
+  const { history } = useGameHistory();
+
+  const lastGame = history.length > 0 ? history[history.length - 1] : null;
 
   return (
     <div className={styles.step}>
@@ -16,12 +16,12 @@ export function PrintStep() {
         Print or screenshot the dugout card below
       </p>
 
-      {selectedLineup && (
+      {lastGame && (
         <DugoutCard
-          lineup={selectedLineup}
-          innings={innings}
+          lineup={lastGame.lineup}
+          innings={lastGame.innings}
           players={players}
-          battingOrder={currentOrder}
+          battingOrder={lastGame.battingOrder}
         />
       )}
     </div>

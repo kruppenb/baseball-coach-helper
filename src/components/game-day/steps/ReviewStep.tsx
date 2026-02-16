@@ -140,7 +140,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
 
   const handleFinalize = () => {
     if (!editor.lineup || !editor.battingOrder) return;
-    confirmBatting();
+    confirmBatting(editor.battingOrder);
     finalizeGame(editor.lineup, editor.battingOrder, innings, players);
     setIsFinalized(true);
   };

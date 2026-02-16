@@ -42,13 +42,14 @@ export function useBattingOrder() {
     setState({ currentOrder: order, isConfirmed: false });
   }, [presentPlayers, history, setState]);
 
-  const confirm = useCallback(() => {
-    if (!state.currentOrder || state.isConfirmed) return;
+  const confirm = useCallback((orderOverride?: string[]) => {
+    const order = orderOverride ?? state.currentOrder;
+    if (!order || state.isConfirmed) return;
 
     const entry: BattingHistoryEntry = {
       id: crypto.randomUUID(),
       gameDate: new Date().toISOString(),
-      order: state.currentOrder,
+      order,
     };
 
     setHistory((prev: BattingHistoryEntry[]) => [...prev, entry]);
