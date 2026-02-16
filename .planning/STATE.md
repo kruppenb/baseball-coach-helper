@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v3.0 UX Overhaul — Phase 13 (Sync Hardening) COMPLETE
+**Current focus:** v3.0 UX Overhaul — Phase 13.1 (Offline-to-Online Data Preservation) COMPLETE
 
 ## Current Position
 
 Milestone: v3.0 UX Overhaul
-Phase: 13 of 13 (Sync Hardening) -- COMPLETE
-Plan: 2 of 2 in current phase (done)
-Status: Phase 13 complete -- v3.0 UX Overhaul milestone complete
-Last activity: 2026-02-15 — Completed 13-02 (Frontend ETag Conflict Resolution)
+Phase: 13.1 (Offline-to-Online Data Preservation) -- COMPLETE
+Plan: 1 of 1 in current phase (done)
+Status: Phase 13.1 complete -- pull-time conflict detection shipped
+Last activity: 2026-02-15 — Completed 13.1-01 (Offline-to-Online Data Preservation)
 
-Progress: [███████████████████████████████████] 35/35 plans (v1+v2+v3.0 all phases complete)
+Progress: [████████████████████████████████████] 36/36 plans (v1+v2+v3.0 all phases + 13.1 complete)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0):**
-- Total plans completed: 35
+- Total plans completed: 36
 - Average duration: 4 min
-- Total execution time: 141 min
+- Total execution time: 142 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -35,6 +35,7 @@ Progress: [███████████████████████
 | 12 | 02 | 3min | 2 | 5 |
 | 13 | 01 | 2min | 2 | 4 |
 | 13 | 02 | 4min | 2 | 6 |
+| 13.1 | 01 | 1min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -73,10 +74,17 @@ Recent decisions affecting current work:
 - [13-02]: Escape key blocked on conflict dialog to force deliberate choice between local and cloud
 - [13-02]: Keep This Device updates stored ETag to cloud's current value then re-pushes -- ensures next upsert wins
 - [13-02]: retryPendingPushes does not pass onConflict -- offline-to-online retries fail silently on 412, next manual edit triggers proper handling
+- [13.1-01]: JSON.stringify comparison for pull-time conflict detection (matches existing codebase pattern in useLineupEditor)
+- [13.1-01]: Conflict check only for singleton mode -- collection-mode keys (gameHistory, battingHistory) unaffected
+- [13.1-01]: pulledKeys.add on conflict to prevent duplicate conflict dialogs on re-render
 
 ### Pending Todos
 
 None.
+
+### Roadmap Evolution
+
+- Phase 13.1 inserted after Phase 13: Offline-to-Online Data Preservation (URGENT) — Local changes made while logged out are overwritten when logging in instead of showing a conflict dialog. Discovered during Phase 13 UAT.
 
 ### Blockers/Concerns
 
@@ -84,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-15 (Phase 13 complete -- v3.0 UX Overhaul milestone complete)
-Stopped at: Completed 13-02-PLAN.md — Frontend ETag Conflict Resolution
-Resume file: .planning/phases/13-sync-hardening/13-02-SUMMARY.md
+Last session: 2026-02-15 (Phase 13.1 complete -- Offline-to-Online Data Preservation)
+Stopped at: Completed 13.1-01-PLAN.md — Offline-to-Online Data Preservation
+Resume file: .planning/phases/13.1-offline-to-online-data-preservation/13.1-01-SUMMARY.md
