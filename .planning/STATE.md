@@ -2,58 +2,32 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-16)
+See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v4.0 Polish and Closeout — Phase 18
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 18 (v4.0 Polish and Closeout)
-Plan: 1 of 1
-Status: Complete
-Last activity: 2026-02-17 — Plan 18-01 complete
+Phase: — (between milestones)
+Plan: —
+Status: v4.0 milestone complete
+Last activity: 2026-02-17 — v4.0 Desktop UI and Flow shipped
 
-Progress: [██████████] 100% (Phase 18 complete)
+Progress: All 4 milestones shipped (v1.0 → v4.0)
 
 ## Performance Metrics
 
-**Velocity (from v1.0 + v2.0 + v3.0 + v4.0 + gap closure):**
+**Velocity (cumulative v1.0 through v4.0):**
 - Total plans completed: 43
 - Average duration: 4 min
-- Total execution time: 160 min
-
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 14    | 01   | 3 min    | 2     | 5     |
-| 14    | 02   | 5 min    | 2     | 22    |
-| 15    | 01   | 2 min    | 2     | 6     |
-| 16    | 01   | 2 min    | 2     | 4     |
-| 16    | 02   | 2 min    | 2     | 2     |
-| 17    | 01   | 2 min    | 2     | 7     |
-| 18    | 01   | 2 min    | 2     | 2     |
+- Total execution time: ~160 min
 
 ## Accumulated Context
 
 ### Decisions
 
-See PROJECT.md Key Decisions table (28 decisions, all validated).
-
-- **14-01:** 900px desktop breakpoint, free-form editing (all sections editable at once), tablet portrait uses mobile stepper
-- **14-01:** Stale warning uses snapshot comparison of presentIds + P/C selections
-- **14-02:** Actions (Generate + Print) in sticky bar at bottom of desktop layout, always visible
-- **14-02:** Desktop polish applied across all components for consistent card presentation
-- **15-01:** (Superseded by 17-01) Originally deprecated finalizeGame; now fully removed
-- **15-01:** saveGame overwrites existing entry on re-print using preserved original ID
-- **15-01:** playerCount computed from present players at save time, not total roster
-- **16-01:** deleteGame returns removed entry and index for caller undo support
-- **16-01:** Cloud operations fire-and-forget with swallowed errors for offline resilience
-- **16-02:** Swipe uses pointer events (no library), undo toast built inline with action button
-- **16-02:** Consecutive deletes finalize previous deletion automatically
-- **17-01:** Refs (not state) for display values to avoid re-renders on DnD drags; read only at save time
-- **17-01:** Removed finalizeGame entirely; all JSDoc updated to "saved game" terminology
-- **18-01:** printSeq counter forces useEffect to fire even when game label is unchanged
-- **18-01:** setActiveTab('game-day') added to handleDontSave and handleSaveAndNew only, not cancel
+See PROJECT.md Key Decisions table (35 decisions, all validated).
 
 ### Pending Todos
 
@@ -65,7 +39,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (Plan 18-01 complete)
-Stopped at: Completed 18-01-PLAN.md
-Resume file: .planning/phases/18-v4-polish-and-closeout/18-01-SUMMARY.md
-Next step: Phase 18 complete. All v4.0 requirements satisfied. Milestone v1.0 Desktop UI and Flow done.
+Last session: 2026-02-17 (v4.0 milestone archived)
+Stopped at: Milestone v4.0 complete
+Next step: `/gsd:new-milestone` to plan next milestone

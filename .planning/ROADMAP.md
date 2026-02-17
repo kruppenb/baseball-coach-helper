@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-11)
 - ✅ **v2.0 Azure Cloud Sync** — Phases 5-9 (shipped 2026-02-14)
 - ✅ **v3.0 UX Overhaul** — Phases 10-13.1 (shipped 2026-02-16)
-- 🚧 **v4.0 Desktop UI and Flow** — Phases 14-18 (in progress)
+- ✅ **v4.0 Desktop UI and Flow** — Phases 14-18 (shipped 2026-02-17)
 
 ## Phases
 
@@ -42,87 +42,18 @@
 
 </details>
 
-### 🚧 v4.0 Desktop UI and Flow (In Progress)
+<details>
+<summary>✅ v4.0 Desktop UI and Flow (Phases 14-18) — SHIPPED 2026-02-17</summary>
 
-**Milestone Goal:** Responsive desktop layout showing all game-day steps at once, streamlined new-game and print-to-save flow, and game history management.
+- [x] Phase 14: Responsive Desktop Layout (2/2 plans) — completed 2026-02-17
+- [x] Phase 15: Game Flow Streamlining (2/2 plans) — completed 2026-02-17
+- [x] Phase 16: Game History Management (2/2 plans) — completed 2026-02-17
+- [x] Phase 17: Game Flow Gap Closure (1/1 plan) — completed 2026-02-17 (Gap Closure)
+- [x] Phase 18: v4.0 Polish and Closeout (1/1 plan) — completed 2026-02-17 (Gap Closure)
 
-- [x] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved (**Plans:** 2) (completed 2026-02-17)
-- [x] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step (**Plans:** 2) (completed 2026-02-17)
-- [x] **Phase 16: Game History Management** - View and delete saved game history entries (**Plans:** 2) (completed 2026-02-17)
-- [x] **Phase 17: Game Flow Gap Closure** - Persist desktop DnD edits to history, remove dead Finalize code (**Plans:** 1) **Gap Closure** (completed 2026-02-17)
-- [x] **Phase 18: v4.0 Polish and Closeout** - Fix re-print edge case, New Game tab navigation, check off requirements (**Plans:** 1) **Gap Closure** (completed 2026-02-17)
-
-## Phase Details
-
-### Phase 14: Responsive Desktop Layout
-**Goal**: Coach sees all game-day sections at once on a desktop screen, eliminating step-by-step navigation on wide viewports
-**Depends on**: Phase 13.1 (v3.0 complete)
-**Requirements**: DESK-01, DESK-02, DESK-03, DESK-04
-**Success Criteria** (what must be TRUE):
-  1. On a desktop-width browser, attendance, P/C assignment, lineup grid, and batting order are all visible simultaneously without scrolling between steps
-  2. Attendance and P/C sections render in a left column while lineup grid and batting order render in a right column
-  3. On a phone-width browser, the existing stepper flow (Attendance -> P/C -> Generate -> Review -> Print) works exactly as before
-  4. Resizing the browser between phone and desktop widths transitions fluidly with no horizontal scrollbar appearing
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 14-01-PLAN.md — Responsive infrastructure + desktop 2-column card layout
-- [ ] 14-02-PLAN.md — Sticky action bar, responsive switching, visual verification
-
-### Phase 15: Game Flow Streamlining
-**Goal**: Coach can start a fresh game and save it to history without extra steps or buttons
-**Depends on**: Phase 14
-**Requirements**: GFLW-01, GFLW-02, GFLW-03, GFLW-04
-**Success Criteria** (what must be TRUE):
-  1. When a previous game's lineup exists, the coach can tap a single "New Game" action to start fresh
-  2. After starting a new game, attendance is reset, P/C assignments are cleared, and the generated lineup is cleared -- but the roster and game history remain intact
-  3. Printing the dugout card saves the current lineup, batting order, and game metadata to game history automatically
-  4. There is no "Finalize Game" button or step anywhere in the app flow
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 15-01-PLAN.md — Data layer: types, save-with-label, dupe detection, reset, remove Finalize
-- [ ] 15-02-PLAN.md — UI: New Game dialog, print-as-save flow, game label, toast
-
-### Phase 16: Game History Management
-**Goal**: Coach can review and clean up saved game history entries
-**Depends on**: Phase 14
-**Requirements**: HMGT-01, HMGT-02
-**Success Criteria** (what must be TRUE):
-  1. Coach can view a list of saved games showing date and a summary (player count, innings) for each entry
-  2. Coach can delete an individual game history entry and it is removed from both local storage and cloud sync
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 16-01-PLAN.md — Data layer: API DELETE endpoint, useGameHistory.deleteGame/undoDelete, History tab wiring
-- [ ] 16-02-PLAN.md — UI: HistoryPage redesign with summary cards, expand/collapse, swipe-to-delete, undo toast
-
-### Phase 17: Game Flow Gap Closure
-**Goal**: Persist desktop DnD edits to game history and clean up dead Finalize code
-**Depends on**: Phase 16
-**Requirements**: GFLW-03, GFLW-04
-**Gap Closure**: Closes gaps from v4.0 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. After drag-and-drop position swaps on desktop, printing saves the edited lineup (not the original generated lineup) to game history
-  2. After drag-and-drop batting order reordering on desktop, printing saves the reordered batting order to game history
-  3. No file in the repository contains a "Finalize Game" button or references to a Finalize step
-  4. HistoryPage empty-state text directs coaches to the print-as-save flow, not the removed Finalize flow
-Plans:
-- [ ] 17-01-PLAN.md — Persist DnD edits to history, remove dead Finalize code, update stale text
-
-### Phase 18: v4.0 Polish and Closeout
-**Goal**: Fix remaining low-severity integration edge cases and update documentation to reflect completed milestone
-**Depends on**: Phase 17
-**Requirements**: GFLW-01, GFLW-03
-**Gap Closure**: Closes integration gaps INT-01 and INT-02 from v4.0 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. Re-printing with the same game label in the same session opens the print dialog (INT-01 fix)
-  2. Clicking New Game from any tab navigates the user to the Game Day tab (INT-02 fix)
-  3. All 10 v4.0 requirement checkboxes in REQUIREMENTS.md are checked off as satisfied
-Plans:
-- [ ] 18-01-PLAN.md — Fix INT-01 re-print trigger, INT-02 tab navigation, update REQUIREMENTS.md checkboxes
+</details>
 
 ## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 14 -> 15 -> 16 -> 17 -> 18
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -141,8 +72,8 @@ Phases execute in numeric order: 14 -> 15 -> 16 -> 17 -> 18
 | 12. Scored Generation | v3.0 | 2/2 | Complete | 2026-02-16 |
 | 13. Sync Hardening | v3.0 | 2/2 | Complete | 2026-02-16 |
 | 13.1 Offline-to-Online | v3.0 | 1/1 | Complete | 2026-02-16 |
-| 14. Desktop Layout | v4.0 | Complete    | 2026-02-17 | - |
-| 15. Game Flow | v4.0 | Complete    | 2026-02-17 | - |
-| 16. History Management | v4.0 | Complete    | 2026-02-17 | - |
-| 17. Gap Closure | v4.0 | Complete    | 2026-02-17 | - |
-| 18. Polish & Closeout | v4.0 | Complete    | 2026-02-17 | - |
+| 14. Desktop Layout | v4.0 | 2/2 | Complete | 2026-02-17 |
+| 15. Game Flow | v4.0 | 2/2 | Complete | 2026-02-17 |
+| 16. History Management | v4.0 | 2/2 | Complete | 2026-02-17 |
+| 17. Gap Closure | v4.0 | 1/1 | Complete | 2026-02-17 |
+| 18. Polish & Closeout | v4.0 | 1/1 | Complete | 2026-02-17 |

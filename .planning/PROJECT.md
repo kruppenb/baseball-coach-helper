@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A web app for Little League coaches to build fair, constraint-based inning-by-inning fielding lineups and continuous batting orders. A guided game-day stepper walks the coach through attendance, pitcher/catcher assignment (with history), best-of-10 scored lineup generation, drag-and-drop editing with live validation, and printing a single-page dugout card. Game history tracks batting order, fielding positions, and bench time across games to ensure season-long fairness. Coaches sign in with their Microsoft account; data syncs to Azure Cosmos DB with ETag-based conflict resolution and works offline at the field via an installable PWA.
+A web app for Little League coaches to build fair, constraint-based inning-by-inning fielding lineups and continuous batting orders. On desktop, all game-day sections (attendance, pitcher/catcher assignment, lineup grid, batting order) appear simultaneously in a multi-column layout with a sticky action bar. On mobile, a guided stepper walks the coach through each step. Coaches can start new games with a single action, print a dugout card (which auto-saves to history), manage game history with swipe-to-delete and undo, and drag-and-drop to edit lineups and batting orders with live validation. Game history tracks batting order, fielding positions, and bench time across games for season-long fairness. Coaches sign in with their Microsoft account; data syncs to Azure Cosmos DB with ETag-based conflict resolution and works offline at the field via an installable PWA.
 
 ## Core Value
 
@@ -73,19 +73,20 @@ Every kid gets fair playing time with a valid, printable lineup the coach can ge
 - ✓ SYNC-07: Conflict dialog with "this device" vs "cloud" choice — v3.0
 - ✓ SYNC-08: Dirty flag prevents cloud pulls from overwriting active edits — v3.0
 - ✓ SYNC-09: Pull-time conflict detection for offline-to-online edits — v3.0
+- ✓ DESK-01: All game-day sections visible in multi-column layout on desktop — v4.0
+- ✓ DESK-02: Attendance/P/C left, lineup/batting right on desktop (3-zone layout) — v4.0
+- ✓ DESK-03: Mobile stepper flow unchanged at narrow widths — v4.0
+- ✓ DESK-04: Desktop layout adapts fluidly without horizontal scrolling — v4.0
+- ✓ GFLW-01: Single New Game action when previous game exists — v4.0
+- ✓ GFLW-02: New Game resets state, preserves roster/history — v4.0
+- ✓ GFLW-03: Printing dugout card auto-saves lineup to game history — v4.0
+- ✓ GFLW-04: No Finalize Game button or step in flow — v4.0
+- ✓ HMGT-01: View list of saved game history entries with date/summary — v4.0
+- ✓ HMGT-02: Delete individual game history entries — v4.0
 
 ### Active
 
-#### Current Milestone: v4.0 Desktop UI and Flow
-
-**Goal:** Responsive desktop layout showing all game-day steps at once, streamlined new-game and print-to-save flow, and game history management.
-
-**Target features:**
-- Responsive multi-column desktop layout (all game-day steps visible side-by-side)
-- Mobile stepper flow unchanged at narrow breakpoints
-- Clear "New Game" flow when previous game state exists
-- Print-as-finalize (auto-save history on print, no separate Finalize step)
-- Game history management (view entries, delete duplicates/incorrect saves)
+(None — planning next milestone)
 
 ### Out of Scope
 
@@ -105,20 +106,30 @@ Every kid gets fair playing time with a valid, printable lineup the coach can ge
 - Configurable scoring weights in Settings — deferred from v3.0
 - Undo/redo for drag-and-drop edits — deferred from v3.0
 - Inline position swap suggestions — deferred from v3.0
+- Sidebar navigation — bottom tab bar works well for 3-tab app
+- Drag-and-drop between columns on desktop — existing DnD within inning is sufficient
+- Game history charts/trends — history management is view + delete, not analytics
 
 ## Context
 
-Shipped v3.0 with 10,975 LOC (TypeScript/CSS).
+Shipped v4.0 with 13,103 LOC (TypeScript/CSS).
 Tech stack: Vite + React 19 + TypeScript, CSS Modules, @dnd-kit/react, Azure Static Web Apps, Azure Functions v4, Cosmos DB serverless.
 87+ tests passing (vitest). Data persisted via useCloudStorage (localStorage + cloud sync with ETag conflict resolution).
 Dev server runs on port 5180. API dev server on port 7071 via SWA CLI.
+3-tab app: Game Day (primary), History, Settings.
 
-**v3.0 resolved tech debt:**
-- Fisher-Yates shuffle consolidated into shared `shuffle.ts`
-- Position blocks UI moved from Lineup tab to Settings page
+**v4.0 added:**
+- Responsive desktop layout (900px breakpoint) with 3-zone card layout and sticky action bar
+- New Game dialog with Save & New / Don't Save / Cancel flow
+- Print-as-save: printing dugout card auto-saves to game history with duplicate detection
+- Game history management: view, expand, delete (swipe on mobile, button on desktop), undo
+- DELETE API endpoint for cloud-synced game history cleanup
+- Ref-based display state lifting for DnD edits (avoids re-renders during drag)
 
 **Known tech debt:**
 - TENANT_ID placeholder in staticwebapp.config.json (replaced at deployment)
+- DESK-02 accepted deviation: 3-zone layout instead of strict 2-column (approved by user)
+- eslint-disable-next-line react-hooks/exhaustive-deps in GameDayDesktop.tsx
 
 ## Constraints
 
@@ -141,7 +152,7 @@ Dev server runs on port 5180. API dev server on port 7071 via SWA CLI.
 | Fisher-Yates shuffle for randomization | Unbiased, O(n), well-understood algorithm | ✓ Good |
 | Three-band fairness for batting order | Simple, effective — top/middle/bottom bands rotate across games | ✓ Good |
 | Bench priority via sort-after-shuffle | Soft preference, doesn't break constraints — constraint solver has final say | ✓ Good |
-| Unified Finalize Game button | Prevents desync between batting order confirm and game history save | ✓ Good |
+| Print-as-save replacing Finalize | Simpler flow — printing IS saving, no separate step needed | ✓ Good |
 | HTML details/summary for collapsibles | Zero JS state, native browser behavior, accessible | ✓ Good |
 | SWA EasyAuth over MSAL.js | Zero client library, platform-level auth, simpler implementation | ✓ Good |
 | SWA Standard plan ($9/mo) | Required for custom Entra ID tenant restriction | ✓ Good |
@@ -152,13 +163,22 @@ Dev server runs on port 5180. API dev server on port 7071 via SWA CLI.
 | generateSW over injectManifest for PWA | No custom service worker code needed for app-shell caching | ✓ Good |
 | OIDC auth for Azure SWA deployments | No deployment token needed, matches Azure's GitHub deployment source | ✓ Good |
 | useReducer for stepper state | Complex state transitions (step nav, attendance, P/C) benefit from reducer pattern | ✓ Good |
-| Bottom tab bar with 2 tabs | Game Day primary, Settings secondary — simplest navigation for single-purpose app | ✓ Good |
+| Bottom tab bar with 3 tabs | Game Day primary, History secondary, Settings tertiary — simplest navigation | ✓ Good |
 | @dnd-kit/react for drag-and-drop | Lightweight, touch-friendly, accept filter for same-inning constraint | ✓ Good |
 | Scoring weights: bench 0.5, infield 0.3, variety 0.2 | Bench fairness most important for youth baseball | ✓ Good |
 | scoreLineup as pure function | Enables live recomputation after DnD edits via useMemo | ✓ Good |
 | Native HTML dialog for ConflictDialog | No modal library dependency, automatic focus trapping and backdrop | ✓ Good |
 | ETag-based optimistic concurrency | Coach-facing conflict resolution instead of silent last-write-wins | ✓ Good |
 | Pull-time conflict detection via JSON.stringify | Detects offline-to-online data changes on login, reuses ConflictDialog | ✓ Good |
+| 900px desktop breakpoint | Above tablet portrait, below typical laptop — optimal for 3-zone layout | ✓ Good |
+| Free-form desktop editing (all sections editable) | Simpler for coach workflow, no locking or graying out sections | ✓ Good |
+| Sticky action bar for Generate/Print | Always visible at bottom of desktop layout, single-tap access | ✓ Good |
+| Refs for DnD display state (not React state) | Avoids re-renders on every drag — values read only at save time | ✓ Good |
+| saveGame with ref-based duplicate detection | Re-printing updates existing history entry instead of creating duplicates | ✓ Good |
+| deleteGame returns entry+index for undo | Clean undo pattern — caller can re-insert at original position | ✓ Good |
+| Fire-and-forget cloud DELETE | Offline resilience — swallowed errors, local deletion succeeds regardless | ✓ Good |
+| Pointer events for swipe-to-delete | No external gesture library needed, works on touch and mouse | ✓ Good |
+| printSeq counter for re-print trigger | Forces useEffect to re-fire when game label is unchanged | ✓ Good |
 
 ---
-*Last updated: 2026-02-16 after v4.0 milestone start*
+*Last updated: 2026-02-17 after v4.0 milestone*
