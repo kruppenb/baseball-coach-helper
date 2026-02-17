@@ -50,7 +50,7 @@
 - [x] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step (**Plans:** 2) (completed 2026-02-17)
 - [x] **Phase 16: Game History Management** - View and delete saved game history entries (**Plans:** 2) (completed 2026-02-17)
 - [x] **Phase 17: Game Flow Gap Closure** - Persist desktop DnD edits to history, remove dead Finalize code (**Plans:** 1) **Gap Closure** (completed 2026-02-17)
-- [ ] **Phase 18: v4.0 Polish and Closeout** - Fix re-print edge case, New Game tab navigation, check off requirements (**Plans:** 1) **Gap Closure**
+- [x] **Phase 18: v4.0 Polish and Closeout** - Fix re-print edge case, New Game tab navigation, check off requirements (**Plans:** 1) **Gap Closure** (completed 2026-02-17)
 
 ## Phase Details
 
@@ -145,4 +145,4 @@ Phases execute in numeric order: 14 -> 15 -> 16 -> 17 -> 18
 | 15. Game Flow | v4.0 | Complete    | 2026-02-17 | - |
 | 16. History Management | v4.0 | Complete    | 2026-02-17 | - |
 | 17. Gap Closure | v4.0 | Complete    | 2026-02-17 | - |
-| 18. Polish & Closeout | v4.0 | Pending | - | - |
+| 18. Polish & Closeout | v4.0 | Complete    | 2026-02-17 | - |
