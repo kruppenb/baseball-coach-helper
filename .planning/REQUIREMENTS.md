@@ -54,8 +54,8 @@ Requirements for v4.0 Desktop UI and Flow. Each maps to roadmap phases.
 | DESK-04 | Phase 14 | Pending |
 | GFLW-01 | Phase 15 | Pending |
 | GFLW-02 | Phase 15 | Pending |
-| GFLW-03 | Phase 15 | Pending |
-| GFLW-04 | Phase 15 | Pending |
+| GFLW-03 | Phase 17 (gap closure) | Pending |
+| GFLW-04 | Phase 17 (gap closure) | Pending |
 | HMGT-01 | Phase 16 | Pending |
 | HMGT-02 | Phase 16 | Pending |
 
@@ -66,4 +66,4 @@ Requirements for v4.0 Desktop UI and Flow. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-02-16*
-*Last updated: 2026-02-16 after roadmap creation*
+*Last updated: 2026-02-17 after gap closure phase assignment*

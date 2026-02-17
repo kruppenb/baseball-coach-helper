@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-11)
 - ✅ **v2.0 Azure Cloud Sync** — Phases 5-9 (shipped 2026-02-14)
 - ✅ **v3.0 UX Overhaul** — Phases 10-13.1 (shipped 2026-02-16)
-- 🚧 **v4.0 Desktop UI and Flow** — Phases 14-16 (in progress)
+- 🚧 **v4.0 Desktop UI and Flow** — Phases 14-17 (in progress)
 
 ## Phases
 
@@ -49,6 +49,7 @@
 - [x] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved (**Plans:** 2) (completed 2026-02-17)
 - [x] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step (**Plans:** 2) (completed 2026-02-17)
 - [x] **Phase 16: Game History Management** - View and delete saved game history entries (**Plans:** 2) (completed 2026-02-17)
+- [x] **Phase 17: Game Flow Gap Closure** - Persist desktop DnD edits to history, remove dead Finalize code (**Plans:** 1) **Gap Closure** (completed 2026-02-17)
 
 ## Phase Details
 
@@ -92,10 +93,23 @@ Plans:
 - [ ] 16-01-PLAN.md — Data layer: API DELETE endpoint, useGameHistory.deleteGame/undoDelete, History tab wiring
 - [ ] 16-02-PLAN.md — UI: HistoryPage redesign with summary cards, expand/collapse, swipe-to-delete, undo toast
 
+### Phase 17: Game Flow Gap Closure
+**Goal**: Persist desktop DnD edits to game history and clean up dead Finalize code
+**Depends on**: Phase 16
+**Requirements**: GFLW-03, GFLW-04
+**Gap Closure**: Closes gaps from v4.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. After drag-and-drop position swaps on desktop, printing saves the edited lineup (not the original generated lineup) to game history
+  2. After drag-and-drop batting order reordering on desktop, printing saves the reordered batting order to game history
+  3. No file in the repository contains a "Finalize Game" button or references to a Finalize step
+  4. HistoryPage empty-state text directs coaches to the print-as-save flow, not the removed Finalize flow
+Plans:
+- [ ] 17-01-PLAN.md — Persist DnD edits to history, remove dead Finalize code, update stale text
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 14 -> 15 -> 16
+Phases execute in numeric order: 14 -> 15 -> 16 -> 17
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -117,3 +131,4 @@ Phases execute in numeric order: 14 -> 15 -> 16
 | 14. Desktop Layout | v4.0 | Complete    | 2026-02-17 | - |
 | 15. Game Flow | v4.0 | Complete    | 2026-02-17 | - |
 | 16. History Management | v4.0 | Complete    | 2026-02-17 | - |
+| 17. Gap Closure | v4.0 | Complete    | 2026-02-17 | - |
