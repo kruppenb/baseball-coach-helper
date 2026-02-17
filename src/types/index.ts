@@ -89,4 +89,8 @@ export interface GameHistoryEntry {
   lineup: Lineup;
   battingOrder: string[];
   playerSummaries: PlayerGameSummary[];
+  gameLabel?: string;
+  pitcherAssignments?: Record<number, string>;
+  catcherAssignments?: Record<number, string>;
+  playerCount?: number;
 }

@@ -7,16 +7,23 @@ import { POSITIONS } from '../types/index.ts';
  * Iterates each inning to determine each present player's fielding position
  * (or bench status). Produces a complete snapshot suitable for localStorage persistence.
  */
+export interface CreateGameHistoryOptions {
+  gameLabel?: string;
+  pitcherAssignments?: Record<number, string>;
+  catcherAssignments?: Record<number, string>;
+}
+
 export function createGameHistoryEntry(
   lineup: Lineup,
   battingOrder: string[],
   innings: number,
   players: Player[],
+  options?: CreateGameHistoryOptions,
 ): GameHistoryEntry {
   const playerMap = new Map(players.map(p => [p.id, p.name]));
+  const presentPlayers = players.filter(p => p.isPresent);
 
-  const playerSummaries: PlayerGameSummary[] = players
-    .filter(p => p.isPresent)
+  const playerSummaries: PlayerGameSummary[] = presentPlayers
     .map(player => {
       const fieldingPositions: Position[] = [];
       let benchInnings = 0;
@@ -47,6 +54,10 @@ export function createGameHistoryEntry(
     lineup,
     battingOrder,
     playerSummaries,
+    playerCount: presentPlayers.length,
+    ...(options?.gameLabel !== undefined && { gameLabel: options.gameLabel }),
+    ...(options?.pitcherAssignments !== undefined && { pitcherAssignments: options.pitcherAssignments }),
+    ...(options?.catcherAssignments !== undefined && { catcherAssignments: options.catcherAssignments }),
   };
 }
 
