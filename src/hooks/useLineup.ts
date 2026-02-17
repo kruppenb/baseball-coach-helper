@@ -183,6 +183,11 @@ export function useLineup() {
     }));
   }, [setState]);
 
+  /** Reset all lineup state to defaults (used by New Game flow). */
+  const resetState = useCallback(() => {
+    setState(defaultState);
+  }, [setState]);
+
   const selectedLineup: Lineup | null = useMemo(() => {
     if (
       cleanState.selectedLineupIndex !== null &&
@@ -279,5 +284,6 @@ export function useLineup() {
     generate,
     selectLineup,
     clearLineups,
+    resetState,
   };
 }

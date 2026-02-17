@@ -85,10 +85,9 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     currentOrder,
     presentPlayers: battingPresentPlayers,
     generate: generateBattingOrder,
-    confirm: confirmBatting,
   } = useBattingOrder();
 
-  const { history, finalizeGame } = useGameHistory();
+  const { history } = useGameHistory();
 
   const validationInput: GenerateLineupInput = useMemo(() => ({
     presentPlayers,
@@ -110,7 +109,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentOrder]);
 
-  const [isFinalized, setIsFinalized] = useState(false);
   const [_hasGeneratedBatting, setHasGeneratedBatting] = useState(currentOrder !== null);
   const [generateError, setGenerateError] = useState('');
 
@@ -141,13 +139,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
       generateBattingOrder();
       setHasGeneratedBatting(true);
     }
-  };
-
-  const handleFinalize = () => {
-    if (!editor.lineup || !editor.battingOrder) return;
-    confirmBatting(editor.battingOrder);
-    finalizeGame(editor.lineup, editor.battingOrder, innings, players);
-    setIsFinalized(true);
   };
 
   // Previous batting order from game history (FLOW-05)
@@ -243,28 +234,11 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
         </div>
       )}
 
-      {/* Finalize section */}
-      <div className={styles.section}>
-        <button
-          type="button"
-          className={styles.finalizeButton}
-          disabled={!editor.battingOrder || isFinalized}
-          onClick={handleFinalize}
-        >
-          {isFinalized ? 'Game Finalized' : 'Finalize Game'}
-        </button>
-        {isFinalized && (
-          <p className={styles.finalizedMessage}>
-            Game finalized and saved to history!
-          </p>
-        )}
-      </div>
-
       <button
         type="button"
         className={styles.nextButton}
         onClick={onComplete}
-        disabled={!isFinalized}
+        disabled={!editor.battingOrder}
       >
         Next
       </button>
