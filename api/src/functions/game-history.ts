@@ -80,6 +80,30 @@ export async function putGameHistoryEntry(
   }
 }
 
+export async function deleteGameHistoryEntry(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const principal = parseClientPrincipal(request);
+  if (!principal) {
+    return { status: 401, jsonBody: { error: 'Not authenticated' } };
+  }
+
+  try {
+    const entryId = request.params.entryId;
+    const docId = `game-${principal.userId}-${entryId}`;
+    await container.item(docId, principal.userId).delete();
+    return { status: 204 };
+  } catch (error) {
+    const cosmosErr = error as { statusCode?: number };
+    if (cosmosErr.statusCode === 404) {
+      return { status: 404, jsonBody: { error: 'Entry not found' } };
+    }
+    logError(context, 'Failed to delete game history entry', error);
+    return { status: 500, jsonBody: { error: 'Internal server error' } };
+  }
+}
+
 app.http('getGameHistory', {
   methods: ['GET'],
   authLevel: 'anonymous',
@@ -92,4 +116,11 @@ app.http('putGameHistoryEntry', {
   authLevel: 'anonymous',
   route: 'game-history',
   handler: putGameHistoryEntry,
+});
+
+app.http('deleteGameHistoryEntry', {
+  methods: ['DELETE'],
+  authLevel: 'anonymous',
+  route: 'game-history/{entryId}',
+  handler: deleteGameHistoryEntry,
 });
