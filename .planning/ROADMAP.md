@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-11)
 - ✅ **v2.0 Azure Cloud Sync** — Phases 5-9 (shipped 2026-02-14)
 - ✅ **v3.0 UX Overhaul** — Phases 10-13.1 (shipped 2026-02-16)
-- 🚧 **v4.0 Desktop UI and Flow** — Phases 14-17 (in progress)
+- 🚧 **v4.0 Desktop UI and Flow** — Phases 14-18 (in progress)
 
 ## Phases
 
@@ -50,6 +50,7 @@
 - [x] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step (**Plans:** 2) (completed 2026-02-17)
 - [x] **Phase 16: Game History Management** - View and delete saved game history entries (**Plans:** 2) (completed 2026-02-17)
 - [x] **Phase 17: Game Flow Gap Closure** - Persist desktop DnD edits to history, remove dead Finalize code (**Plans:** 1) **Gap Closure** (completed 2026-02-17)
+- [ ] **Phase 18: v4.0 Polish and Closeout** - Fix re-print edge case, New Game tab navigation, check off requirements (**Plans:** 1) **Gap Closure**
 
 ## Phase Details
 
@@ -106,10 +107,22 @@ Plans:
 Plans:
 - [ ] 17-01-PLAN.md — Persist DnD edits to history, remove dead Finalize code, update stale text
 
+### Phase 18: v4.0 Polish and Closeout
+**Goal**: Fix remaining low-severity integration edge cases and update documentation to reflect completed milestone
+**Depends on**: Phase 17
+**Requirements**: GFLW-01, GFLW-03
+**Gap Closure**: Closes integration gaps INT-01 and INT-02 from v4.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Re-printing with the same game label in the same session opens the print dialog (INT-01 fix)
+  2. Clicking New Game from any tab navigates the user to the Game Day tab (INT-02 fix)
+  3. All 10 v4.0 requirement checkboxes in REQUIREMENTS.md are checked off as satisfied
+Plans:
+- [ ] 18-01-PLAN.md — Fix INT-01 re-print trigger, INT-02 tab navigation, update REQUIREMENTS.md checkboxes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 14 -> 15 -> 16 -> 17
+Phases execute in numeric order: 14 -> 15 -> 16 -> 17 -> 18
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -132,3 +145,4 @@ Phases execute in numeric order: 14 -> 15 -> 16 -> 17
 | 15. Game Flow | v4.0 | Complete    | 2026-02-17 | - |
 | 16. History Management | v4.0 | Complete    | 2026-02-17 | - |
 | 17. Gap Closure | v4.0 | Complete    | 2026-02-17 | - |
+| 18. Polish & Closeout | v4.0 | Pending | - | - |
