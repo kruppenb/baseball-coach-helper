@@ -21,8 +21,9 @@
 }
 
 .addInput:focus {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .addButton {
@@ -39,11 +40,11 @@
 }
 
 .addButton:hover {
-  opacity: 0.9;
+  background: var(--color-primary-hover);
 }
 
 .addButton:active {
-  opacity: 0.8;
+  transform: scale(0.98);
 }
 
 .error {

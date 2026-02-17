@@ -8,7 +8,10 @@ export function AppHeader() {
 
   return (
     <header className={styles.header}>
-      <h1 className={styles.title}>Lineup Builder</h1>
+      <div className={styles.brand}>
+        <span className={styles.diamond} aria-hidden="true" />
+        <h1 className={styles.title}>Lineup Builder</h1>
+      </div>
       {!isLoading && (
         <div className={styles.authSection}>
           <SyncStatusIndicator />

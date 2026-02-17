@@ -5,9 +5,10 @@ interface SortableItemProps {
   id: string;
   index: number;
   name: string;
+  lastPosition?: number;
 }
 
-export function SortableItem({ id, index, name }: SortableItemProps) {
+export function SortableItem({ id, index, name, lastPosition }: SortableItemProps) {
   const { ref, handleRef, isDragSource } = useSortable({ id, index });
 
   return (
@@ -17,6 +18,9 @@ export function SortableItem({ id, index, name }: SortableItemProps) {
       </span>
       <span className={styles.position}>{index + 1}</span>
       <span className={styles.name}>{name}</span>
+      {lastPosition != null && (
+        <span className={styles.lastPos}>was #{lastPosition + 1}</span>
+      )}
     </li>
   );
 }

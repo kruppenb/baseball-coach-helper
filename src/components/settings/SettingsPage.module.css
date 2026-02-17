@@ -3,11 +3,16 @@
 }
 
 .sectionTitle {
+  font-family: var(--font-display);
   font-size: var(--font-size-xl);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin-top: var(--space-xl);
   margin-bottom: var(--space-md);
   padding-bottom: var(--space-sm);
   border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 
 .sectionTitle:first-of-type {
@@ -24,16 +29,25 @@
   min-height: var(--min-tap-size);
   padding: var(--space-sm) var(--space-lg);
   font-size: var(--font-size-base);
-  background: var(--color-bg);
-  border: 2px solid var(--color-border);
+  font-family: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
+  font-weight: 500;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.csvButton:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
 .importStatus {
   color: var(--color-success);
   font-size: var(--font-size-sm);
   margin-bottom: var(--space-md);
+  font-weight: 500;
 }
 
 .syncSection {
@@ -45,4 +59,11 @@
 .syncInfo {
   font-size: var(--font-size-base);
   color: var(--color-text-muted);
+}
+
+@media (min-width: 900px) {
+  .page {
+    max-width: 800px;
+    padding: var(--space-lg) 0;
+  }
 }

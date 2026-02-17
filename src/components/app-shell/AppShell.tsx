@@ -18,8 +18,9 @@ export function AppShell() {
   const isDesktop = useMediaQuery('(min-width: 900px)');
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell}${isDesktop ? ` ${styles.shellDesktop}` : ''}`}>
       <AppHeader />
+      <TabBar tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as TabId)} />
       <main className={`${styles.content}${isDesktop ? ` ${styles.contentDesktop}` : ''}`}>
         {activeTab === 'game-day' && (
           <div
@@ -40,7 +41,6 @@ export function AppShell() {
           </div>
         )}
       </main>
-      <TabBar tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as TabId)} />
     </div>
   );
 }

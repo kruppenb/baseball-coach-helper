@@ -12,11 +12,16 @@
   font-size: var(--font-size-lg);
   color: var(--color-text);
   font-family: inherit;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.attendanceRow:not(.absent):hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
 .attendanceRow.absent {
-  opacity: 0.45;
+  opacity: 0.4;
   text-decoration: line-through;
 }
 
@@ -24,7 +29,20 @@
   background: var(--color-surface-hover);
 }
 
+.playerName {
+  font-weight: 500;
+}
+
 .status {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+}
+
+@media (min-width: 900px) {
+  .attendanceRow {
+    min-height: 36px;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-sm);
+  }
 }

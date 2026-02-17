@@ -21,7 +21,7 @@ import type { GenerateLineupInput } from '../../logic/lineup-types';
 import styles from './GameDayDesktop.module.css';
 
 // ---------------------------------------------------------------------------
-// Helpers (inlined from PCAssignmentStep — small utility functions)
+// Helpers
 // ---------------------------------------------------------------------------
 
 function distributeAcrossInnings(
@@ -107,9 +107,16 @@ function computeFairnessSummary(
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function getPlayerName(playerId: string, players: Player[]): string {
-  const player = players.find(p => p.id === playerId);
-  return player?.name ?? 'Unknown';
+function getScoreClass(total: number): string {
+  if (total >= 80) return styles.scoreGood;
+  if (total >= 60) return styles.scoreOk;
+  return styles.scoreLow;
+}
+
+function getBarFillClass(total: number): string {
+  if (total >= 80) return styles.barFillGood;
+  if (total >= 60) return styles.barFillOk;
+  return styles.barFillLow;
 }
 
 // ---------------------------------------------------------------------------
@@ -203,20 +210,36 @@ export function GameDayDesktop() {
     }
   }, [selectedCatchers, innings, setCatcher]);
 
-  const presentIds = useMemo(
-    () => presentPlayers.map((p: Player) => p.id),
-    [presentPlayers],
-  );
-
+  // --- P/C history (all players, for compact chip display) ---
   const pcHistory = useMemo(
-    () => computeRecentPCHistory(history, presentIds),
-    [history, presentIds],
+    () => computeRecentPCHistory(history, players.map((p: Player) => p.id)),
+    [history, players],
   );
 
-  const absentPlayers = useMemo(
-    () => players.filter((p: Player) => !p.isPresent),
-    [players],
-  );
+  const recentPitchers = useMemo(() => {
+    return players
+      .filter((p: Player) => pcHistory[p.id]?.pitchedGames > 0)
+      .map((p: Player) => ({
+        id: p.id,
+        name: p.name,
+        count: pcHistory[p.id].pitchedGames,
+        consecutive: pcHistory[p.id].pitchedLast2Consecutive,
+        isPresent: p.isPresent,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [players, pcHistory]);
+
+  const recentCatchers = useMemo(() => {
+    return players
+      .filter((p: Player) => pcHistory[p.id]?.caughtGames > 0)
+      .map((p: Player) => ({
+        id: p.id,
+        name: p.name,
+        count: pcHistory[p.id].caughtGames,
+        isPresent: p.isPresent,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [players, pcHistory]);
 
   const allAssigned = useMemo(() => {
     const set = new Set<string>();
@@ -275,14 +298,6 @@ export function GameDayDesktop() {
       return !allAssigned.has(p.id);
     });
 
-  const getPlayerStatus = (playerId: string): string => {
-    const pIdx = selectedPitchers.indexOf(playerId);
-    if (pIdx >= 0) return pitcherCount > 1 ? `Pitcher ${pIdx + 1}` : 'Pitcher';
-    const cIdx = selectedCatchers.indexOf(playerId);
-    if (cIdx >= 0) return catcherCount > 1 ? `Catcher ${cIdx + 1}` : 'Catcher';
-    return '';
-  };
-
   // --- Lineup Editor ---
   const validationInput: GenerateLineupInput = useMemo(() => ({
     presentPlayers,
@@ -322,11 +337,9 @@ export function GameDayDesktop() {
   }, [generatedLineups.length, generate, generateBattingOrder, presentPlayers.length]);
 
   // --- Stale Warning ---
-  // Track whether inputs changed after lineup was generated
   const [staleWarning, setStaleWarning] = useState(false);
   const lastGenerationSnapshot = useRef<string | null>(null);
 
-  // Snapshot inputs when lineup is generated
   useEffect(() => {
     if (generatedLineups.length > 0) {
       lastGenerationSnapshot.current = JSON.stringify({
@@ -337,7 +350,6 @@ export function GameDayDesktop() {
     }
   }, [generatedLineups.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Detect changes after generation
   useEffect(() => {
     if (!lastGenerationSnapshot.current || generatedLineups.length === 0) return;
     const currentSnapshot = JSON.stringify({
@@ -354,7 +366,7 @@ export function GameDayDesktop() {
   const previousBattingOrder =
     history.length > 0 ? history[history.length - 1].battingOrder : null;
 
-  // --- Sticky bar state ---
+  // --- Action state ---
   const presentCount = presentPlayers.length;
   const hasLineup = !!editor.lineup;
   const hasBattingOrder = !!editor.battingOrder;
@@ -386,250 +398,225 @@ export function GameDayDesktop() {
 
   return (
     <div className={styles.desktop}>
-      <div className={styles.columns}>
-        {/* LEFT COLUMN */}
-        <div className={styles.leftColumn}>
-          <Card label="Attendance">
-            <AttendanceList players={players} onToggle={togglePresent} />
-          </Card>
+      {/* ── SETUP ZONE ── */}
+      <div className={styles.setupZone}>
+        <Card label="Attendance">
+          <AttendanceList players={players} onToggle={togglePresent} />
+        </Card>
 
-          <Card label="Pitcher &amp; Catcher">
-            <div className={styles.slotSection}>
-              <h4 className={styles.slotHeading}>Pitchers</h4>
-              <div className={styles.slotGrid}>
-                {selectedPitchers.map((selectedId, idx) => (
-                  <div className={styles.dropdownGroup} key={`pitcher-${idx}`}>
-                    <label
-                      className={styles.dropdownLabel}
-                      htmlFor={`desktop-pitcher-select-${idx}`}
-                    >
-                      {pitcherCount > 1 ? `Pitcher ${idx + 1}` : 'Pitcher'}
-                    </label>
-                    <select
-                      id={`desktop-pitcher-select-${idx}`}
-                      className={styles.playerSelect}
-                      value={selectedId}
-                      onChange={e => handlePitcherChange(idx, e.target.value)}
-                    >
-                      <option value="">Select Pitcher</option>
-                      {pitcherOptionsFor(idx).map((p: Player) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.slotSection}>
-              <h4 className={styles.slotHeading}>Catchers</h4>
-              <div className={styles.slotGrid}>
-                {selectedCatchers.map((selectedId, idx) => (
-                  <div className={styles.dropdownGroup} key={`catcher-${idx}`}>
-                    <label
-                      className={styles.dropdownLabel}
-                      htmlFor={`desktop-catcher-select-${idx}`}
-                    >
-                      {catcherCount > 1 ? `Catcher ${idx + 1}` : 'Catcher'}
-                    </label>
-                    <select
-                      id={`desktop-catcher-select-${idx}`}
-                      className={styles.playerSelect}
-                      value={selectedId}
-                      onChange={e => handleCatcherChange(idx, e.target.value)}
-                    >
-                      <option value="">Select Catcher (optional)</option>
-                      {catcherOptionsFor(idx).map((p: Player) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <table className={styles.historyTable}>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>P (last 2)</th>
-                  <th>C (last 2)</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {presentPlayers.map((p: Player) => {
-                  const record = pcHistory[p.id];
-                  const isPitchedConsec = record?.pitchedLast2Consecutive;
-                  return (
-                    <tr key={p.id}>
-                      <td>
+        <Card label="Pitcher &amp; Catcher">
+          <div className={styles.slotSection}>
+            <div className={styles.slotGrid}>
+              {selectedPitchers.map((selectedId, idx) => (
+                <div className={styles.dropdownGroup} key={`pitcher-${idx}`}>
+                  <label
+                    className={styles.dropdownLabel}
+                    htmlFor={`desktop-pitcher-select-${idx}`}
+                  >
+                    {pitcherCount > 1 ? `Pitcher ${idx + 1}` : 'Pitcher'}
+                  </label>
+                  <select
+                    id={`desktop-pitcher-select-${idx}`}
+                    className={styles.playerSelect}
+                    value={selectedId}
+                    onChange={e => handlePitcherChange(idx, e.target.value)}
+                  >
+                    <option value="">Select Pitcher</option>
+                    {pitcherOptionsFor(idx).map((p: Player) => (
+                      <option key={p.id} value={p.id}>
                         {p.name}
-                        {isPitchedConsec && (
-                          <span className={styles.pcWarning}>
-                            <span className={styles.pcWarningIcon}>!</span>
-                            Pitched last 2 games
-                          </span>
-                        )}
-                      </td>
-                      <td>{record?.pitchedGames || '-'}</td>
-                      <td>{record?.caughtGames || '-'}</td>
-                      <td>{getPlayerStatus(p.id)}</td>
-                    </tr>
-                  );
-                })}
-                {absentPlayers.map((p: Player) => (
-                  <tr key={p.id} className={styles.absentRow}>
-                    <td>{p.name} (absent)</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-
-        {/* RIGHT COLUMN */}
-        <div className={styles.rightColumn}>
-          {staleWarning && (
-            <div className={styles.staleWarning} role="alert">
-              <span>
-                Attendance or P/C assignments changed since lineup was generated.
-                Consider regenerating.
-              </span>
-              <button
-                className={styles.dismissButton}
-                onClick={() => setStaleWarning(false)}
-              >
-                Dismiss
-              </button>
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
-          <Card label="Lineup">
-            <div className={styles.section}>
-              <button
-                type="button"
-                className={styles.regenerateButton}
-                onClick={handleGenerate}
-              >
-                {generatedLineups.length === 0 ? 'Generate Lineup' : 'Regenerate Lineup'}
-              </button>
+          <div className={styles.slotSection}>
+            <div className={styles.slotGrid}>
+              {selectedCatchers.map((selectedId, idx) => (
+                <div className={styles.dropdownGroup} key={`catcher-${idx}`}>
+                  <label
+                    className={styles.dropdownLabel}
+                    htmlFor={`desktop-catcher-select-${idx}`}
+                  >
+                    {catcherCount > 1 ? `Catcher ${idx + 1}` : 'Catcher'}
+                  </label>
+                  <select
+                    id={`desktop-catcher-select-${idx}`}
+                    className={styles.playerSelect}
+                    value={selectedId}
+                    onChange={e => handleCatcherChange(idx, e.target.value)}
+                  >
+                    <option value="">Select Catcher (optional)</option>
+                    {catcherOptionsFor(idx).map((p: Player) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.pcCardFooter}>
+            <div className={styles.pcFooterLeft}>
+              {(recentPitchers.length > 0 || recentCatchers.length > 0) && (
+                <div className={styles.recentPC}>
+                  <span className={styles.recentLabel}>Last 2 games</span>
+                  <div className={styles.chipRow}>
+                    {recentPitchers.map(({ id, name, count, consecutive, isPresent }) => (
+                      <span
+                        key={`p-${id}`}
+                        className={`${styles.chip} ${consecutive ? styles.chipWarning : ''} ${!isPresent ? styles.chipAbsent : ''}`}
+                      >
+                        {name} P&times;{count}
+                      </span>
+                    ))}
+                    {recentCatchers.map(({ id, name, count, isPresent }) => (
+                      <span
+                        key={`c-${id}`}
+                        className={`${styles.chip} ${styles.chipCatcher} ${!isPresent ? styles.chipAbsent : ''}`}
+                      >
+                        {name} C&times;{count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {generateError && (
-                <p className={styles.generateError}>{generateError}</p>
+                <span className={styles.statusError}>{generateError}</span>
+              )}
+              {!generateError && statusMessage && (
+                <span className={styles.statusText}>{statusMessage}</span>
+              )}
+              {!generateError && !statusMessage && !canGenerate && (
+                <span className={styles.statusHint}>Need at least 9 players present</span>
               )}
             </div>
+            <button
+              type="button"
+              className={styles.generateBtn}
+              disabled={!canGenerate}
+              onClick={handleGenerate}
+            >
+              {hasLineup ? 'Regenerate' : 'Generate Lineup'}
+            </button>
+          </div>
+        </Card>
+      </div>
 
-            {editor.lineup && (
-              <div className={styles.section}>
-                {editor.hasEdits && (
-                  <span className={styles.editsBadge}>Edited</span>
-                )}
-                <DraggableLineupGrid
-                  lineup={editor.lineup}
-                  innings={innings}
-                  players={players}
-                  errors={editor.validationErrors}
-                  onSwap={editor.swapPositions}
-                />
-                {lineupScore && <FairnessScoreCard score={lineupScore} />}
-                <FairnessSummary
-                  summary={computeFairnessSummary(editor.lineup, innings, players)}
-                />
-                <ValidationPanel errors={editor.validationErrors} preErrors={[]} />
+      {/* ── STALE WARNING ── */}
+      {staleWarning && (
+        <div className={styles.staleWarning} role="alert">
+          <span>
+            Attendance or P/C assignments changed since lineup was generated.
+            Consider regenerating.
+          </span>
+          <button
+            className={styles.dismissButton}
+            onClick={() => setStaleWarning(false)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* ── WORKSPACE ZONE ── */}
+      {editor.lineup ? (
+        <div className={styles.workspaceZone}>
+          <Card label="Lineup">
+            {editor.hasEdits && (
+              <span className={styles.editsBadge}>Edited</span>
+            )}
+            <DraggableLineupGrid
+              lineup={editor.lineup}
+              innings={innings}
+              players={players}
+              errors={editor.validationErrors}
+              onSwap={editor.swapPositions}
+            />
+
+            {lineupScore && (
+              <details className={styles.fairnessDetails}>
+                <summary className={styles.fairnessToggle}>
+                  <span className={styles.fairnessLabel}>Fairness</span>
+                  <span className={`${styles.fairnessScore} ${getScoreClass(lineupScore.total)}`}>
+                    {Math.round(lineupScore.total)}/100
+                  </span>
+                  <div className={styles.fairnessBarWrap}>
+                    <div
+                      className={`${styles.fairnessBarFill} ${getBarFillClass(lineupScore.total)}`}
+                      style={{ width: `${lineupScore.total}%` }}
+                    />
+                  </div>
+                </summary>
+                <div className={styles.fairnessContent}>
+                  <FairnessScoreCard score={lineupScore} />
+                  <FairnessSummary
+                    summary={computeFairnessSummary(editor.lineup, innings, players)}
+                  />
+                </div>
+              </details>
+            )}
+
+            <ValidationPanel errors={editor.validationErrors} preErrors={[]} />
+
+            {canPrint && (
+              <div className={styles.printRow}>
+                <button
+                  type="button"
+                  className={styles.printBtn}
+                  onClick={handlePrint}
+                >
+                  Print Dugout Card
+                </button>
               </div>
             )}
           </Card>
 
           <Card label="Batting Order">
-            {editor.battingOrder && (
+            {editor.battingOrder ? (
               <SortableBattingOrder
                 order={editor.battingOrder}
                 players={battingPresentPlayers}
                 onReorder={editor.reorderBattingOrder}
+                previousOrder={previousBattingOrder}
               />
-            )}
-            {!editor.battingOrder && (
+            ) : (
               <p className={styles.emptyMessage}>
-                Batting order will be generated with the lineup.
+                Generated with lineup.
               </p>
-            )}
-
-            {/* Previous batting order comparison */}
-            {previousBattingOrder && editor.battingOrder && (
-              <div className={styles.section}>
-                <p className={styles.comparisonLabel}>
-                  Last game&apos;s batting order for reference
-                </p>
-                <div className={styles.comparison}>
-                  <div className={styles.comparisonColumn}>
-                    <h4 className={styles.comparisonTitle}>Previous Game</h4>
-                    <ol className={styles.comparisonList}>
-                      {previousBattingOrder.map((playerId, index) => (
-                        <li key={`prev-${index}`}>
-                          {getPlayerName(playerId, players)}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                  <div className={styles.comparisonColumn}>
-                    <h4 className={styles.comparisonTitle}>Current Game</h4>
-                    <ol className={styles.comparisonList}>
-                      {editor.battingOrder.map((playerId, index) => (
-                        <li key={`curr-${index}`}>
-                          {getPlayerName(playerId, players)}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </div>
-              </div>
             )}
           </Card>
         </div>
-      </div>
-
-      {/* Sticky action bar */}
-      <div className={styles.stickyBar}>
-        <button
-          type="button"
-          className={styles.generateBtn}
-          disabled={!canGenerate}
-          onClick={handleGenerate}
-        >
-          {hasLineup ? 'Regenerate' : 'Generate Lineup'}
-        </button>
-        <span className={styles.statusText}>
-          {generateError && <span className={styles.statusError}>{generateError}</span>}
-          {!generateError && statusMessage}
-          {!generateError && !statusMessage && !canGenerate && (
-            <span className={styles.statusHint}>Need at least 9 players present</span>
+      ) : (
+        <div className={styles.emptyWorkspace}>
+          {generateError && (
+            <p className={styles.generateError}>{generateError}</p>
           )}
-        </span>
-        <button
-          type="button"
-          className={styles.printBtn}
-          disabled={!canPrint}
-          onClick={handlePrint}
-        >
-          Print Dugout Card
-        </button>
-      </div>
+          {!generateError && (
+            <p className={styles.emptyHint}>
+              {canGenerate
+                ? 'Ready to go \u2014 hit Generate in the Pitcher & Catcher card.'
+                : `Need at least 9 players (${presentCount} present)`}
+            </p>
+          )}
+        </div>
+      )}
 
-      {/* DugoutCard for print (hidden on screen, visible on print via @media print CSS) */}
+      {/* DugoutCard for print only (hidden on screen) */}
       {editor.lineup && editor.battingOrder && (
-        <DugoutCard
-          lineup={editor.lineup}
-          innings={innings}
-          players={players}
-          battingOrder={editor.battingOrder}
-        />
+        <div className={styles.printOnly}>
+          <DugoutCard
+            lineup={editor.lineup}
+            innings={innings}
+            players={players}
+            battingOrder={editor.battingOrder}
+          />
+        </div>
       )}
     </div>
   );

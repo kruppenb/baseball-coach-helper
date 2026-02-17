@@ -6,6 +6,10 @@
   margin: 0 auto;
 }
 
+.shellDesktop {
+  max-width: 1400px;
+}
+
 .content {
   flex: 1;
   overflow-y: auto;
@@ -15,11 +19,6 @@
 
 .contentDesktop {
   overflow-y: visible;
-  padding-bottom: 56px;
-}
-
-@media (min-width: 900px) {
-  .shell {
-    max-width: 1200px;
-  }
+  padding: var(--space-xl) var(--space-2xl);
+  padding-bottom: var(--space-3xl);
 }

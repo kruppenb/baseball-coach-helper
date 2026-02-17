@@ -1,48 +1,72 @@
 .desktop {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  animation: fadeIn 0.3s ease;
 }
 
-.columns {
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Setup zone: attendance + P/C side by side ── */
+
+.setupZone {
   display: grid;
-  grid-template-columns: 2fr 3fr;
-  gap: var(--space-md);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
   align-items: start;
 }
 
-.leftColumn,
-.rightColumn {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
+/* ── Workspace zone: lineup (wide) + batting order (sidebar) ── */
+
+.workspaceZone {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--space-xl);
+  align-items: start;
+  animation: fadeIn 0.3s ease;
 }
 
+/* ── Card styling ── */
+
 .card {
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  padding: var(--space-xl);
 }
 
 .cardLabel {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  color: var(--color-primary);
   font-weight: 600;
-  margin: 0 0 var(--space-sm);
+  margin: 0 0 var(--space-lg);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-/* P/C Section Styles */
+/* ── P/C Section Styles ── */
+
 .slotSection {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
 }
 
 .slotHeading {
+  font-family: var(--font-display);
   font-size: var(--font-size-base);
   font-weight: 600;
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
 }
 
 .slotGrid {
@@ -62,239 +86,345 @@
 .dropdownLabel {
   font-weight: 600;
   font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
 .playerSelect {
-  min-height: var(--min-tap-size);
-  padding: var(--space-xs) var(--space-sm);
+  min-height: 40px;
+  padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
-  background: white;
+  background: var(--color-surface);
   width: 100%;
+  color: var(--color-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.historyTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: var(--space-sm);
+.playerSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
-.historyTable th {
-  text-align: left;
-  padding: var(--space-xs) var(--space-sm);
-  border-bottom: 2px solid var(--color-border);
-  font-size: var(--font-size-sm);
+/* ── Compact recent P/C history ── */
+
+.recentPC {
+  margin: 0;
+  padding: 0;
+}
+
+.recentLabel {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--color-text-muted);
+  display: block;
+  margin-bottom: var(--space-sm);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid transparent;
   white-space: nowrap;
 }
 
-.historyTable td {
-  padding: var(--space-xs) var(--space-sm);
-  border-bottom: 1px solid var(--color-border);
-  font-size: var(--font-size-sm);
+.chipWarning {
+  background: var(--color-accent-bg);
+  color: var(--color-warning);
+  border-color: #fde68a;
+  font-weight: 600;
 }
 
-.absentRow {
-  opacity: 0.45;
+.chipCatcher {
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
 }
 
-.absentRow td {
+.chipAbsent {
+  opacity: 0.4;
   text-decoration: line-through;
 }
 
-.pcWarning {
-  display: inline-block;
-  color: var(--color-warning, #d97706);
-  font-size: var(--font-size-sm);
-  margin-left: var(--space-xs);
-}
+/* ── Stale Warning ── */
 
-.pcWarningIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-warning, #d97706);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  margin-right: var(--space-xs);
-}
-
-/* Stale Warning */
 .staleWarning {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  background: var(--color-warning-bg, #fef3c7);
-  color: var(--color-warning, #d97706);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-sm);
+  background: var(--color-accent-bg);
+  color: var(--color-warning);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
+  border: 1px solid #fde68a;
+  font-weight: 500;
 }
 
 .dismissButton {
   background: none;
   border: none;
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
   cursor: pointer;
   font-size: var(--font-size-sm);
   text-decoration: underline;
   font-family: inherit;
   white-space: nowrap;
+  padding: var(--space-xs);
 }
 
-/* Lineup section extras */
-.regenerateButton {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.regenerateButton:hover {
-  filter: brightness(0.9);
-}
+/* ── Lineup extras ── */
 
 .generateError {
   color: var(--color-danger);
   font-size: var(--font-size-sm);
-  margin: var(--space-xs) 0 0;
+  margin: var(--space-sm) 0 0;
+  font-weight: 500;
 }
 
-/* Batting order comparison */
-.comparisonLabel {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  margin: var(--space-sm) 0 var(--space-xs);
+.editsBadge {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.comparison {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
+/* ── Collapsible fairness ── */
+
+.fairnessDetails {
+  margin-top: var(--space-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
-.comparisonColumn {
+.fairnessToggle {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  transition: background 0.15s ease;
 }
 
-.comparisonTitle {
+.fairnessToggle::-webkit-details-marker {
+  display: none;
+}
+
+.fairnessToggle::before {
+  content: '\25B8';
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dimmed);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.fairnessDetails[open] > .fairnessToggle::before {
+  transform: rotate(90deg);
+}
+
+.fairnessToggle:hover {
+  background: var(--color-surface-hover);
+}
+
+.fairnessLabel {
+  font-family: var(--font-display);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  margin: 0 0 var(--space-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
 }
 
-.comparisonList {
+.fairnessScore {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  flex-shrink: 0;
+}
+
+.fairnessBarWrap {
+  flex: 1;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.fairnessBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.fairnessContent {
+  padding: 0 var(--space-lg) var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Score color variants */
+.scoreGood { color: var(--color-success); }
+.scoreOk { color: var(--color-accent); }
+.scoreLow { color: var(--color-danger); }
+
+.barFillGood { background: var(--color-success); }
+.barFillOk { background: var(--color-accent); }
+.barFillLow { background: var(--color-danger); }
+
+/* ── Empty workspace ── */
+
+.emptyWorkspace {
+  text-align: center;
+  padding: var(--space-3xl) var(--space-xl);
+  color: var(--color-text-dimmed);
+}
+
+.emptyHint {
+  font-style: italic;
   margin: 0;
-  padding-left: var(--space-lg);
   font-size: var(--font-size-sm);
-}
-
-.comparisonList li {
-  padding: 2px 0;
 }
 
 .emptyMessage {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin: 0;
+  font-style: italic;
 }
 
-.section {
-  margin-top: var(--space-sm);
-}
+/* ── P&C card footer with generate button ── */
 
-.editsBadge {
-  display: inline-block;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-primary);
-  margin-left: var(--space-sm);
-}
-
-/* Sticky action bar */
-.stickyBar {
-  position: sticky;
-  bottom: 0;
-  background: var(--color-bg);
-  border-top: 1px solid var(--color-border);
-  padding: var(--space-sm) var(--space-md);
+.pcCardFooter {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: var(--space-md);
-  z-index: 10;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.pcFooterLeft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex: 1;
+  min-width: 0;
 }
 
 .generateBtn {
   background: var(--color-primary);
   color: white;
   border: none;
-  padding: var(--space-sm) var(--space-lg);
+  padding: var(--space-md) var(--space-2xl);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
-  min-width: 140px;
+  min-width: 160px;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .generateBtn:hover:not(:disabled) {
-  filter: brightness(0.9);
+  background: var(--color-primary-hover);
+}
+
+.generateBtn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .generateBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.printBtn {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-  min-width: 140px;
-}
-
-.printBtn:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: white;
-}
-
-.printBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .statusText {
-  flex: 1;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
 .statusError {
   color: var(--color-danger);
+  font-weight: 500;
 }
 
 .statusHint {
   color: var(--color-text-dimmed);
+  font-style: italic;
+}
+
+/* ── Print row (inside lineup card) ── */
+
+.printRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.printBtn {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  padding: var(--space-md) var(--space-2xl);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.printBtn:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.printBtn:active {
+  transform: scale(0.98);
+}
+
+/* ── Print-only container (hidden on screen) ── */
+
+.printOnly {
+  display: none;
+}
+
+@media print {
+  .printOnly {
+    display: block;
+  }
+
+  .printRow {
+    display: none;
+  }
 }

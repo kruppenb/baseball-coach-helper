@@ -17,19 +17,24 @@
 
 .dragging {
   opacity: 0.4;
-  background: var(--color-surface);
+  background: var(--color-surface-hover);
 }
 
 .dragHandle {
   touch-action: none;
   cursor: grab;
   padding: var(--space-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-dimmed);
   user-select: none;
   display: flex;
   align-items: center;
   font-size: var(--font-size-base);
   flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.dragHandle:hover {
+  color: var(--color-text-muted);
 }
 
 .dragHandle:active {
@@ -38,7 +43,8 @@
 
 .position {
   width: 2ch;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 700;
   color: var(--color-text-muted);
   text-align: right;
   flex-shrink: 0;
@@ -47,4 +53,24 @@
 .name {
   flex: 1;
   font-size: var(--font-size-base);
+}
+
+.lastPos {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dimmed);
+  white-space: nowrap;
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+@media (min-width: 900px) {
+  .item {
+    min-height: 36px;
+    padding: var(--space-xs) 0;
+  }
+
+  .name {
+    font-size: var(--font-size-sm);
+  }
 }
