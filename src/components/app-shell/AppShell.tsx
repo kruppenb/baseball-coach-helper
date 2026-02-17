@@ -53,6 +53,7 @@ export function AppShell() {
   const [showNewGameDialog, setShowNewGameDialog] = useState(false);
   const [showGameLabelDialog, setShowGameLabelDialog] = useState(false);
   const [currentGameLabel, setCurrentGameLabel] = useState('');
+  const [printSeq, setPrintSeq] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
 
@@ -76,6 +77,7 @@ export function AppShell() {
     displayLineupRef.current = null;
     displayBattingOrderRef.current = null;
     performReset();
+    setActiveTab('game-day');
     setShowNewGameDialog(false);
   }, [performReset]);
 
@@ -90,6 +92,7 @@ export function AppShell() {
       });
     }
     performReset();
+    setActiveTab('game-day');
     setShowNewGameDialog(false);
   }, [selectedLineup, currentOrder, innings, players, pitcherAssignments, catcherAssignments, saveGame, performReset]);
 
@@ -117,6 +120,7 @@ export function AppShell() {
       });
     }
     pendingPrint.current = true;
+    setPrintSeq(s => s + 1);
   }, [selectedLineup, currentOrder, innings, players, pitcherAssignments, catcherAssignments, saveGame]);
 
   // Defer window.print() until after React renders the game label
@@ -129,7 +133,7 @@ export function AppShell() {
         setShowToast(true);
       });
     }
-  }, [currentGameLabel]);
+  }, [currentGameLabel, printSeq]);
 
   const handleGameLabelCancel = useCallback(() => {
     setShowGameLabelDialog(false);
