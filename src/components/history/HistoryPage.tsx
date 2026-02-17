@@ -153,7 +153,7 @@ export function HistoryPage() {
   // --- Delete + Undo flow ---
   const handleDelete = useCallback(
     (entryId: string) => {
-      // If there's a pending undo, finalize it (make previous delete permanent)
+      // If there's a pending undo, commit it (make previous delete permanent)
       if (pendingUndo) {
         clearTimeout(pendingUndo.timerId);
         setPendingUndo(null);

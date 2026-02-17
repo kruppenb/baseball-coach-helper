@@ -2,7 +2,7 @@ import type { Player, Position, Lineup, GameHistoryEntry, PlayerGameSummary, Inn
 import { POSITIONS } from '../types/index.ts';
 
 /**
- * Create a game history entry from a finalized game's data.
+ * Create a game history entry from a saved game's data.
  *
  * Iterates each inning to determine each present player's fielding position
  * (or bench status). Produces a complete snapshot suitable for localStorage persistence.

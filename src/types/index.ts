@@ -81,7 +81,7 @@ export interface PlayerGameSummary {
   benchInnings: number;
 }
 
-/** A complete snapshot of a finalized game */
+/** A complete snapshot of a saved game */
 export interface GameHistoryEntry {
   id: string;
   gameDate: string;

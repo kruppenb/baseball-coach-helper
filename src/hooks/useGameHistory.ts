@@ -55,19 +55,6 @@ export function useGameHistory() {
     currentGameId.current = null;
   }, []);
 
-  /** @deprecated Use saveGame instead. Kept for backward compatibility. */
-  const finalizeGame = useCallback(
-    (
-      lineup: Lineup,
-      battingOrder: string[],
-      innings: number,
-      players: Player[],
-    ): GameHistoryEntry => {
-      return saveGame(lineup, battingOrder, innings, players);
-    },
-    [saveGame],
-  );
-
   /**
    * Delete a game from history.
    * Removes from local state immediately, fires cloud DELETE as fire-and-forget.
@@ -137,7 +124,6 @@ export function useGameHistory() {
 
   return {
     history,
-    finalizeGame,
     saveGame,
     resetCurrentGame,
     deleteGame,
