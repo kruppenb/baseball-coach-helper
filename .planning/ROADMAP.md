@@ -48,7 +48,7 @@
 
 - [x] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved (**Plans:** 2) (completed 2026-02-17)
 - [x] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step (**Plans:** 2) (completed 2026-02-17)
-- [ ] **Phase 16: Game History Management** - View and delete saved game history entries (**Plans:** 2)
+- [x] **Phase 16: Game History Management** - View and delete saved game history entries (**Plans:** 2) (completed 2026-02-17)
 
 ## Phase Details
 
@@ -87,7 +87,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Coach can view a list of saved games showing date and a summary (player count, innings) for each entry
   2. Coach can delete an individual game history entry and it is removed from both local storage and cloud sync
-**Plans:** 2
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 16-01-PLAN.md — Data layer: API DELETE endpoint, useGameHistory.deleteGame/undoDelete, History tab wiring
 - [ ] 16-02-PLAN.md — UI: HistoryPage redesign with summary cards, expand/collapse, swipe-to-delete, undo toast
@@ -116,4 +116,4 @@ Phases execute in numeric order: 14 -> 15 -> 16
 | 13.1 Offline-to-Online | v3.0 | 1/1 | Complete | 2026-02-16 |
 | 14. Desktop Layout | v4.0 | Complete    | 2026-02-17 | - |
 | 15. Game Flow | v4.0 | Complete    | 2026-02-17 | - |
-| 16. History Management | v4.0 | 0/? | Not started | - |
+| 16. History Management | v4.0 | Complete    | 2026-02-17 | - |
