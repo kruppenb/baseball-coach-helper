@@ -46,7 +46,7 @@
 
 **Milestone Goal:** Responsive desktop layout showing all game-day steps at once, streamlined new-game and print-to-save flow, and game history management.
 
-- [ ] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved (**Plans:** 2)
+- [x] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved (**Plans:** 2) (completed 2026-02-17)
 - [ ] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step
 - [ ] **Phase 16: Game History Management** - View and delete saved game history entries
 
@@ -61,7 +61,7 @@
   2. Attendance and P/C sections render in a left column while lineup grid and batting order render in a right column
   3. On a phone-width browser, the existing stepper flow (Attendance -> P/C -> Generate -> Review -> Print) works exactly as before
   4. Resizing the browser between phone and desktop widths transitions fluidly with no horizontal scrollbar appearing
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 14-01-PLAN.md — Responsive infrastructure + desktop 2-column card layout
 - [ ] 14-02-PLAN.md — Sticky action bar, responsive switching, visual verification
@@ -108,6 +108,6 @@ Phases execute in numeric order: 14 -> 15 -> 16
 | 12. Scored Generation | v3.0 | 2/2 | Complete | 2026-02-16 |
 | 13. Sync Hardening | v3.0 | 2/2 | Complete | 2026-02-16 |
 | 13.1 Offline-to-Online | v3.0 | 1/1 | Complete | 2026-02-16 |
-| 14. Desktop Layout | v4.0 | 0/? | Not started | - |
+| 14. Desktop Layout | v4.0 | Complete    | 2026-02-17 | - |
 | 15. Game Flow | v4.0 | 0/? | Not started | - |
 | 16. History Management | v4.0 | 0/? | Not started | - |
