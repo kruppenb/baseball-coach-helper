@@ -48,22 +48,22 @@ Requirements for v4.0 Desktop UI and Flow. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DESK-01 | — | Pending |
-| DESK-02 | — | Pending |
-| DESK-03 | — | Pending |
-| DESK-04 | — | Pending |
-| GFLW-01 | — | Pending |
-| GFLW-02 | — | Pending |
-| GFLW-03 | — | Pending |
-| GFLW-04 | — | Pending |
-| HMGT-01 | — | Pending |
-| HMGT-02 | — | Pending |
+| DESK-01 | Phase 14 | Pending |
+| DESK-02 | Phase 14 | Pending |
+| DESK-03 | Phase 14 | Pending |
+| DESK-04 | Phase 14 | Pending |
+| GFLW-01 | Phase 15 | Pending |
+| GFLW-02 | Phase 15 | Pending |
+| GFLW-03 | Phase 15 | Pending |
+| GFLW-04 | Phase 15 | Pending |
+| HMGT-01 | Phase 16 | Pending |
+| HMGT-02 | Phase 16 | Pending |
 
 **Coverage:**
 - v4.0 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10 ⚠️
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-16*
-*Last updated: 2026-02-16 after initial definition*
+*Last updated: 2026-02-16 after roadmap creation*

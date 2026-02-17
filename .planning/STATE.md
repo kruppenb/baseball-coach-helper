@@ -5,14 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** v4.0 Desktop UI and Flow
+**Current focus:** v4.0 Desktop UI and Flow — Phase 14: Responsive Desktop Layout
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 14 (Responsive Desktop Layout) — first of 3 in v4.0
 Plan: —
-Status: Defining requirements
-Last activity: 2026-02-16 — Milestone v4.0 started
+Status: Ready to plan
+Last activity: 2026-02-16 — Roadmap created for v4.0 (3 phases, 10 requirements)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -31,15 +33,11 @@ See PROJECT.md Key Decisions table (28 decisions, all validated).
 
 None.
 
-### Roadmap Evolution
-
-None.
-
 ### Blockers/Concerns
 
 None.
 
 ## Session Continuity
 
-Last session: 2026-02-16 (v4.0 milestone started)
-Next step: Define requirements and create roadmap
+Last session: 2026-02-16 (v4.0 roadmap created)
+Next step: Plan Phase 14 (Responsive Desktop Layout)

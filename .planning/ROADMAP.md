@@ -5,6 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-11)
 - ✅ **v2.0 Azure Cloud Sync** — Phases 5-9 (shipped 2026-02-14)
 - ✅ **v3.0 UX Overhaul** — Phases 10-13.1 (shipped 2026-02-16)
+- 🚧 **v4.0 Desktop UI and Flow** — Phases 14-16 (in progress)
 
 ## Phases
 
@@ -41,7 +42,51 @@
 
 </details>
 
+### 🚧 v4.0 Desktop UI and Flow (In Progress)
+
+**Milestone Goal:** Responsive desktop layout showing all game-day steps at once, streamlined new-game and print-to-save flow, and game history management.
+
+- [ ] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved
+- [ ] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step
+- [ ] **Phase 16: Game History Management** - View and delete saved game history entries
+
+## Phase Details
+
+### Phase 14: Responsive Desktop Layout
+**Goal**: Coach sees all game-day sections at once on a desktop screen, eliminating step-by-step navigation on wide viewports
+**Depends on**: Phase 13.1 (v3.0 complete)
+**Requirements**: DESK-01, DESK-02, DESK-03, DESK-04
+**Success Criteria** (what must be TRUE):
+  1. On a desktop-width browser, attendance, P/C assignment, lineup grid, and batting order are all visible simultaneously without scrolling between steps
+  2. Attendance and P/C sections render in a left column while lineup grid and batting order render in a right column
+  3. On a phone-width browser, the existing stepper flow (Attendance -> P/C -> Generate -> Review -> Print) works exactly as before
+  4. Resizing the browser between phone and desktop widths transitions fluidly with no horizontal scrollbar appearing
+**Plans**: TBD
+
+### Phase 15: Game Flow Streamlining
+**Goal**: Coach can start a fresh game and save it to history without extra steps or buttons
+**Depends on**: Phase 14
+**Requirements**: GFLW-01, GFLW-02, GFLW-03, GFLW-04
+**Success Criteria** (what must be TRUE):
+  1. When a previous game's lineup exists, the coach can tap a single "New Game" action to start fresh
+  2. After starting a new game, attendance is reset, P/C assignments are cleared, and the generated lineup is cleared -- but the roster and game history remain intact
+  3. Printing the dugout card saves the current lineup, batting order, and game metadata to game history automatically
+  4. There is no "Finalize Game" button or step anywhere in the app flow
+**Plans**: TBD
+
+### Phase 16: Game History Management
+**Goal**: Coach can review and clean up saved game history entries
+**Depends on**: Phase 14
+**Requirements**: HMGT-01, HMGT-02
+**Success Criteria** (what must be TRUE):
+  1. Coach can view a list of saved games showing date and a summary (player count, innings) for each entry
+  2. Coach can delete an individual game history entry and it is removed from both local storage and cloud sync
+**Plans**: TBD
+
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 14 -> 15 -> 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -60,3 +105,6 @@
 | 12. Scored Generation | v3.0 | 2/2 | Complete | 2026-02-16 |
 | 13. Sync Hardening | v3.0 | 2/2 | Complete | 2026-02-16 |
 | 13.1 Offline-to-Online | v3.0 | 1/1 | Complete | 2026-02-16 |
+| 14. Desktop Layout | v4.0 | 0/? | Not started | - |
+| 15. Game Flow | v4.0 | 0/? | Not started | - |
+| 16. History Management | v4.0 | 0/? | Not started | - |
