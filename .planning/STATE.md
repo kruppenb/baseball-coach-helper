@@ -49,7 +49,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (Phase 14 Plan 02 executed)
-Stopped at: Completed 14-02-PLAN.md — Phase 14 fully complete
-Resume file: .planning/phases/14-responsive-desktop-layout/14-02-SUMMARY.md
-Next step: Plan Phase 15 (Game Flow improvements)
+Last session: 2026-02-16 (Phase 15 context gathered)
+Stopped at: Phase 15 context gathered
+Resume file: .planning/phases/15-game-flow-streamlining/15-CONTEXT.md
+Next step: Plan Phase 15 (Game Flow Streamlining)
