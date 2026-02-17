@@ -46,7 +46,7 @@
 
 **Milestone Goal:** Responsive desktop layout showing all game-day steps at once, streamlined new-game and print-to-save flow, and game history management.
 
-- [ ] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved
+- [ ] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved (**Plans:** 2)
 - [ ] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step
 - [ ] **Phase 16: Game History Management** - View and delete saved game history entries
 
@@ -61,7 +61,10 @@
   2. Attendance and P/C sections render in a left column while lineup grid and batting order render in a right column
   3. On a phone-width browser, the existing stepper flow (Attendance -> P/C -> Generate -> Review -> Print) works exactly as before
   4. Resizing the browser between phone and desktop widths transitions fluidly with no horizontal scrollbar appearing
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 14-01-PLAN.md — Responsive infrastructure + desktop 2-column card layout
+- [ ] 14-02-PLAN.md — Sticky action bar, responsive switching, visual verification
 
 ### Phase 15: Game Flow Streamlining
 **Goal**: Coach can start a fresh game and save it to history without extra steps or buttons
