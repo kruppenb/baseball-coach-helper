@@ -47,7 +47,7 @@
 **Milestone Goal:** Responsive desktop layout showing all game-day steps at once, streamlined new-game and print-to-save flow, and game history management.
 
 - [x] **Phase 14: Responsive Desktop Layout** - Multi-column game-day layout on wide screens, mobile stepper preserved (**Plans:** 2) (completed 2026-02-17)
-- [ ] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step
+- [ ] **Phase 15: Game Flow Streamlining** - New Game action, print-as-save, no Finalize step (**Plans:** 2)
 - [ ] **Phase 16: Game History Management** - View and delete saved game history entries
 
 ## Phase Details
@@ -75,7 +75,10 @@ Plans:
   2. After starting a new game, attendance is reset, P/C assignments are cleared, and the generated lineup is cleared -- but the roster and game history remain intact
   3. Printing the dugout card saves the current lineup, batting order, and game metadata to game history automatically
   4. There is no "Finalize Game" button or step anywhere in the app flow
-**Plans**: TBD
+**Plans:** 2
+Plans:
+- [ ] 15-01-PLAN.md — Data layer: types, save-with-label, dupe detection, reset, remove Finalize
+- [ ] 15-02-PLAN.md — UI: New Game dialog, print-as-save flow, game label, toast
 
 ### Phase 16: Game History Management
 **Goal**: Coach can review and clean up saved game history entries
