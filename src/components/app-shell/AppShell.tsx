@@ -14,7 +14,7 @@ import { useLineup } from '../../hooks/useLineup';
 import { useBattingOrder } from '../../hooks/useBattingOrder';
 import { useGameHistory } from '../../hooks/useGameHistory';
 import { useStepperState } from '../../hooks/useStepperState';
-import type { TabId } from '../../types';
+import type { TabId, Lineup } from '../../types';
 import styles from './AppShell.module.css';
 
 const tabs = [
@@ -37,6 +37,18 @@ export function AppShell() {
   const hasLineup = !!selectedLineup;
   const hasBattingOrder = !!currentOrder;
 
+  // --- Display state refs (populated by GameDayDesktop's editor) ---
+  const displayLineupRef = useRef<Lineup | null>(null);
+  const displayBattingOrderRef = useRef<string[] | null>(null);
+
+  const handleDisplayStateChange = useCallback(
+    (lineup: Lineup | null, battingOrder: string[] | null) => {
+      displayLineupRef.current = lineup;
+      displayBattingOrderRef.current = battingOrder;
+    },
+    [],
+  );
+
   // --- Dialog state ---
   const [showNewGameDialog, setShowNewGameDialog] = useState(false);
   const [showGameLabelDialog, setShowGameLabelDialog] = useState(false);
@@ -56,16 +68,22 @@ export function AppShell() {
     resetStepper();
     resetCurrentGame();
     setCurrentGameLabel('');
+    displayLineupRef.current = null;
+    displayBattingOrderRef.current = null;
   }, [resetAttendance, resetLineup, clearBatting, resetStepper, resetCurrentGame]);
 
   const handleDontSave = useCallback(() => {
+    displayLineupRef.current = null;
+    displayBattingOrderRef.current = null;
     performReset();
     setShowNewGameDialog(false);
   }, [performReset]);
 
   const handleSaveAndNew = useCallback(() => {
-    if (selectedLineup && currentOrder) {
-      saveGame(selectedLineup, currentOrder, innings, players, {
+    const lineupToSave = displayLineupRef.current ?? selectedLineup;
+    const orderToSave = displayBattingOrderRef.current ?? currentOrder;
+    if (lineupToSave && orderToSave) {
+      saveGame(lineupToSave, orderToSave, innings, players, {
         gameLabel: undefined,
         pitcherAssignments,
         catcherAssignments,
@@ -89,8 +107,10 @@ export function AppShell() {
   const handleGameLabelConfirm = useCallback((label: string) => {
     setShowGameLabelDialog(false);
     setCurrentGameLabel(label);
-    if (selectedLineup && currentOrder) {
-      saveGame(selectedLineup, currentOrder, innings, players, {
+    const lineupToSave = displayLineupRef.current ?? selectedLineup;
+    const orderToSave = displayBattingOrderRef.current ?? currentOrder;
+    if (lineupToSave && orderToSave) {
+      saveGame(lineupToSave, orderToSave, innings, players, {
         gameLabel: label,
         pitcherAssignments,
         catcherAssignments,
@@ -131,9 +151,9 @@ export function AppShell() {
             aria-labelledby="tab-game-day"
           >
             {isDesktop ? (
-              <GameDayDesktop onPrintRequest={handlePrintRequest} gameLabel={currentGameLabel} />
+              <GameDayDesktop onPrintRequest={handlePrintRequest} gameLabel={currentGameLabel} onDisplayStateChange={handleDisplayStateChange} />
             ) : (
-              <GameDayStepper onPrintRequest={handlePrintRequest} gameLabel={currentGameLabel} />
+              <GameDayStepper onPrintRequest={handlePrintRequest} gameLabel={currentGameLabel} onDisplayStateChange={handleDisplayStateChange} />
             )}
           </div>
         )}

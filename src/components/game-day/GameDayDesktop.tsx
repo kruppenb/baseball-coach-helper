@@ -139,9 +139,10 @@ function Card({ label, children }: { label: string; children: React.ReactNode })
 interface GameDayDesktopProps {
   onPrintRequest: () => void;
   gameLabel?: string;
+  onDisplayStateChange: (lineup: Lineup | null, battingOrder: string[] | null) => void;
 }
 
-export function GameDayDesktop({ onPrintRequest, gameLabel }: GameDayDesktopProps) {
+export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange }: GameDayDesktopProps) {
   // --- Hooks ---
   const { players, togglePresent } = useRoster();
   const {
@@ -323,6 +324,15 @@ export function GameDayDesktop({ onPrintRequest, gameLabel }: GameDayDesktopProp
     editor.setBattingOrder(currentOrder);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentOrder]);
+
+  // Report edited lineup/batting order to AppShell for save flow
+  useEffect(() => {
+    onDisplayStateChange(editor.lineup, editor.battingOrder);
+    return () => {
+      onDisplayStateChange(null, null);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor.lineup, editor.battingOrder]);
 
   // --- Auto-generate lineup ---
   const [generateError, setGenerateError] = useState('');

@@ -12,6 +12,7 @@ const STEP_ORDER: StepId[] = ['attendance', 'pc-assignment', 'review', 'print'];
 interface GameDayStepperProps {
   onPrintRequest: () => void;
   gameLabel?: string;
+  onDisplayStateChange?: (lineup: import('../../types/index').Lineup | null, battingOrder: string[] | null) => void;
 }
 
 export function GameDayStepper({ onPrintRequest, gameLabel }: GameDayStepperProps) {
