@@ -4,6 +4,7 @@ import { TabBar } from './TabBar';
 import { GameDayStepper } from '../game-day/GameDayStepper';
 import { GameDayDesktop } from '../game-day/GameDayDesktop';
 import { SettingsPage } from '../settings/SettingsPage';
+import { HistoryPage } from '../history/HistoryPage';
 import { NewGameDialog } from '../game-day/NewGameDialog';
 import { GameLabelDialog } from '../game-day/GameLabelDialog';
 import { Toast } from '../game-day/Toast';
@@ -18,6 +19,7 @@ import styles from './AppShell.module.css';
 
 const tabs = [
   { id: 'game-day', label: 'Game Day' },
+  { id: 'history', label: 'History' },
   { id: 'settings', label: 'Settings' },
 ];
 
@@ -133,6 +135,15 @@ export function AppShell() {
             ) : (
               <GameDayStepper onPrintRequest={handlePrintRequest} gameLabel={currentGameLabel} />
             )}
+          </div>
+        )}
+        {activeTab === 'history' && (
+          <div
+            role="tabpanel"
+            id="panel-history"
+            aria-labelledby="tab-history"
+          >
+            <HistoryPage />
           </div>
         )}
         {activeTab === 'settings' && (

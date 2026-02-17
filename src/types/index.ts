@@ -10,7 +10,7 @@ export interface GameConfig {
   catchersPerGame: number;
 }
 
-export type TabId = 'game-day' | 'settings';
+export type TabId = 'game-day' | 'history' | 'settings';
 
 // --- Stepper Types ---
 
