@@ -54,7 +54,7 @@ export function HistoryPage() {
 
       {reversedHistory.length === 0 ? (
         <p className={styles.emptyState}>
-          No games recorded yet. Finalize a game on the Lineup tab to see it here.
+          No games recorded yet. Print a dugout card to save your first game to history.
         </p>
       ) : (
         <div className={styles.gameList}>
