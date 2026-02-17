@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** Game Flow Gap Closure — Phase 17
+**Current focus:** v4.0 Polish and Closeout — Phase 18
 
 ## Current Position
 
-Phase: 17 (Game Flow Gap Closure)
+Phase: 18 (v4.0 Polish and Closeout)
 Plan: 1 of 1
 Status: Complete
-Last activity: 2026-02-17 — Plan 17-01 complete
+Last activity: 2026-02-17 — Plan 18-01 complete
 
-Progress: [██████████] 100% (Phase 17 complete)
+Progress: [██████████] 100% (Phase 18 complete)
 
 ## Performance Metrics
 
 **Velocity (from v1.0 + v2.0 + v3.0 + v4.0 + gap closure):**
-- Total plans completed: 42
+- Total plans completed: 43
 - Average duration: 4 min
-- Total execution time: 158 min
+- Total execution time: 160 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -31,6 +31,7 @@ Progress: [██████████] 100% (Phase 17 complete)
 | 16    | 01   | 2 min    | 2     | 4     |
 | 16    | 02   | 2 min    | 2     | 2     |
 | 17    | 01   | 2 min    | 2     | 7     |
+| 18    | 01   | 2 min    | 2     | 2     |
 
 ## Accumulated Context
 
@@ -51,6 +52,8 @@ See PROJECT.md Key Decisions table (28 decisions, all validated).
 - **16-02:** Consecutive deletes finalize previous deletion automatically
 - **17-01:** Refs (not state) for display values to avoid re-renders on DnD drags; read only at save time
 - **17-01:** Removed finalizeGame entirely; all JSDoc updated to "saved game" terminology
+- **18-01:** printSeq counter forces useEffect to fire even when game label is unchanged
+- **18-01:** setActiveTab('game-day') added to handleDontSave and handleSaveAndNew only, not cancel
 
 ### Pending Todos
 
@@ -62,7 +65,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (Plan 17-01 complete)
-Stopped at: Completed 17-01-PLAN.md
-Resume file: .planning/phases/17-game-flow-gap-closure/17-01-SUMMARY.md
-Next step: Phase 17 complete. Game flow gap closure done.
+Last session: 2026-02-17 (Plan 18-01 complete)
+Stopped at: Completed 18-01-PLAN.md
+Resume file: .planning/phases/18-v4-polish-and-closeout/18-01-SUMMARY.md
+Next step: Phase 18 complete. All v4.0 requirements satisfied. Milestone v1.0 Desktop UI and Flow done.
