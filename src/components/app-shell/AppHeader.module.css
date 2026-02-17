@@ -35,6 +35,26 @@
   color: var(--color-text-muted);
 }
 
+.newGameBtn {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--color-primary);
+  background: transparent;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-md);
+  min-height: var(--min-tap-size);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.newGameBtn:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
 .authLink {
   font-size: var(--font-size-sm);
   color: var(--color-primary);

@@ -3,7 +3,11 @@ import { getDisplayName } from '../../auth/types';
 import { SyncStatusIndicator } from './SyncStatusIndicator';
 import styles from './AppHeader.module.css';
 
-export function AppHeader() {
+interface AppHeaderProps {
+  onNewGame?: () => void;
+}
+
+export function AppHeader({ onNewGame }: AppHeaderProps) {
   const { user, isLoading } = useAuth();
 
   return (
@@ -14,6 +18,15 @@ export function AppHeader() {
       </div>
       {!isLoading && (
         <div className={styles.authSection}>
+          {onNewGame && (
+            <button
+              type="button"
+              className={styles.newGameBtn}
+              onClick={onNewGame}
+            >
+              New Game
+            </button>
+          )}
           <SyncStatusIndicator />
           {user ? (
             <>

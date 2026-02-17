@@ -9,7 +9,11 @@ import styles from './GameDayStepper.module.css';
 
 const STEP_ORDER: StepId[] = ['attendance', 'pc-assignment', 'review', 'print'];
 
-export function GameDayStepper() {
+interface GameDayStepperProps {
+  onPrintRequest: () => void;
+}
+
+export function GameDayStepper({ onPrintRequest }: GameDayStepperProps) {
   const {
     currentStep,
     completedSteps,
@@ -67,7 +71,7 @@ export function GameDayStepper() {
           <ReviewStep onComplete={() => completeStep('review')} />
         )}
         {currentStep === 'print' && (
-          <PrintStep />
+          <PrintStep onPrint={onPrintRequest} />
         )}
       </div>
     </div>

@@ -1,28 +1,49 @@
 import { useRoster } from '../../../hooks/useRoster';
-import { useGameHistory } from '../../../hooks/useGameHistory';
+import { useLineup } from '../../../hooks/useLineup';
+import { useBattingOrder } from '../../../hooks/useBattingOrder';
 import { DugoutCard } from '../../lineup/DugoutCard';
 import styles from './PrintStep.module.css';
 
-export function PrintStep() {
-  const { players } = useRoster();
-  const { history } = useGameHistory();
+interface PrintStepProps {
+  onPrint: () => void;
+}
 
-  const lastGame = history.length > 0 ? history[history.length - 1] : null;
+export function PrintStep({ onPrint }: PrintStepProps) {
+  const { players } = useRoster();
+  const { selectedLineup, innings } = useLineup();
+  const { currentOrder } = useBattingOrder();
+
+  const hasData = !!selectedLineup && !!currentOrder;
 
   return (
     <div className={styles.step}>
       <h2 className={styles.heading}>Print Dugout Card</h2>
       <p className={styles.instruction}>
-        Print or screenshot the dugout card below
+        Review the dugout card below, then tap Print to save and print.
       </p>
 
-      {lastGame && (
-        <DugoutCard
-          lineup={lastGame.lineup}
-          innings={lastGame.innings}
-          players={players}
-          battingOrder={lastGame.battingOrder}
-        />
+      {hasData ? (
+        <>
+          <DugoutCard
+            lineup={selectedLineup}
+            innings={innings}
+            players={players}
+            battingOrder={currentOrder}
+          />
+          <div className={styles.printRow}>
+            <button
+              type="button"
+              className={styles.printBtn}
+              onClick={onPrint}
+            >
+              Print Dugout Card
+            </button>
+          </div>
+        </>
+      ) : (
+        <p className={styles.emptyMessage}>
+          No lineup generated yet. Go back to generate a lineup first.
+        </p>
       )}
     </div>
   );

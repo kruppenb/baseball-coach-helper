@@ -136,7 +136,11 @@ function Card({ label, children }: { label: string; children: React.ReactNode })
 // GameDayDesktop
 // ---------------------------------------------------------------------------
 
-export function GameDayDesktop() {
+interface GameDayDesktopProps {
+  onPrintRequest: () => void;
+}
+
+export function GameDayDesktop({ onPrintRequest }: GameDayDesktopProps) {
   // --- Hooks ---
   const { players, togglePresent } = useRoster();
   const {
@@ -371,7 +375,7 @@ export function GameDayDesktop() {
   const hasLineup = !!editor.lineup;
   const hasBattingOrder = !!editor.battingOrder;
   const canGenerate = presentCount >= 9;
-  const canPrint = hasLineup && hasBattingOrder;
+  const canPrint = hasLineup && hasBattingOrder && !staleWarning;
   const [statusMessage, setStatusMessage] = useState('');
 
   const handleGenerate = useCallback(() => {
@@ -389,8 +393,8 @@ export function GameDayDesktop() {
   }, [generate, generateBattingOrder]);
 
   const handlePrint = useCallback(() => {
-    window.print();
-  }, []);
+    onPrintRequest();
+  }, [onPrintRequest]);
 
   // ---------------------------------------------------------------------------
   // Render
