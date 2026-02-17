@@ -223,3 +223,78 @@
   color: var(--color-primary);
   margin-left: var(--space-sm);
 }
+
+/* Sticky action bar */
+.stickyBar {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  z-index: 10;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.generateBtn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  min-width: 140px;
+}
+
+.generateBtn:hover:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.generateBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.printBtn {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  min-width: 140px;
+}
+
+.printBtn:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: white;
+}
+
+.printBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.statusText {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.statusError {
+  color: var(--color-danger);
+}
+
+.statusHint {
+  color: var(--color-text-dimmed);
+}

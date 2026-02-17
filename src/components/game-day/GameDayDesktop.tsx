@@ -14,6 +14,7 @@ import { FairnessSummary } from '../lineup/FairnessSummary';
 import type { PlayerFairness } from '../lineup/FairnessSummary';
 import { ValidationPanel } from '../lineup/ValidationPanel';
 import { SortableBattingOrder } from '../batting-order/SortableBattingOrder';
+import { DugoutCard } from '../lineup/DugoutCard';
 import type { Player, Position, Lineup } from '../../types/index';
 import { POSITIONS, INFIELD_POSITIONS } from '../../types/index';
 import type { GenerateLineupInput } from '../../logic/lineup-types';
@@ -320,17 +321,6 @@ export function GameDayDesktop() {
     }
   }, [generatedLineups.length, generate, generateBattingOrder, presentPlayers.length]);
 
-  const handleRegenerate = useCallback(() => {
-    setGenerateError('');
-    const result = generate();
-    if (!result.success && result.errors.length > 0) {
-      setGenerateError(result.errors[0]);
-    } else if (result.success) {
-      generateBattingOrder();
-      setStaleWarning(false);
-    }
-  }, [generate, generateBattingOrder]);
-
   // --- Stale Warning ---
   // Track whether inputs changed after lineup was generated
   const [staleWarning, setStaleWarning] = useState(false);
@@ -363,6 +353,32 @@ export function GameDayDesktop() {
   // --- Previous batting order from history ---
   const previousBattingOrder =
     history.length > 0 ? history[history.length - 1].battingOrder : null;
+
+  // --- Sticky bar state ---
+  const presentCount = presentPlayers.length;
+  const hasLineup = !!editor.lineup;
+  const hasBattingOrder = !!editor.battingOrder;
+  const canGenerate = presentCount >= 9;
+  const canPrint = hasLineup && hasBattingOrder;
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const handleGenerate = useCallback(() => {
+    setGenerateError('');
+    setStatusMessage('');
+    const result = generate();
+    if (!result.success && result.errors.length > 0) {
+      setGenerateError(result.errors[0]);
+    } else if (result.success) {
+      generateBattingOrder();
+      setStaleWarning(false);
+      setStatusMessage('Lineup and batting order generated.');
+      setTimeout(() => setStatusMessage(''), 3000);
+    }
+  }, [generate, generateBattingOrder]);
+
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
 
   // ---------------------------------------------------------------------------
   // Render
@@ -501,7 +517,7 @@ export function GameDayDesktop() {
               <button
                 type="button"
                 className={styles.regenerateButton}
-                onClick={handleRegenerate}
+                onClick={handleGenerate}
               >
                 {generatedLineups.length === 0 ? 'Generate Lineup' : 'Regenerate Lineup'}
               </button>
@@ -578,6 +594,43 @@ export function GameDayDesktop() {
           </Card>
         </div>
       </div>
+
+      {/* Sticky action bar */}
+      <div className={styles.stickyBar}>
+        <button
+          type="button"
+          className={styles.generateBtn}
+          disabled={!canGenerate}
+          onClick={handleGenerate}
+        >
+          {hasLineup ? 'Regenerate' : 'Generate Lineup'}
+        </button>
+        <span className={styles.statusText}>
+          {generateError && <span className={styles.statusError}>{generateError}</span>}
+          {!generateError && statusMessage}
+          {!generateError && !statusMessage && !canGenerate && (
+            <span className={styles.statusHint}>Need at least 9 players present</span>
+          )}
+        </span>
+        <button
+          type="button"
+          className={styles.printBtn}
+          disabled={!canPrint}
+          onClick={handlePrint}
+        >
+          Print Dugout Card
+        </button>
+      </div>
+
+      {/* DugoutCard for print (hidden on screen, visible on print via @media print CSS) */}
+      {editor.lineup && editor.battingOrder && (
+        <DugoutCard
+          lineup={editor.lineup}
+          innings={innings}
+          players={players}
+          battingOrder={editor.battingOrder}
+        />
+      )}
     </div>
   );
 }

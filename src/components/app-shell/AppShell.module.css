@@ -13,6 +13,11 @@
   padding-bottom: 60px;
 }
 
+.contentDesktop {
+  overflow-y: visible;
+  padding-bottom: 56px;
+}
+
 @media (min-width: 900px) {
   .shell {
     max-width: 1200px;
