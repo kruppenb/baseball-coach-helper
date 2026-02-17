@@ -6,9 +6,10 @@ import styles from './PrintStep.module.css';
 
 interface PrintStepProps {
   onPrint: () => void;
+  gameLabel?: string;
 }
 
-export function PrintStep({ onPrint }: PrintStepProps) {
+export function PrintStep({ onPrint, gameLabel }: PrintStepProps) {
   const { players } = useRoster();
   const { selectedLineup, innings } = useLineup();
   const { currentOrder } = useBattingOrder();
@@ -29,6 +30,7 @@ export function PrintStep({ onPrint }: PrintStepProps) {
             innings={innings}
             players={players}
             battingOrder={currentOrder}
+            gameLabel={gameLabel}
           />
           <div className={styles.printRow}>
             <button

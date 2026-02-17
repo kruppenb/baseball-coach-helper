@@ -7,6 +7,7 @@ interface DugoutCardProps {
   innings: number;
   players: Player[];
   battingOrder: string[] | null;
+  gameLabel?: string;
 }
 
 function getPlayerName(playerId: string, players: Player[]): string {
@@ -14,15 +15,12 @@ function getPlayerName(playerId: string, players: Player[]): string {
   return player?.name ?? '';
 }
 
-export function DugoutCard({ lineup, innings, players, battingOrder }: DugoutCardProps) {
+export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }: DugoutCardProps) {
   const inningNumbers = Array.from({ length: innings }, (_, i) => i + 1);
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   return (
     <div className={styles.card} data-dugout-card>
+      {gameLabel && <span className={styles.gameLabel}>{gameLabel}</span>}
       <span className={styles.date}>{new Date().toLocaleDateString()}</span>
 
       <table className={styles.table}>
@@ -83,13 +81,6 @@ export function DugoutCard({ lineup, innings, players, battingOrder }: DugoutCar
         )}
       </div>
 
-      <button
-        type="button"
-        className={styles.printButton}
-        onClick={handlePrint}
-      >
-        Print Dugout Card
-      </button>
     </div>
   );
 }

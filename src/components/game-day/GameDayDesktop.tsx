@@ -138,9 +138,10 @@ function Card({ label, children }: { label: string; children: React.ReactNode })
 
 interface GameDayDesktopProps {
   onPrintRequest: () => void;
+  gameLabel?: string;
 }
 
-export function GameDayDesktop({ onPrintRequest }: GameDayDesktopProps) {
+export function GameDayDesktop({ onPrintRequest, gameLabel }: GameDayDesktopProps) {
   // --- Hooks ---
   const { players, togglePresent } = useRoster();
   const {
@@ -619,6 +620,7 @@ export function GameDayDesktop({ onPrintRequest }: GameDayDesktopProps) {
             innings={innings}
             players={players}
             battingOrder={editor.battingOrder}
+            gameLabel={gameLabel}
           />
         </div>
       )}

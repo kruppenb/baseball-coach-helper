@@ -11,9 +11,10 @@ const STEP_ORDER: StepId[] = ['attendance', 'pc-assignment', 'review', 'print'];
 
 interface GameDayStepperProps {
   onPrintRequest: () => void;
+  gameLabel?: string;
 }
 
-export function GameDayStepper({ onPrintRequest }: GameDayStepperProps) {
+export function GameDayStepper({ onPrintRequest, gameLabel }: GameDayStepperProps) {
   const {
     currentStep,
     completedSteps,
@@ -71,7 +72,7 @@ export function GameDayStepper({ onPrintRequest }: GameDayStepperProps) {
           <ReviewStep onComplete={() => completeStep('review')} />
         )}
         {currentStep === 'print' && (
-          <PrintStep onPrint={onPrintRequest} />
+          <PrintStep onPrint={onPrintRequest} gameLabel={gameLabel} />
         )}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { AppHeader } from './AppHeader';
 import { TabBar } from './TabBar';
 import { GameDayStepper } from '../game-day/GameDayStepper';
@@ -38,6 +38,7 @@ export function AppShell() {
   // --- Dialog state ---
   const [showNewGameDialog, setShowNewGameDialog] = useState(false);
   const [showGameLabelDialog, setShowGameLabelDialog] = useState(false);
+  const [currentGameLabel, setCurrentGameLabel] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
 
@@ -52,6 +53,7 @@ export function AppShell() {
     clearBatting();
     resetStepper();
     resetCurrentGame();
+    setCurrentGameLabel('');
   }, [resetAttendance, resetLineup, clearBatting, resetStepper, resetCurrentGame]);
 
   const handleDontSave = useCallback(() => {
@@ -76,12 +78,15 @@ export function AppShell() {
   }, []);
 
   // --- Print-as-save flow ---
+  const pendingPrint = useRef(false);
+
   const handlePrintRequest = useCallback(() => {
     setShowGameLabelDialog(true);
   }, []);
 
   const handleGameLabelConfirm = useCallback((label: string) => {
     setShowGameLabelDialog(false);
+    setCurrentGameLabel(label);
     if (selectedLineup && currentOrder) {
       saveGame(selectedLineup, currentOrder, innings, players, {
         gameLabel: label,
@@ -89,10 +94,20 @@ export function AppShell() {
         catcherAssignments,
       });
     }
-    window.print();
-    setToastMessage('Game saved to history');
-    setShowToast(true);
+    pendingPrint.current = true;
   }, [selectedLineup, currentOrder, innings, players, pitcherAssignments, catcherAssignments, saveGame]);
+
+  // Defer window.print() until after React renders the game label
+  useEffect(() => {
+    if (pendingPrint.current && currentGameLabel) {
+      pendingPrint.current = false;
+      requestAnimationFrame(() => {
+        window.print();
+        setToastMessage('Game saved to history');
+        setShowToast(true);
+      });
+    }
+  }, [currentGameLabel]);
 
   const handleGameLabelCancel = useCallback(() => {
     setShowGameLabelDialog(false);
@@ -114,9 +129,9 @@ export function AppShell() {
             aria-labelledby="tab-game-day"
           >
             {isDesktop ? (
-              <GameDayDesktop onPrintRequest={handlePrintRequest} />
+              <GameDayDesktop onPrintRequest={handlePrintRequest} gameLabel={currentGameLabel} />
             ) : (
-              <GameDayStepper onPrintRequest={handlePrintRequest} />
+              <GameDayStepper onPrintRequest={handlePrintRequest} gameLabel={currentGameLabel} />
             )}
           </div>
         )}
