@@ -17,7 +17,7 @@ export function DraggableCell({
   playerName,
   hasError,
 }: DraggableCellProps) {
-  const { ref: dragRef, handleRef, isDragSource } = useDraggable({
+  const { ref: dragRef, isDragSource } = useDraggable({
     id: `drag-${inning}-${position}`,
     data: { inning, position, playerId, playerName },
   });
@@ -46,11 +46,7 @@ export function DraggableCell({
   return (
     <div ref={dropRef} className={cellClass}>
       <div ref={dragRef} className={wrapperClass}>
-        <span
-          ref={handleRef}
-          className={styles.dragHandle}
-          aria-label="Drag to swap position"
-        >
+        <span className={styles.dragHandle} aria-label="Drag to swap position">
           &#x2630;
         </span>
         <span className={styles.playerName}>{playerName}</span>

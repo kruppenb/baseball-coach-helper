@@ -9,11 +9,11 @@ interface SortableItemProps {
 }
 
 export function SortableItem({ id, index, name, lastPosition }: SortableItemProps) {
-  const { ref, handleRef, isDragSource } = useSortable({ id, index });
+  const { ref, isDragSource } = useSortable({ id, index });
 
   return (
     <li ref={ref} className={`${styles.item} ${isDragSource ? styles.dragging : ''}`}>
-      <span ref={handleRef} className={styles.dragHandle} aria-label="Drag to reorder">
+      <span className={styles.dragHandle} aria-label="Drag to reorder">
         &#x2630;
       </span>
       <span className={styles.position}>{index + 1}</span>

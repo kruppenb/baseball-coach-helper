@@ -177,6 +177,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
             players={players}
             errors={editor.validationErrors}
             onSwap={editor.swapPositions}
+            onBenchSwap={editor.benchSwap}
           />
           {lineupScore && <FairnessScoreCard score={lineupScore} />}
           <FairnessSummary

@@ -43,6 +43,18 @@ export function useLineupEditor(
     [],
   );
 
+  const benchSwap = useCallback(
+    (inning: number, fieldPosition: Position, benchPlayerId: string) => {
+      setEditedLineup(prev => {
+        if (!prev || !prev[inning]) return prev;
+        const updated = structuredClone(prev);
+        updated[inning][fieldPosition] = benchPlayerId;
+        return updated;
+      });
+    },
+    [],
+  );
+
   const reorderBattingOrder = useCallback((newOrder: string[]) => {
     setBattingOrder(newOrder);
   }, []);
@@ -75,6 +87,7 @@ export function useLineupEditor(
     lineup: editedLineup,
     validationErrors,
     swapPositions,
+    benchSwap,
     reorderBattingOrder,
     battingOrder,
     setBattingOrder: setBattingOrderWithRef,

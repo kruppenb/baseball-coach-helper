@@ -78,6 +78,13 @@
   align-items: center;
   gap: var(--space-xs);
   width: 100%;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.draggableWrapper:active {
+  cursor: grabbing;
 }
 
 .dragging {
@@ -85,23 +92,12 @@
 }
 
 .dragHandle {
-  touch-action: none;
-  cursor: grab;
   padding: var(--space-xs);
   color: var(--color-text-dimmed);
-  user-select: none;
   display: flex;
   align-items: center;
   font-size: var(--font-size-base);
-  transition: color 0.15s ease;
-}
-
-.dragHandle:hover {
-  color: var(--color-text-muted);
-}
-
-.dragHandle:active {
-  cursor: grabbing;
+  pointer-events: none;
 }
 
 .playerName {
@@ -119,11 +115,50 @@
 }
 
 .benchCell {
-  padding: var(--space-sm);
-  text-align: center;
+  padding: var(--space-xs) var(--space-sm);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  font-style: italic;
   border-bottom: 1px solid var(--color-border);
   border-left: 1px solid var(--color-border);
+}
+
+.benchChipWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  justify-content: center;
+}
+
+.benchChip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 2px var(--space-xs);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  background: var(--color-surface);
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+
+.benchChipInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.benchChipInner:active {
+  cursor: grabbing;
+}
+
+.benchChipDragging {
+  opacity: 0.4;
+}
+
+.benchDropTarget {
+  background: var(--color-primary-light);
+  outline: 2px dashed var(--color-primary);
 }

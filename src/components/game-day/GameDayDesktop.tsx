@@ -552,6 +552,7 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
               players={players}
               errors={editor.validationErrors}
               onSwap={editor.swapPositions}
+              onBenchSwap={editor.benchSwap}
             />
 
             {lineupScore && (
