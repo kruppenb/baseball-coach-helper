@@ -5,6 +5,7 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
+import { checkRateLimit } from '../lib/rate-limit';
 import { container } from '../lib/cosmos';
 import { logError } from '../lib/logging';
 import { battingBodySchema, validateBody } from '../lib/validation';
@@ -17,6 +18,8 @@ export async function getBatting(
   if (!principal) {
     return { status: 401, jsonBody: { error: 'Not authenticated' } };
   }
+  const rateLimited = checkRateLimit(principal.userId);
+  if (rateLimited) return rateLimited;
 
   try {
     // Read battingOrderState singleton
@@ -65,6 +68,8 @@ export async function putBatting(
   if (!principal) {
     return { status: 401, jsonBody: { error: 'Not authenticated' } };
   }
+  const rateLimited = checkRateLimit(principal.userId);
+  if (rateLimited) return rateLimited;
 
   try {
     const raw = await request.json();

@@ -5,6 +5,7 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
+import { checkRateLimit } from '../lib/rate-limit';
 import { container } from '../lib/cosmos';
 import { logError } from '../lib/logging';
 import { gameHistoryBodySchema, validateBody } from '../lib/validation';
@@ -19,6 +20,8 @@ export async function getGameHistory(
   if (!principal) {
     return { status: 401, jsonBody: { error: 'Not authenticated' } };
   }
+  const rateLimited = checkRateLimit(principal.userId);
+  if (rateLimited) return rateLimited;
 
   try {
     const querySpec = {
@@ -52,6 +55,8 @@ export async function putGameHistoryEntry(
   if (!principal) {
     return { status: 401, jsonBody: { error: 'Not authenticated' } };
   }
+  const rateLimited = checkRateLimit(principal.userId);
+  if (rateLimited) return rateLimited;
 
   try {
     const raw = await request.json();
@@ -88,6 +93,8 @@ export async function deleteGameHistoryEntry(
   if (!principal) {
     return { status: 401, jsonBody: { error: 'Not authenticated' } };
   }
+  const rateLimited = checkRateLimit(principal.userId);
+  if (rateLimited) return rateLimited;
 
   try {
     const entryId = request.params.entryId;

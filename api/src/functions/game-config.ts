@@ -5,6 +5,7 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { parseClientPrincipal } from '../lib/auth';
+import { checkRateLimit } from '../lib/rate-limit';
 import { container } from '../lib/cosmos';
 import { logError } from '../lib/logging';
 import { gameConfigBodySchema, validateBody } from '../lib/validation';
@@ -19,6 +20,8 @@ export async function getGameConfig(
   if (!principal) {
     return { status: 401, jsonBody: { error: 'Not authenticated' } };
   }
+  const rateLimited = checkRateLimit(principal.userId);
+  if (rateLimited) return rateLimited;
 
   const docId = `${DOC_TYPE}-${principal.userId}`;
 
@@ -52,6 +55,8 @@ export async function putGameConfig(
   if (!principal) {
     return { status: 401, jsonBody: { error: 'Not authenticated' } };
   }
+  const rateLimited = checkRateLimit(principal.userId);
+  if (rateLimited) return rateLimited;
 
   try {
     const raw = await request.json();
