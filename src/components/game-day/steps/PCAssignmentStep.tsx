@@ -37,27 +37,28 @@ function distributeAcrossInnings(
 }
 
 /**
- * Extract unique player IDs from inning-level assignments, preserving order.
- * Converts {1: 'a', 2: 'a', 3: 'b'} → ['a', 'b'], padded to slotCount.
+ * Extract player IDs from inning-level assignments, preserving order.
+ * Groups consecutive innings by player and allows duplicates so the same
+ * player can appear in multiple slots (e.g. catcher slots 1 and 3).
+ * Converts {1:'a', 2:'a', 3:'b', 4:'b', 5:'a', 6:'a'} → ['a','b','a'].
  */
 function slotsFromAssignments(
   assignments: Record<number, string>,
   slotCount: number,
 ): string[] {
-  const seen = new Set<string>();
-  const unique: string[] = [];
-  // Iterate in inning order
   const innings = Object.keys(assignments).map(Number).sort((a, b) => a - b);
+  const sequence: string[] = [];
+  let lastId = '';
   for (const inn of innings) {
     const id = assignments[inn];
-    if (id && !seen.has(id)) {
-      seen.add(id);
-      unique.push(id);
+    if (id && id !== lastId) {
+      sequence.push(id);
+      lastId = id;
     }
   }
   const slots = Array(slotCount).fill('');
-  for (let i = 0; i < Math.min(unique.length, slotCount); i++) {
-    slots[i] = unique[i];
+  for (let i = 0; i < Math.min(sequence.length, slotCount); i++) {
+    slots[i] = sequence[i];
   }
   return slots;
 }
@@ -118,13 +119,19 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
     [players],
   );
 
-  // All players currently assigned to any pitcher or catcher slot
-  const allAssigned = useMemo(() => {
+  // Players assigned to pitcher slots (used to exclude from catcher dropdowns)
+  const assignedPitchers = useMemo(() => {
     const set = new Set<string>();
     for (const id of selectedPitchers) if (id) set.add(id);
+    return set;
+  }, [selectedPitchers]);
+
+  // Players assigned to catcher slots (used to exclude from pitcher dropdowns)
+  const assignedCatchers = useMemo(() => {
+    const set = new Set<string>();
     for (const id of selectedCatchers) if (id) set.add(id);
     return set;
-  }, [selectedPitchers, selectedCatchers]);
+  }, [selectedCatchers]);
 
   // Apply assignments to inning-level P/C whenever selections change
   useEffect(() => {
@@ -149,16 +156,11 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
       next[slotIndex] = playerId;
       return next;
     });
-    // If this player was a catcher, clear that catcher slot
+    // If this player was a catcher, clear ALL catcher slots with that player
     if (playerId) {
       setSelectedCatchers((prev) => {
-        const idx = prev.indexOf(playerId);
-        if (idx >= 0) {
-          const next = [...prev];
-          next[idx] = '';
-          return next;
-        }
-        return prev;
+        if (!prev.includes(playerId)) return prev;
+        return prev.map((id) => (id === playerId ? '' : id));
       });
     }
   };
@@ -183,18 +185,17 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
     }
   };
 
-  /** Available options for a pitcher slot: present players not assigned elsewhere (except current slot) */
+  /** Available options for a pitcher slot: present players not assigned to another pitcher or any catcher slot */
   const pitcherOptionsFor = (slotIndex: number) =>
     presentPlayers.filter((p: Player) => {
       if (p.id === selectedPitchers[slotIndex]) return true;
-      return !allAssigned.has(p.id);
+      return !assignedPitchers.has(p.id) && !assignedCatchers.has(p.id);
     });
 
-  /** Available options for a catcher slot: present players not assigned elsewhere (except current slot) */
-  const catcherOptionsFor = (slotIndex: number) =>
+  /** Available options for a catcher slot: present players not assigned as a pitcher (same player CAN fill multiple catcher slots) */
+  const catcherOptionsFor = (_slotIndex: number) =>
     presentPlayers.filter((p: Player) => {
-      if (p.id === selectedCatchers[slotIndex]) return true;
-      return !allAssigned.has(p.id);
+      return !assignedPitchers.has(p.id);
     });
 
   // All pitcher slots must be filled to advance
@@ -204,8 +205,13 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
   const getPlayerStatus = (playerId: string): string => {
     const pIdx = selectedPitchers.indexOf(playerId);
     if (pIdx >= 0) return pitcherCount > 1 ? `Pitcher ${pIdx + 1}` : 'Pitcher';
-    const cIdx = selectedCatchers.indexOf(playerId);
-    if (cIdx >= 0) return catcherCount > 1 ? `Catcher ${cIdx + 1}` : 'Catcher';
+    const catcherSlots = selectedCatchers
+      .map((id, i) => (id === playerId ? i + 1 : -1))
+      .filter((i) => i >= 0);
+    if (catcherSlots.length > 0) {
+      if (catcherCount <= 1) return 'Catcher';
+      return `Catcher ${catcherSlots.join(', ')}`;
+    }
     return '';
   };
 
