@@ -42,21 +42,34 @@ export function WelcomeDialog({
         Manage your team&apos;s batting order and field positions
       </p>
 
-      <div className={styles.actions}>
-        <button
-          type="button"
-          className={styles.primaryBtn}
-          onClick={onSignIn}
-        >
-          Sign in with Microsoft
-        </button>
-        <button
-          type="button"
-          className={styles.secondaryBtn}
-          onClick={onContinueLocal}
-        >
-          Continue without signing in
-        </button>
+      <div className={styles.options}>
+        <div className={styles.option}>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={onSignIn}
+          >
+            Sign in with Microsoft
+          </button>
+          <p className={styles.optionDesc}>
+            Save your roster to the cloud and access it from any device
+          </p>
+        </div>
+
+        <div className={styles.divider}>or</div>
+
+        <div className={styles.option}>
+          <button
+            type="button"
+            className={styles.secondaryBtn}
+            onClick={onContinueLocal}
+          >
+            Continue without signing in
+          </button>
+          <p className={styles.optionDesc}>
+            Your data stays on this browser only
+          </p>
+        </div>
       </div>
     </dialog>
   );
