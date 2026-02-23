@@ -8,6 +8,9 @@ import { HistoryPage } from '../history/HistoryPage';
 import { NewGameDialog } from '../game-day/NewGameDialog';
 import { GameLabelDialog } from '../game-day/GameLabelDialog';
 import { Toast } from '../game-day/Toast';
+import { WelcomeDialog } from '../onboarding/WelcomeDialog';
+import { LocalModeDialog } from '../onboarding/LocalModeDialog';
+import { useAuth } from '../../auth/useAuth';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useRoster } from '../../hooks/useRoster';
 import { useLineup } from '../../hooks/useLineup';
@@ -26,6 +29,7 @@ const tabs = [
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<TabId>('game-day');
   const isDesktop = useMediaQuery('(min-width: 900px)');
+  const { user, isLoading: authLoading } = useAuth();
 
   // --- Hooks for orchestration ---
   const { players, resetAttendance } = useRoster();
@@ -56,6 +60,34 @@ export function AppShell() {
   const [printSeq, setPrintSeq] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
+
+  // --- Onboarding state ---
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showLocalMode, setShowLocalMode] = useState(false);
+  const welcomeChecked = useRef(false);
+
+  useEffect(() => {
+    if (authLoading || welcomeChecked.current) return;
+    welcomeChecked.current = true;
+    if (user) return;
+    if (localStorage.getItem('welcome-dismissed') === 'true') return;
+    setShowWelcome(true);
+  }, [authLoading, user]);
+
+  const handleSignIn = useCallback(() => {
+    localStorage.setItem('welcome-dismissed', 'true');
+    window.location.href = '/.auth/login/aad';
+  }, []);
+
+  const handleContinueLocal = useCallback(() => {
+    setShowWelcome(false);
+    setShowLocalMode(true);
+  }, []);
+
+  const handleLocalModeDismiss = useCallback(() => {
+    setShowLocalMode(false);
+    localStorage.setItem('welcome-dismissed', 'true');
+  }, []);
 
   // --- New Game flow ---
   const handleNewGameClick = useCallback(() => {
@@ -197,6 +229,15 @@ export function AppShell() {
         message={toastMessage}
         visible={showToast}
         onDone={handleToastDone}
+      />
+      <WelcomeDialog
+        open={showWelcome}
+        onSignIn={handleSignIn}
+        onContinueLocal={handleContinueLocal}
+      />
+      <LocalModeDialog
+        open={showLocalMode}
+        onDismiss={handleLocalModeDismiss}
       />
     </div>
   );
