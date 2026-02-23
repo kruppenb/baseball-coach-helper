@@ -57,6 +57,7 @@
 ### v5.0 Start Experience (In Progress)
 
 - [x] **Phase 19: Welcome Popup and Local-Mode Onboarding** — First-time visitor sees welcome dialog with sign-in or continue-without, plus local-mode explanation (completed 2026-02-23)
+- [x] **Phase 19.1: Staging Environment and Deployment Slot Swap** — PR builds create frontend-only preview environments; API deploys only on push to main (completed 2026-02-23) (INSERTED)
 - [ ] **Phase 20: Auto Sign-In for Returning Users** — Returning users auto-redirect to Microsoft login; fallback to welcome popup on failure
 
 ## Phase Details
@@ -82,7 +83,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 19.1-01-PLAN.md — Gate API deployment to main-only and document SWA preview environments
+- [x] 19.1-01-PLAN.md — Gate API deployment to main-only and document SWA preview environments
 
 ### Phase 20: Auto Sign-In for Returning Users
 **Goal**: Returning users who previously signed in get seamlessly redirected to Microsoft login without friction
@@ -124,5 +125,6 @@ Phases execute in numeric order: 19 → 20
 | 16. History Management | v4.0 | 2/2 | Complete | 2026-02-17 |
 | 17. Gap Closure | v4.0 | 1/1 | Complete | 2026-02-17 |
 | 18. Polish & Closeout | v4.0 | 1/1 | Complete | 2026-02-17 |
-| 19. Welcome Popup | 1/1 | Complete    | 2026-02-23 | - |
+| 19. Welcome Popup | v5.0 | 1/1 | Complete | 2026-02-23 |
+| 19.1 Staging & Preview | v5.0 | 1/1 | Complete | 2026-02-23 |
 | 20. Auto Sign-In | v5.0 | 0/? | Not started | - |
