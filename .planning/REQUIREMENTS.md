@@ -18,7 +18,7 @@ Requirements for v5.0 Start Experience. Each maps to roadmap phases.
 
 - [x] **ASIG-01**: App remembers when a user has previously signed in (localStorage flag set on successful auth)
 - [x] **ASIG-02**: Returning user with expired session is auto-redirected to Microsoft login without seeing the welcome popup
-- [x] **ASIG-03**: If auto-redirect fails or auth returns no session, app falls back to showing the welcome popup
+- [x] **ASIG-03**: If auto-redirect fails or auth returns no session, app loads silently in unauthenticated mode without showing any popup
 
 ## Future Requirements
 

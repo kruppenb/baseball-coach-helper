@@ -92,7 +92,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. After a successful sign-in, the app sets a localStorage flag so it remembers the user has authenticated before
   2. A returning user with an expired session is automatically redirected to Microsoft login without seeing the welcome popup
-  3. If auto-redirect fails or auth returns no valid session, the app falls back to showing the welcome popup
+  3. If auto-redirect fails or auth returns no valid session, the app loads silently in unauthenticated mode without showing any popup
 **Plans**: 1 plan
 
 Plans:
