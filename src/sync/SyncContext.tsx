@@ -15,6 +15,7 @@ import {
   migrateLocalData,
   pushToCloud,
   setStoredEtag,
+  setLastSynced,
   clearDirty,
 } from './sync-engine';
 import { useAuth } from '../auth/useAuth';
@@ -62,7 +63,9 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     const { key, cloudData, cloudEtag } = conflict;
 
     if (choice === 'cloud') {
-      localStorage.setItem(key, JSON.stringify(cloudData));
+      const jsonValue = JSON.stringify(cloudData);
+      localStorage.setItem(key, jsonValue);
+      setLastSynced(key, jsonValue);
       window.dispatchEvent(
         new CustomEvent('local-storage-sync', {
           detail: { key, value: cloudData },

@@ -37,6 +37,21 @@ export function setStoredEtag(key: string, etag: string): void {
   etagStore.set(key, etag);
 }
 
+/**
+ * Get the last-synced value for a key (used to detect local edits vs stale data).
+ */
+function getLastSynced(key: string): string | null {
+  return localStorage.getItem(key + ':lastSynced');
+}
+
+/**
+ * Store the last-synced value for a key after a successful pull or push.
+ * Compared against the module-load snapshot on next session to detect local edits.
+ */
+export function setLastSynced(key: string, jsonValue: string): void {
+  localStorage.setItem(key + ':lastSynced', jsonValue);
+}
+
 export function markDirty(key: string): void {
   dirtyKeys.add(key);
 }
@@ -142,6 +157,8 @@ export async function pushToCloud(
         etagStore.set(key, result._etag);
       }
       dirtyKeys.delete(key);
+      // Record the pushed value as last-synced so next session can detect local edits
+      setLastSynced(key, JSON.stringify(parsed));
     } else {
       // collection mode
       const entries = parsed as unknown[];
@@ -266,17 +283,24 @@ export async function pullFromCloud(
               const snapshotData = JSON.parse(snapshotRaw);
               if (hasNonDefaultValue(key, snapshotData) &&
                   JSON.stringify(snapshotData) !== JSON.stringify(data)) {
-                onConflict({
-                  key,
-                  localData: snapshotData,
-                  cloudData: data,
-                  cloudEtag: typeof json._etag === 'string' ? json._etag : null,
-                  cloudUpdatedAt: typeof json.updatedAt === 'string' ? json.updatedAt : null,
-                });
-                pulledKeys.add(key);
-                localSnapshots.delete(key);
-                onStatus('error');
-                return;
+                // Local data differs from cloud — check if it was actually
+                // edited or is just stale from a previous session.
+                const lastSynced = getLastSynced(key);
+                if (lastSynced === null || snapshotRaw !== lastSynced) {
+                  // Local was edited since last sync (or never synced) → real conflict
+                  onConflict({
+                    key,
+                    localData: snapshotData,
+                    cloudData: data,
+                    cloudEtag: typeof json._etag === 'string' ? json._etag : null,
+                    cloudUpdatedAt: typeof json.updatedAt === 'string' ? json.updatedAt : null,
+                  });
+                  pulledKeys.add(key);
+                  localSnapshots.delete(key);
+                  onStatus('error');
+                  return;
+                }
+                // Local unchanged since last sync → stale data, auto-accept cloud
               }
             } catch {
               // JSON parse failure on snapshot data -- safe to overwrite
@@ -285,7 +309,9 @@ export async function pullFromCloud(
           }
         }
 
-        localStorage.setItem(key, JSON.stringify(data));
+        const jsonValue = JSON.stringify(data);
+        localStorage.setItem(key, jsonValue);
+        setLastSynced(key, jsonValue);
         window.dispatchEvent(
           new CustomEvent('local-storage-sync', {
             detail: { key, value: data },
