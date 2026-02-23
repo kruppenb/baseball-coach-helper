@@ -86,7 +86,15 @@ Every kid gets fair playing time with a valid, printable lineup the coach can ge
 
 ### Active
 
-(None — planning next milestone)
+## Current Milestone: v5.0 Start Experience
+
+**Goal:** Improve the first-launch experience with auto-sign-in for returning users, a welcome popup for new visitors, and a one-time explanation of local-only mode.
+
+**Target features:**
+- Auto-redirect to Microsoft login for returning users (localStorage flag)
+- Welcome popup for first-time visitors: sign in or continue without
+- One-time explanation of local-only mode when choosing to skip sign-in
+- Guidance on how to sign in later
 
 ### Out of Scope
 
@@ -181,4 +189,4 @@ Dev server runs on port 5180. API dev server on port 7071 via SWA CLI.
 | printSeq counter for re-print trigger | Forces useEffect to re-fire when game label is unchanged | ✓ Good |
 
 ---
-*Last updated: 2026-02-17 after v4.0 milestone*
+*Last updated: 2026-02-22 after v5.0 milestone start*

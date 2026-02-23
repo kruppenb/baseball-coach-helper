@@ -2,19 +2,17 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-17)
+See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** Every kid gets fair playing time with a valid, printable lineup the coach can generate before the game and hang in the dugout.
-**Current focus:** Planning next milestone
+**Current focus:** v5.0 Start Experience
 
 ## Current Position
 
-Phase: — (between milestones)
+Phase: Not started (defining requirements)
 Plan: —
-Status: v4.0 milestone complete
-Last activity: 2026-02-17 — v4.0 Desktop UI and Flow shipped
-
-Progress: All 4 milestones shipped (v1.0 → v4.0)
+Status: Defining requirements
+Last activity: 2026-02-22 — Milestone v5.0 started
 
 ## Performance Metrics
 
@@ -39,6 +37,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (v4.0 milestone archived)
-Stopped at: Milestone v4.0 complete
-Next step: `/gsd:new-milestone` to plan next milestone
+Last session: 2026-02-22 (v5.0 milestone started)
+Stopped at: Defining requirements
+Next step: Define requirements and create roadmap
