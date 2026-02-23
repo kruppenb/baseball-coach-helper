@@ -8,6 +8,9 @@ import { HistoryPage } from '../history/HistoryPage';
 import { NewGameDialog } from '../game-day/NewGameDialog';
 import { GameLabelDialog } from '../game-day/GameLabelDialog';
 import { Toast } from '../game-day/Toast';
+import { WelcomeDialog } from '../onboarding/WelcomeDialog';
+import { LocalModeDialog } from '../onboarding/LocalModeDialog';
+import { useAuth } from '../../auth/useAuth';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useRoster } from '../../hooks/useRoster';
 import { useLineup } from '../../hooks/useLineup';
@@ -26,6 +29,7 @@ const tabs = [
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<TabId>('game-day');
   const isDesktop = useMediaQuery('(min-width: 900px)');
+  const { user, isLoading: authLoading } = useAuth();
 
   // --- Hooks for orchestration ---
   const { players, resetAttendance } = useRoster();
@@ -56,6 +60,68 @@ export function AppShell() {
   const [printSeq, setPrintSeq] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
+
+  // --- Onboarding state ---
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showLocalMode, setShowLocalMode] = useState(false);
+  const welcomeChecked = useRef(false);
+
+  useEffect(() => {
+    if (authLoading || welcomeChecked.current) return;
+    welcomeChecked.current = true;
+
+    // Signed-in user — nothing to do (AuthContext already set has-authed flag)
+    if (user) return;
+
+    // Not signed in — check if returning authenticated user
+    if (localStorage.getItem('has-authed') === 'true') {
+      const url = new URL(window.location.href);
+      const isAutoReturn = url.searchParams.has('auth') && url.searchParams.get('auth') === 'auto';
+
+      if (isAutoReturn) {
+        // Returned from auto-redirect without a session — auth failed.
+        // Clean up the URL param and let app load normally (no popup, no error).
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
+
+      // First visit this session — attempt auto-redirect to Microsoft login
+      if (!import.meta.env.DEV) {
+        const redirectUri = encodeURIComponent(window.location.pathname + '?auth=auto');
+        window.location.href = `/.auth/login/aad?post_login_redirect_uri=${redirectUri}`;
+        return;
+      }
+      // DEV mode: SWA auth not available, fall through to normal app loading
+      return;
+    }
+
+    // Never authenticated — check for local-mode user
+    if (localStorage.getItem('welcome-dismissed') === 'true') return;
+
+    // First-time visitor — show welcome popup
+    setShowWelcome(true);
+  }, [authLoading, user]);
+
+  const handleSignIn = useCallback(() => {
+    localStorage.setItem('welcome-dismissed', 'true');
+    if (import.meta.env.DEV) {
+      // SWA auth endpoints don't exist on Vite dev server
+      alert('Sign-in is only available when deployed to Azure. Continuing in local mode.');
+      setShowWelcome(false);
+      return;
+    }
+    window.location.href = '/.auth/login/aad';
+  }, []);
+
+  const handleContinueLocal = useCallback(() => {
+    setShowWelcome(false);
+    setShowLocalMode(true);
+  }, []);
+
+  const handleLocalModeDismiss = useCallback(() => {
+    setShowLocalMode(false);
+    localStorage.setItem('welcome-dismissed', 'true');
+  }, []);
 
   // --- New Game flow ---
   const handleNewGameClick = useCallback(() => {
@@ -197,6 +263,15 @@ export function AppShell() {
         message={toastMessage}
         visible={showToast}
         onDone={handleToastDone}
+      />
+      <WelcomeDialog
+        open={showWelcome}
+        onSignIn={handleSignIn}
+        onContinueLocal={handleContinueLocal}
+      />
+      <LocalModeDialog
+        open={showLocalMode}
+        onDismiss={handleLocalModeDismiss}
       />
     </div>
   );

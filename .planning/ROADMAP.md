@@ -6,6 +6,7 @@
 - ✅ **v2.0 Azure Cloud Sync** — Phases 5-9 (shipped 2026-02-14)
 - ✅ **v3.0 UX Overhaul** — Phases 10-13.1 (shipped 2026-02-16)
 - ✅ **v4.0 Desktop UI and Flow** — Phases 14-18 (shipped 2026-02-17)
+- 🚧 **v5.0 Start Experience** — Phases 19-20 (in progress)
 
 ## Phases
 
@@ -53,7 +54,54 @@
 
 </details>
 
+### v5.0 Start Experience (In Progress)
+
+- [x] **Phase 19: Welcome Popup and Local-Mode Onboarding** — First-time visitor sees welcome dialog with sign-in or continue-without, plus local-mode explanation (completed 2026-02-23)
+- [x] **Phase 19.1: Staging Environment and Deployment Slot Swap** — PR builds create frontend-only preview environments; API deploys only on push to main (completed 2026-02-23) (INSERTED)
+- [x] **Phase 20: Auto Sign-In for Returning Users** — Returning users auto-redirect to Microsoft login; fallback to welcome popup on failure (completed 2026-02-23)
+
+## Phase Details
+
+### Phase 19: Welcome Popup and Local-Mode Onboarding
+**Goal**: First-time visitors understand their options (sign in for cloud sync or continue locally) and make an informed choice
+**Depends on**: Phase 18 (v4.0 complete)
+**Requirements**: ONBD-01, ONBD-02, ONBD-03, ONBD-04
+**Success Criteria** (what must be TRUE):
+  1. First-time visitor sees a welcome popup offering "Sign in with Microsoft" or "Continue without signing in"
+  2. Choosing "Continue without signing in" shows a one-time explanation that data stays on this device and mentions CSV import/export in Settings
+  3. The local-mode explanation mentions the existing header link for signing in later
+  4. Returning to the app after dismissing the welcome popup does not show it again
+**Plans**: 1 plan
+
+Plans:
+- [ ] 19-01-PLAN.md — Welcome popup and local-mode onboarding dialogs with localStorage-based first-visit detection
+
+### Phase 19.1: Staging environment and deployment slot swap (INSERTED)
+
+**Goal:** PR branches get automatic preview environments so changes can be reviewed in a live staging URL before merging to main
+**Depends on:** Phase 19
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] 19.1-01-PLAN.md — Gate API deployment to main-only and document SWA preview environments
+
+### Phase 20: Auto Sign-In for Returning Users
+**Goal**: Returning users who previously signed in get seamlessly redirected to Microsoft login without friction
+**Depends on**: Phase 19
+**Requirements**: ASIG-01, ASIG-02, ASIG-03
+**Success Criteria** (what must be TRUE):
+  1. After a successful sign-in, the app sets a localStorage flag so it remembers the user has authenticated before
+  2. A returning user with an expired session is automatically redirected to Microsoft login without seeing the welcome popup
+  3. If auto-redirect fails or auth returns no valid session, the app loads silently in unauthenticated mode without showing any popup
+**Plans**: 1 plan
+
+Plans:
+- [ ] 20-01-PLAN.md — Auto-redirect returning users with localStorage flag, URL param failure detection, and silent fallback
+
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 19 → 20
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -77,3 +125,6 @@
 | 16. History Management | v4.0 | 2/2 | Complete | 2026-02-17 |
 | 17. Gap Closure | v4.0 | 1/1 | Complete | 2026-02-17 |
 | 18. Polish & Closeout | v4.0 | 1/1 | Complete | 2026-02-17 |
+| 19. Welcome Popup | v5.0 | 1/1 | Complete | 2026-02-23 |
+| 19.1 Staging & Preview | v5.0 | Complete    | 2026-02-23 | 2026-02-23 |
+| 20. Auto Sign-In | 1/1 | Complete    | 2026-02-23 | - |

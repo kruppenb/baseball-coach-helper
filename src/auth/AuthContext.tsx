@@ -25,6 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           clientPrincipal: ClientPrincipal | null;
         };
         if (!cancelled) {
+          if (data.clientPrincipal) {
+            localStorage.setItem('has-authed', 'true');
+          }
           setState({ user: data.clientPrincipal, isLoading: false });
         }
       } catch {
