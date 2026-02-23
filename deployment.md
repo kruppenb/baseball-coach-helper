@@ -7,7 +7,26 @@ Push to `main` triggers the GitHub Actions workflow (`.github/workflows/azure-st
 1. **API** — built (`npm ci && npm run build` in `api/`) then deployed to the standalone Azure Functions app via `Azure/functions-action@v2`
 2. **Frontend** — built and deployed to Azure Static Web Apps via `Azure/static-web-apps-deploy@v1` (frontend only, no `api_location`)
 
-PR branches get a SWA preview environment for the frontend. The API always deploys to the single Functions app (no staging slots on consumption plan).
+PR branches get a SWA preview environment for the frontend. The API is NOT deployed on PR builds -- it only deploys on push to main. This keeps the production API stable during code review.
+
+## Preview environments
+
+When a pull request is opened against `main`, the GitHub Actions workflow:
+
+1. Builds the frontend (Vite)
+2. Deploys it to an Azure SWA preview environment (skips API build and deploy)
+3. The SWA GitHub bot posts a comment on the PR with the preview URL
+
+Preview URL format: `https://<subdomain>-<pr-number>.<region>.azurestaticapps.net`
+
+The preview environment uses the **production API** (same linked Functions app). This means:
+- Frontend changes are isolated per PR
+- API changes are NOT reflected until merged to main
+- Auth and data work normally against production Cosmos DB
+
+When the PR is closed or merged, the preview environment is automatically deleted by the `close_pull_request` workflow job.
+
+**Limits:** The SWA Free tier supports up to 3 concurrent preview environments.
 
 ## CI authentication
 
