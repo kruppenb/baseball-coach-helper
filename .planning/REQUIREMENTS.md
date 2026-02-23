@@ -16,9 +16,9 @@ Requirements for v5.0 Start Experience. Each maps to roadmap phases.
 
 ### Auto Sign-In
 
-- [ ] **ASIG-01**: App remembers when a user has previously signed in (localStorage flag set on successful auth)
-- [ ] **ASIG-02**: Returning user with expired session is auto-redirected to Microsoft login without seeing the welcome popup
-- [ ] **ASIG-03**: If auto-redirect fails or auth returns no session, app falls back to showing the welcome popup
+- [x] **ASIG-01**: App remembers when a user has previously signed in (localStorage flag set on successful auth)
+- [x] **ASIG-02**: Returning user with expired session is auto-redirected to Microsoft login without seeing the welcome popup
+- [x] **ASIG-03**: If auto-redirect fails or auth returns no session, app falls back to showing the welcome popup
 
 ## Future Requirements
 
@@ -43,9 +43,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONBD-02 | Phase 19 | Complete |
 | ONBD-03 | Phase 19 | Complete |
 | ONBD-04 | Phase 19 | Complete |
-| ASIG-01 | Phase 20 | Pending |
-| ASIG-02 | Phase 20 | Pending |
-| ASIG-03 | Phase 20 | Pending |
+| ASIG-01 | Phase 20 | Complete |
+| ASIG-02 | Phase 20 | Complete |
+| ASIG-03 | Phase 20 | Complete |
 
 **Coverage:**
 - v5.0 requirements: 7 total
