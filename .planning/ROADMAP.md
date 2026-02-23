@@ -93,10 +93,10 @@ Plans:
   1. After a successful sign-in, the app sets a localStorage flag so it remembers the user has authenticated before
   2. A returning user with an expired session is automatically redirected to Microsoft login without seeing the welcome popup
   3. If auto-redirect fails or auth returns no valid session, the app falls back to showing the welcome popup
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 20-01: TBD
+- [ ] 20-01-PLAN.md — Auto-redirect returning users with localStorage flag, URL param failure detection, and silent fallback
 
 ## Progress
 
