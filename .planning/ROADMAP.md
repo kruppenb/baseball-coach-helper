@@ -70,10 +70,10 @@
   2. Choosing "Continue without signing in" shows a one-time explanation that data stays on this device and mentions CSV import/export in Settings
   3. The local-mode explanation mentions the existing header link for signing in later
   4. Returning to the app after dismissing the welcome popup does not show it again
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 19-01: TBD
+- [ ] 19-01-PLAN.md — Welcome popup and local-mode onboarding dialogs with localStorage-based first-visit detection
 
 ### Phase 20: Auto Sign-In for Returning Users
 **Goal**: Returning users who previously signed in get seamlessly redirected to Microsoft login without friction
