@@ -127,4 +127,4 @@ Phases execute in numeric order: 19 → 20
 | 18. Polish & Closeout | v4.0 | 1/1 | Complete | 2026-02-17 |
 | 19. Welcome Popup | v5.0 | 1/1 | Complete | 2026-02-23 |
 | 19.1 Staging & Preview | v5.0 | Complete    | 2026-02-23 | 2026-02-23 |
-| 20. Auto Sign-In | 1/1 | Complete   | 2026-02-23 | - |
+| 20. Auto Sign-In | 1/1 | Complete    | 2026-02-23 | - |
