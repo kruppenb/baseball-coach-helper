@@ -80,7 +80,7 @@ Plans:
 
 **Goal:** PR branches get automatic preview environments so changes can be reviewed in a live staging URL before merging to main
 **Depends on:** Phase 19
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [x] 19.1-01-PLAN.md — Gate API deployment to main-only and document SWA preview environments
@@ -126,5 +126,5 @@ Phases execute in numeric order: 19 → 20
 | 17. Gap Closure | v4.0 | 1/1 | Complete | 2026-02-17 |
 | 18. Polish & Closeout | v4.0 | 1/1 | Complete | 2026-02-17 |
 | 19. Welcome Popup | v5.0 | 1/1 | Complete | 2026-02-23 |
-| 19.1 Staging & Preview | v5.0 | 1/1 | Complete | 2026-02-23 |
+| 19.1 Staging & Preview | v5.0 | Complete    | 2026-02-23 | 2026-02-23 |
 | 20. Auto Sign-In | v5.0 | 0/? | Not started | - |
