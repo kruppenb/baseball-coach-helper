@@ -39,19 +39,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ONBD-01 | — | Pending |
-| ONBD-02 | — | Pending |
-| ONBD-03 | — | Pending |
-| ONBD-04 | — | Pending |
-| ASIG-01 | — | Pending |
-| ASIG-02 | — | Pending |
-| ASIG-03 | — | Pending |
+| ONBD-01 | Phase 19 | Pending |
+| ONBD-02 | Phase 19 | Pending |
+| ONBD-03 | Phase 19 | Pending |
+| ONBD-04 | Phase 19 | Pending |
+| ASIG-01 | Phase 20 | Pending |
+| ASIG-02 | Phase 20 | Pending |
+| ASIG-03 | Phase 20 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 7 total
-- Mapped to phases: 0
-- Unmapped: 7 (pending roadmap creation)
+- Mapped to phases: 7
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-22*
-*Last updated: 2026-02-22 after initial definition*
+*Last updated: 2026-02-22 after roadmap creation*
