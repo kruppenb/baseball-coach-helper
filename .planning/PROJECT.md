@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A web app for Little League coaches to build fair, constraint-based inning-by-inning fielding lineups and continuous batting orders. On desktop, all game-day sections (attendance, pitcher/catcher assignment, lineup grid, batting order) appear simultaneously in a multi-column layout with a sticky action bar. On mobile, a guided stepper walks the coach through each step. Coaches can start new games with a single action, print a dugout card (which auto-saves to history), manage game history with swipe-to-delete and undo, and drag-and-drop to edit lineups and batting orders with live validation. Game history tracks batting order, fielding positions, and bench time across games for season-long fairness. Coaches sign in with their Microsoft account; data syncs to Azure Cosmos DB with ETag-based conflict resolution and works offline at the field via an installable PWA.
+A web app for Little League coaches to build fair, constraint-based inning-by-inning fielding lineups and continuous batting orders. On desktop, all game-day sections (attendance, pitcher/catcher assignment, lineup grid, batting order) appear simultaneously in a multi-column layout with a sticky action bar. On mobile, a guided stepper walks the coach through each step. Coaches can start new games with a single action, print a dugout card (which auto-saves to history), manage game history with swipe-to-delete and undo, and drag-and-drop to edit lineups and batting orders with live validation. Game history tracks batting order, fielding positions, and bench time across games for season-long fairness. First-time visitors see a welcome popup offering Microsoft sign-in or local-only mode; returning users are automatically redirected to Microsoft login. Data syncs to Azure Cosmos DB with ETag-based conflict resolution and works offline at the field via an installable PWA.
 
 ## Core Value
 
@@ -83,18 +83,17 @@ Every kid gets fair playing time with a valid, printable lineup the coach can ge
 - ✓ GFLW-04: No Finalize Game button or step in flow — v4.0
 - ✓ HMGT-01: View list of saved game history entries with date/summary — v4.0
 - ✓ HMGT-02: Delete individual game history entries — v4.0
+- ✓ ONBD-01: Welcome popup on first visit with sign-in or continue-without — v5.0
+- ✓ ONBD-02: Local-mode explanation with device-only data and CSV mention — v5.0
+- ✓ ONBD-03: Welcome popup not shown again after dismissal — v5.0
+- ✓ ONBD-04: Local-mode explanation mentions header sign-in link — v5.0
+- ✓ ASIG-01: App remembers previous sign-in via localStorage flag — v5.0
+- ✓ ASIG-02: Returning user auto-redirected to Microsoft login — v5.0
+- ✓ ASIG-03: Silent fallback to unauthenticated mode on auth failure — v5.0
 
 ### Active
 
-## Current Milestone: v5.0 Start Experience
-
-**Goal:** Improve the first-launch experience with auto-sign-in for returning users, a welcome popup for new visitors, and a one-time explanation of local-only mode.
-
-**Target features:**
-- Auto-redirect to Microsoft login for returning users (localStorage flag)
-- Welcome popup for first-time visitors: sign in or continue without
-- One-time explanation of local-only mode when choosing to skip sign-in
-- Guidance on how to sign in later
+(No active milestone — use `/gsd:new-milestone` to start next)
 
 ### Out of Scope
 
@@ -120,24 +119,25 @@ Every kid gets fair playing time with a valid, printable lineup the coach can ge
 
 ## Context
 
-Shipped v4.0 with 13,103 LOC (TypeScript/CSS).
+Shipped v5.0 with 13,776 LOC (TypeScript/CSS).
 Tech stack: Vite + React 19 + TypeScript, CSS Modules, @dnd-kit/react, Azure Static Web Apps, Azure Functions v4, Cosmos DB serverless.
 87+ tests passing (vitest). Data persisted via useCloudStorage (localStorage + cloud sync with ETag conflict resolution).
 Dev server runs on port 5180. API dev server on port 7071 via SWA CLI.
 3-tab app: Game Day (primary), History, Settings.
+PR builds create frontend-only SWA preview environments; API deploys only on push to main.
 
-**v4.0 added:**
-- Responsive desktop layout (900px breakpoint) with 3-zone card layout and sticky action bar
-- New Game dialog with Save & New / Don't Save / Cancel flow
-- Print-as-save: printing dugout card auto-saves to game history with duplicate detection
-- Game history management: view, expand, delete (swipe on mobile, button on desktop), undo
-- DELETE API endpoint for cloud-synced game history cleanup
-- Ref-based display state lifting for DnD edits (avoids re-renders during drag)
+**v5.0 added:**
+- Welcome popup for first-time visitors: "Sign in with Microsoft" or "Continue without signing in"
+- Local-mode explanation dialog: device-only data, CSV import/export in Settings, header sign-in link
+- Auto-redirect returning users to Microsoft login via `has-authed` localStorage flag
+- Silent fallback on auth failure via `?auth=auto` URL param detection
+- PR preview environments: API build/deploy gated to push-to-main only
 
 **Known tech debt:**
 - TENANT_ID placeholder in staticwebapp.config.json (replaced at deployment)
 - DESK-02 accepted deviation: 3-zone layout instead of strict 2-column (approved by user)
 - eslint-disable-next-line react-hooks/exhaustive-deps in GameDayDesktop.tsx
+- Onboarding flow has complex three-way branching in AppShell useEffect (signed-in / returning / fresh)
 
 ## Constraints
 
@@ -187,6 +187,13 @@ Dev server runs on port 5180. API dev server on port 7071 via SWA CLI.
 | Fire-and-forget cloud DELETE | Offline resilience — swallowed errors, local deletion succeeds regardless | ✓ Good |
 | Pointer events for swipe-to-delete | No external gesture library needed, works on touch and mouse | ✓ Good |
 | printSeq counter for re-print trigger | Forces useEffect to re-fire when game label is unchanged | ✓ Good |
+| Ref guard for welcome dialog | Prevents onboarding useEffect from re-triggering on auth state changes | ✓ Good |
+| Set welcome-dismissed before auth redirect | Popup won't re-show if auth fails and redirects back | ✓ Good |
+| Gate API build+deploy to push-to-main | Saves CI time on PRs; preview environments are frontend-only | ✓ Good |
+| Single redirect attempt for auto-sign-in | Cookie-based SWA auth — second redirect would also fail, one round-trip sufficient | ✓ Good |
+| has-authed flag never cleared | Permanent flag per user decision — every future visit attempts auto-redirect | ✓ Good |
+| DEV mode skips auto-redirect | SWA auth endpoints unavailable on Vite dev server | ✓ Good |
+| URL param marker for auth failure | ?auth=auto appended before redirect, detected on return to distinguish success/failure | ✓ Good |
 
 ---
-*Last updated: 2026-02-22 after v5.0 milestone start*
+*Last updated: 2026-02-23 after v5.0 milestone*

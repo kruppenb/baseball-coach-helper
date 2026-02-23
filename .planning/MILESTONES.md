@@ -87,3 +87,24 @@
 
 ---
 
+
+## v5.0 Start Experience (Shipped: 2026-02-23)
+
+**Phases completed:** 3 phases (19-20), 3 plans, 6 tasks
+**Lines of code:** 13,776 (TypeScript/CSS) — up from 13,103
+**Timeline:** 1 day (2026-02-22)
+**Git range:** 00cb33d → 122ab90
+
+**Delivered:** First-launch experience improvements — welcome popup for new visitors with sign-in or continue-without choice, local-mode explanation, auto-redirect to Microsoft login for returning users with silent fallback, and PR preview environments for CI/CD.
+
+**Key accomplishments:**
+- Welcome popup for first-time visitors with "Sign in with Microsoft" and "Continue without signing in" choices
+- Local-mode explanation dialog with device-only data, CSV import/export, and sign-in-later guidance
+- Auto-redirect returning users to Microsoft login via localStorage flag with silent fallback on failure
+- PR preview environments via SWA — API deployment gated to push-to-main only
+- Three-way onboarding branching: signed-in (no-op), returning (auto-redirect), fresh/local (welcome popup)
+
+**Archive:** `.planning/milestones/v5.0-ROADMAP.md`, `.planning/milestones/v5.0-REQUIREMENTS.md`
+
+---
+
