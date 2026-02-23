@@ -9,10 +9,10 @@ Requirements for v5.0 Start Experience. Each maps to roadmap phases.
 
 ### Onboarding
 
-- [ ] **ONBD-01**: User sees a welcome popup on first visit offering "Sign in with Microsoft" or "Continue without signing in"
-- [ ] **ONBD-02**: User who chooses "Continue without signing in" sees a one-time explanation that data stays on this browser/device and CSV import/export is available in Settings
-- [ ] **ONBD-03**: User who dismisses the welcome popup does not see it again on subsequent visits
-- [ ] **ONBD-04**: Local-mode explanation mentions the existing header link for signing in later
+- [x] **ONBD-01**: User sees a welcome popup on first visit offering "Sign in with Microsoft" or "Continue without signing in"
+- [x] **ONBD-02**: User who chooses "Continue without signing in" sees a one-time explanation that data stays on this browser/device and CSV import/export is available in Settings
+- [x] **ONBD-03**: User who dismisses the welcome popup does not see it again on subsequent visits
+- [x] **ONBD-04**: Local-mode explanation mentions the existing header link for signing in later
 
 ### Auto Sign-In
 
@@ -39,10 +39,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ONBD-01 | Phase 19 | Pending |
-| ONBD-02 | Phase 19 | Pending |
-| ONBD-03 | Phase 19 | Pending |
-| ONBD-04 | Phase 19 | Pending |
+| ONBD-01 | Phase 19 | Complete |
+| ONBD-02 | Phase 19 | Complete |
+| ONBD-03 | Phase 19 | Complete |
+| ONBD-04 | Phase 19 | Complete |
 | ASIG-01 | Phase 20 | Pending |
 | ASIG-02 | Phase 20 | Pending |
 | ASIG-03 | Phase 20 | Pending |
