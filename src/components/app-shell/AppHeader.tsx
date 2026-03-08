@@ -39,13 +39,15 @@ export function AppHeader({ onNewGame }: AppHeaderProps) {
               </a>
             </>
           ) : (
-            <a className={styles.authLink} href="/.auth/login/aad">
-              Microsoft
-            </a>
-            <span className={styles.authDivider}>|</span>
-            <a className={styles.authLink} href="/.auth/login/google">
-              Google
-            </a>
+            <>
+              <a className={styles.authLink} href="/.auth/login/aad">
+                Microsoft
+              </a>
+              <span className={styles.authDivider}>|</span>
+              <a className={styles.authLink} href="/.auth/login/google">
+                Google
+              </a>
+            </>
           )}
         </div>
       )}
