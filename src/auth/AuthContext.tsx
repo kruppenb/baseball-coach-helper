@@ -27,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) {
           if (data.clientPrincipal) {
             localStorage.setItem('has-authed', 'true');
+            localStorage.setItem('auth-provider', data.clientPrincipal.identityProvider);
           }
           setState({ user: data.clientPrincipal, isLoading: false });
         }

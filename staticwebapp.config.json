@@ -5,6 +5,10 @@
       "statusCode": 404
     },
     {
+      "route": "/.auth/login/twitter",
+      "statusCode": 404
+    },
+    {
       "route": "/api/*",
       "allowedRoles": ["authenticated"]
     }
@@ -15,7 +19,7 @@
   },
   "responseOverrides": {
     "401": {
-      "redirect": "/.auth/login/aad?post_login_redirect_uri=.referrer",
+      "redirect": "/?login=required",
       "statusCode": 302
     },
     "403": {

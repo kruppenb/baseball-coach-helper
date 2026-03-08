@@ -85,10 +85,11 @@ export function AppShell() {
         return;
       }
 
-      // First visit this session — attempt auto-redirect to Microsoft login
+      // First visit this session — attempt auto-redirect to last-used provider
       if (!import.meta.env.DEV) {
+        const provider = localStorage.getItem('auth-provider') || 'aad';
         const redirectUri = encodeURIComponent(window.location.pathname + '?auth=auto');
-        window.location.href = `/.auth/login/aad?post_login_redirect_uri=${redirectUri}`;
+        window.location.href = `/.auth/login/${provider}?post_login_redirect_uri=${redirectUri}`;
         return;
       }
       // DEV mode: SWA auth not available, fall through to normal app loading
@@ -102,15 +103,16 @@ export function AppShell() {
     setShowWelcome(true);
   }, [authLoading, user]);
 
-  const handleSignIn = useCallback(() => {
+  const handleSignIn = useCallback((provider: 'aad' | 'google') => {
     localStorage.setItem('welcome-dismissed', 'true');
+    localStorage.setItem('auth-provider', provider);
     if (import.meta.env.DEV) {
       // SWA auth endpoints don't exist on Vite dev server
       alert('Sign-in is only available when deployed to Azure. Continuing in local mode.');
       setShowWelcome(false);
       return;
     }
-    window.location.href = '/.auth/login/aad';
+    window.location.href = `/.auth/login/${provider}`;
   }, []);
 
   const handleContinueLocal = useCallback(() => {

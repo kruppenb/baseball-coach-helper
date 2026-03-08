@@ -68,6 +68,11 @@
   text-decoration: underline;
 }
 
+.authDivider {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
 /* Desktop header */
 @media (min-width: 900px) {
   .header {

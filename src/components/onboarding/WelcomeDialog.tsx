@@ -3,7 +3,7 @@ import styles from './WelcomeDialog.module.css';
 
 interface WelcomeDialogProps {
   open: boolean;
-  onSignIn: () => void;
+  onSignIn: (provider: 'aad' | 'google') => void;
   onContinueLocal: () => void;
 }
 
@@ -44,13 +44,22 @@ export function WelcomeDialog({
 
       <div className={styles.options}>
         <div className={styles.option}>
-          <button
-            type="button"
-            className={styles.primaryBtn}
-            onClick={onSignIn}
-          >
-            Sign in with Microsoft
-          </button>
+          <div className={styles.signInGroup}>
+            <button
+              type="button"
+              className={styles.primaryBtn}
+              onClick={() => onSignIn('aad')}
+            >
+              Sign in with Microsoft
+            </button>
+            <button
+              type="button"
+              className={styles.primaryBtn}
+              onClick={() => onSignIn('google')}
+            >
+              Sign in with Google
+            </button>
+          </div>
           <p className={styles.optionDesc}>
             Save your roster to the cloud and access it from any device
           </p>

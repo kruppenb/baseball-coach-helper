@@ -40,7 +40,11 @@ export function AppHeader({ onNewGame }: AppHeaderProps) {
             </>
           ) : (
             <a className={styles.authLink} href="/.auth/login/aad">
-              Sign in with Microsoft
+              Microsoft
+            </a>
+            <span className={styles.authDivider}>|</span>
+            <a className={styles.authLink} href="/.auth/login/google">
+              Google
             </a>
           )}
         </div>
