@@ -230,7 +230,9 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
   }
 
   // Phase 2: Calculate infield needs per player
-  // Each player needs 2 infield positions in innings 1 through min(4, innings)
+  // Each player needs 2 infield positions in innings 1 through min(4, innings).
+  // NOTE: This is intentionally stricter than the rules (Coast allows 5, AAA allows any)
+  // to maximize infield exposure for every player.
   const maxInfieldInning = Math.min(4, innings);
   const playerInfieldNeeds: Record<string, number> = {};
 
@@ -307,6 +309,12 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
     }));
   }
 
+  // Track cumulative bench counts per player (for AAA balanced rotation)
+  const benchCountSoFar: Record<string, number> = {};
+  for (const pid of playerIds) {
+    benchCountSoFar[pid] = 0;
+  }
+
   // Phase 4: Build lineup inning by inning
   for (let inn = 1; inn <= innings; inn++) {
     lineup[inn] = {} as InningAssignment;
@@ -347,6 +355,7 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
     }
 
     // 4c. Fill outfield positions, prioritizing players who sat last inning
+    //     For AAA: also factor in total bench counts to enforce balanced rotation
     const satLastInning = inn > 1
       ? playerIds.filter(p => !POSITIONS.some(pos => lineup[inn - 1][pos] === p))
       : [];
@@ -359,7 +368,7 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
         return true;
       });
 
-      const eligible = eligibleSatOut.length > 0
+      let eligible = eligibleSatOut.length > 0
         ? eligibleSatOut
         : shuffle(playerIds.filter(p => {
             if (used.has(p)) return false;
@@ -367,13 +376,28 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
             return true;
           }));
 
+      // For AAA: sort eligible players so those with fewer bench innings play first
+      // This helps enforce the "no 3rd bench until all sat 2nd" rule
+      if (input.division === 'AAA' && eligible.length > 1) {
+        eligible = [...eligible].sort((a, b) => {
+          const aBench = benchCountSoFar[a] ?? 0;
+          const bBench = benchCountSoFar[b] ?? 0;
+          return bBench - aBench; // higher bench count = play first (lower index)
+        });
+      }
+
       if (eligible.length === 0) return null;
-      const pick = eligible[Math.floor(Math.random() * eligible.length)];
+      const pick = eligible[Math.floor(Math.random() * Math.min(eligible.length, eligible.length > 2 ? 2 : eligible.length))];
       lineup[inn][pos] = pick;
       used.add(pick);
     }
 
-    // Remaining players are on the bench (implicitly: they're not in the lineup for this inning)
+    // Remaining players are on the bench — update bench counts
+    for (const pid of playerIds) {
+      if (!used.has(pid)) {
+        benchCountSoFar[pid]++;
+      }
+    }
   }
 
   return lineup;

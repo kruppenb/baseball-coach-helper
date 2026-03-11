@@ -1,7 +1,13 @@
 import { useCloudStorage } from '../sync/useCloudStorage';
-import type { GameConfig } from '../types';
+import type { GameConfig, Division } from '../types';
 
-const defaultConfig: GameConfig = { innings: 6, pitchersPerGame: 3, catchersPerGame: 3 };
+const defaultConfig: GameConfig = { division: 'AAA', innings: 5, pitchersPerGame: 3, catchersPerGame: 3 };
+
+/** Maps division to its default inning count per VLL Local Rules */
+const DIVISION_INNINGS: Record<Division, 5 | 6> = {
+  AAA: 5,
+  Coast: 6,
+};
 
 export function useGameConfig() {
   const [stored, setConfig] = useCloudStorage<GameConfig>('gameConfig', defaultConfig, { endpoint: '/api/game-config', mode: 'singleton' });
@@ -10,6 +16,10 @@ export function useGameConfig() {
   const config: GameConfig = {
     ...defaultConfig,
     ...stored,
+  };
+
+  const setDivision = (division: Division) => {
+    setConfig({ ...config, division, innings: DIVISION_INNINGS[division] });
   };
 
   const setInnings = (value: 5 | 6) => {
@@ -24,5 +34,5 @@ export function useGameConfig() {
     setConfig({ ...config, catchersPerGame: value });
   };
 
-  return { config, setInnings, setPitchersPerGame, setCatchersPerGame };
+  return { config, setDivision, setInnings, setPitchersPerGame, setCatchersPerGame };
 }

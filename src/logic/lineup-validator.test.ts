@@ -54,6 +54,7 @@ function makeDefaultInput(overrides: Partial<GenerateLineupInput> = {}): Generat
   return {
     presentPlayers: players.slice(0, 10),
     innings: 6,
+    division: 'Coast',
     pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p1', 4: 'p1', 5: 'p1', 6: 'p1' },
     catcherAssignments: { 1: 'p2', 2: 'p2', 3: 'p2', 4: 'p2', 5: 'p2', 6: 'p2' },
     positionBlocks: {},
@@ -139,6 +140,44 @@ describe('validateLineup', () => {
       expect(p10Errors.length).toBeGreaterThan(0);
       expect(p10Errors[0].message).toContain('Jordan');
       expect(p10Errors[0].message).toMatch(/innings?\s*1\s*(and|&)\s*2/i);
+    });
+  });
+
+  describe('BALANCED_BENCH_ROTATION', () => {
+    it('does NOT flag for Coast division (rule only applies to AAA)', () => {
+      // Even with unbalanced bench, Coast should not trigger this rule
+      const lineup = makeValidLineup();
+      const input = makeDefaultInput({ division: 'Coast' });
+      const errors = validateLineup(lineup, input);
+      const balancedErrors = errors.filter(e => e.rule === 'BALANCED_BENCH_ROTATION');
+      expect(balancedErrors).toEqual([]);
+    });
+
+    it('flags when a player sits 3 innings but another has sat fewer than 2 (AAA)', () => {
+      // 11 players, 5 innings (AAA). p11 benched 3 times, p10 benched 0 times.
+      const lineup: Lineup = {
+        1: makeInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p10']),
+        // bench: p9, p11
+        2: makeInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p9', 'p8', 'p10']),
+        // bench: p7, p11
+        3: makeInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p7', 'p9', 'p6', 'p10']),
+        // bench: p8, p11
+        4: makeInning(['p1', 'p2', 'p11','p4', 'p5', 'p6', 'p7', 'p8', 'p10']),
+        // bench: p3, p9
+        5: makeInning(['p1', 'p2', 'p11','p3', 'p9', 'p6', 'p7', 'p8', 'p10']),
+        // bench: p4, p5
+      };
+      const input = makeDefaultInput({
+        presentPlayers: players,
+        innings: 5,
+        division: 'AAA',
+        pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p1', 4: 'p1', 5: 'p1' },
+        catcherAssignments: { 1: 'p2', 2: 'p2', 3: 'p2', 4: 'p2', 5: 'p2' },
+      });
+      const errors = validateLineup(lineup, input);
+      const balancedErrors = errors.filter(e => e.rule === 'BALANCED_BENCH_ROTATION');
+      expect(balancedErrors.length).toBeGreaterThan(0);
+      expect(balancedErrors[0].message).toContain('Kelly'); // p11
     });
   });
 

@@ -308,10 +308,11 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
   const validationInput: GenerateLineupInput = useMemo(() => ({
     presentPlayers,
     innings,
+    division: config.division,
     pitcherAssignments,
     catcherAssignments,
     positionBlocks,
-  }), [presentPlayers, innings, pitcherAssignments, catcherAssignments, positionBlocks]);
+  }), [presentPlayers, innings, config.division, pitcherAssignments, catcherAssignments, positionBlocks]);
 
   const editor = useLineupEditor(selectedLineup, validationInput);
 

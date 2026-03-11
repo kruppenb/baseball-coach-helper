@@ -1,6 +1,9 @@
+import type { Division } from '../../types';
 import styles from './SettingsPanel.module.css';
 
 interface SettingsPanelProps {
+  division: Division;
+  onDivisionChange: (value: Division) => void;
   innings: 5 | 6;
   onInningsChange: (value: 5 | 6) => void;
   pitchersPerGame?: number;
@@ -9,9 +12,27 @@ interface SettingsPanelProps {
   onCatchersPerGameChange?: (value: number) => void;
 }
 
+const DIVISION_RULES: Record<Division, string[]> = {
+  AAA: [
+    '5 innings per game',
+    'No player sits a 3rd inning until all have sat a 2nd',
+    '2 infield innings required (any inning)',
+    'No bunting allowed',
+    'No stealing home',
+  ],
+  Coast: [
+    '6 innings per game',
+    '2 infield innings required (within first 5 innings)',
+    'Bunting allowed',
+    'Standard base stealing',
+  ],
+};
+
 const countOptions = [1, 2, 3, 4];
 
 export function SettingsPanel({
+  division,
+  onDivisionChange,
   innings,
   onInningsChange,
   pitchersPerGame,
@@ -22,6 +43,27 @@ export function SettingsPanel({
   return (
     <div className={styles.settings}>
       <h3 className={styles.settingsTitle}>Settings</h3>
+      <div className={styles.settingRow}>
+        <label htmlFor="division-select" className={styles.settingLabel}>
+          Division
+        </label>
+        <select
+          id="division-select"
+          value={division}
+          onChange={(e) => onDivisionChange(e.target.value as Division)}
+          className={styles.select}
+        >
+          <option value="AAA">AAA</option>
+          <option value="Coast">Coast</option>
+        </select>
+      </div>
+
+      <ul className={styles.rulesList}>
+        {DIVISION_RULES[division].map((rule) => (
+          <li key={rule} className={styles.ruleItem}>{rule}</li>
+        ))}
+      </ul>
+
       <div className={styles.settingRow}>
         <label htmlFor="innings-select" className={styles.settingLabel}>
           Innings per game

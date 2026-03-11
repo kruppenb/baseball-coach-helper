@@ -22,6 +22,7 @@ function makeDefaultInput(overrides: Partial<GenerateLineupInput> = {}): Generat
   return {
     presentPlayers: players11,
     innings: 6,
+    division: 'Coast',
     pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
     catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p5', 5: 'p6', 6: 'p6' },
     positionBlocks: {},

@@ -72,6 +72,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     generatedLineups,
     selectedLineup,
     innings,
+    division,
     generate,
     presentPlayers,
     pitcherAssignments,
@@ -92,10 +93,11 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
   const validationInput: GenerateLineupInput = useMemo(() => ({
     presentPlayers,
     innings,
+    division,
     pitcherAssignments,
     catcherAssignments,
     positionBlocks,
-  }), [presentPlayers, innings, pitcherAssignments, catcherAssignments, positionBlocks]);
+  }), [presentPlayers, innings, division, pitcherAssignments, catcherAssignments, positionBlocks]);
 
   const editor = useLineupEditor(selectedLineup, validationInput);
 

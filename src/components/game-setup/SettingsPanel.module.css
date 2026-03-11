@@ -21,6 +21,18 @@
   font-size: var(--font-size-base);
 }
 
+.rulesList {
+  margin: 0 0 var(--space-md);
+  padding-left: var(--space-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  list-style: disc;
+}
+
+.ruleItem {
+  margin-bottom: 2px;
+}
+
 .select {
   min-height: var(--min-tap-size);
   padding: var(--space-sm) var(--space-md);

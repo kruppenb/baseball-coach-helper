@@ -38,6 +38,7 @@ function makeDefaultInput(overrides: Partial<GenerateLineupInput> = {}): Generat
   return {
     presentPlayers: players11,
     innings: 6,
+    division: 'Coast',
     pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
     catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p5', 5: 'p6', 6: 'p6' },
     positionBlocks: {},
@@ -165,6 +166,33 @@ describe('generateLineup', () => {
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
     expect(result.errors).toEqual([]);
+  });
+
+  it('generates valid AAA lineup with balanced bench rotation (11 players / 5 innings)', () => {
+    const input = makeDefaultInput({
+      division: 'AAA',
+      innings: 5,
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p5', 5: 'p6' },
+    });
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+
+    // Verify balanced bench: no player has 3+ bench innings while another has < 2
+    const benchCounts: Record<string, number> = {};
+    for (const p of input.presentPlayers) benchCounts[p.id] = 0;
+    for (let inn = 1; inn <= input.innings; inn++) {
+      const playing = new Set(POSITIONS.map(pos => result.lineup[inn][pos]));
+      for (const p of input.presentPlayers) {
+        if (!playing.has(p.id)) benchCounts[p.id]++;
+      }
+    }
+    const maxBench = Math.max(...Object.values(benchCounts));
+    const minBench = Math.min(...Object.values(benchCounts));
+    if (maxBench >= 3) {
+      expect(minBench).toBeGreaterThanOrEqual(2);
+    }
   });
 
   it('generates valid lineup for 10 players / 6 innings (tight bench)', () => {

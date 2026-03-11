@@ -24,6 +24,7 @@ export function useLineup() {
 
   const { history } = useGameHistory();
   const innings = config.innings;
+  const division = config.division;
   const presentPlayers = useMemo(
     () => players.filter((p: Player) => p.isPresent),
     [players],
@@ -133,6 +134,7 @@ export function useLineup() {
     const input = {
       presentPlayers,
       innings,
+      division,
       pitcherAssignments: cleanState.pitcherAssignments,
       catcherAssignments: cleanState.catcherAssignments,
       positionBlocks: cleanState.positionBlocks,
@@ -166,7 +168,7 @@ export function useLineup() {
     }));
 
     return { success: true, count: 1, errors: [] };
-  }, [presentPlayers, innings, cleanState, setState, benchPriority]);
+  }, [presentPlayers, innings, division, cleanState, setState, benchPriority]);
 
   const selectLineup = useCallback((index: number) => {
     setState((prev: LineupState) => ({
@@ -204,11 +206,12 @@ export function useLineup() {
     return validateLineup(selectedLineup, {
       presentPlayers,
       innings,
+      division,
       pitcherAssignments: cleanState.pitcherAssignments,
       catcherAssignments: cleanState.catcherAssignments,
       positionBlocks: cleanState.positionBlocks,
     });
-  }, [selectedLineup, presentPlayers, innings, cleanState.pitcherAssignments, cleanState.catcherAssignments, cleanState.positionBlocks]);
+  }, [selectedLineup, presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments, cleanState.positionBlocks]);
 
   // Lightweight real-time checks for pre-assignment conflicts
   const preAssignmentErrors: string[] = useMemo(() => {
@@ -272,6 +275,7 @@ export function useLineup() {
     // Computed
     presentPlayers,
     innings,
+    division,
     selectedLineup,
     validationErrors,
     preAssignmentErrors,

@@ -1,4 +1,4 @@
-import type { Player, Lineup, Position, BatteryAssignments, PositionBlocks } from '../types/index.ts';
+import type { Player, Lineup, Position, BatteryAssignments, PositionBlocks, Division } from '../types/index.ts';
 
 export type ValidationRule =
   | 'GRID_COMPLETE'
@@ -6,6 +6,7 @@ export type ValidationRule =
   | 'PITCHER_MATCH'
   | 'CATCHER_MATCH'
   | 'NO_CONSECUTIVE_BENCH'
+  | 'BALANCED_BENCH_ROTATION'
   | 'INFIELD_MINIMUM'
   | 'POSITION_BLOCK'
   | 'CATCHER_PITCHER_ELIGIBILITY';
@@ -21,6 +22,7 @@ export interface ValidationError {
 export interface GenerateLineupInput {
   presentPlayers: Player[];
   innings: number;
+  division: Division;
   pitcherAssignments: BatteryAssignments;
   catcherAssignments: BatteryAssignments;
   positionBlocks: PositionBlocks;

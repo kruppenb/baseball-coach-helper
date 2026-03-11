@@ -4,7 +4,10 @@ export interface Player {
   isPresent: boolean;
 }
 
+export type Division = 'AAA' | 'Coast';
+
 export interface GameConfig {
+  division: Division;
   innings: 5 | 6;
   pitchersPerGame: number;
   catchersPerGame: number;

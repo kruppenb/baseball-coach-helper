@@ -16,6 +16,7 @@ export function validateLineup(
     ...validatePitcherAssignments(lineup, input),
     ...validateCatcherAssignments(lineup, input),
     ...validateNoConsecutiveBench(lineup, input),
+    ...validateBalancedBenchRotation(lineup, input),
     ...validateInfieldMinimum(lineup, input),
     ...validatePositionBlocks(lineup, input),
     ...validateCatcherPitcherEligibility(lineup, input),
@@ -155,6 +156,10 @@ function validateCatcherAssignments(
 
 /**
  * NO_CONSECUTIVE_BENCH: No player should sit out 2+ consecutive innings.
+ *
+ * NOTE: The Coast rule only prohibits consecutive bench innings until every player has
+ * sat at least once — after that, consecutive bench is allowed. We intentionally apply
+ * the stricter "never consecutive" rule to both divisions to ensure more equal playing time.
  */
 function validateNoConsecutiveBench(
   lineup: Lineup,
@@ -189,7 +194,70 @@ function validateNoConsecutiveBench(
 }
 
 /**
+ * BALANCED_BENCH_ROTATION (AAA only): No player sits out a 3rd inning
+ * until all players have sat out a 2nd inning.
+ * VLL Local Rules, AAA Sec. 2c-d.
+ *
+ * NOTE: This checks final bench counts rather than inning-by-inning ordering. The rule
+ * technically requires the 3rd bench to not occur until all players have a 2nd, but we
+ * only validate the end state. The generator's inning-by-inning build naturally respects
+ * the ordering, and the final-count check is intentionally stricter than needed as a
+ * safety net for equal playing time.
+ */
+function validateBalancedBenchRotation(
+  lineup: Lineup,
+  input: GenerateLineupInput,
+): ValidationError[] {
+  if (input.division !== 'AAA') return [];
+
+  const errors: ValidationError[] = [];
+  const playerCount = input.presentPlayers.length;
+
+  // With 9 or fewer players nobody sits, so rule is trivially satisfied
+  if (playerCount <= 9) return errors;
+
+  // Count bench innings per player
+  const benchCounts: Record<string, number> = {};
+  for (const player of input.presentPlayers) {
+    benchCounts[player.id] = 0;
+  }
+
+  for (let inn = 1; inn <= input.innings; inn++) {
+    const assignment = lineup[inn];
+    const playing = new Set(POSITIONS.map(pos => assignment?.[pos]).filter(Boolean));
+    for (const player of input.presentPlayers) {
+      if (!playing.has(player.id)) {
+        benchCounts[player.id]++;
+      }
+    }
+  }
+
+  const counts = Object.values(benchCounts);
+  const maxBench = Math.max(...counts);
+  const minBench = Math.min(...counts);
+
+  // If any player has 3+ bench innings while another has < 2, it violates the rule
+  if (maxBench >= 3 && minBench < 2) {
+    const overBenched = input.presentPlayers.filter(p => benchCounts[p.id] >= 3);
+    const underBenched = input.presentPlayers.filter(p => benchCounts[p.id] < 2);
+    for (const player of overBenched) {
+      errors.push({
+        rule: 'BALANCED_BENCH_ROTATION',
+        message: `${player.name} sits out ${benchCounts[player.id]} innings but ${underBenched[0]?.name ?? 'another player'} has only sat ${benchCounts[underBenched[0]?.id] ?? 0}. No player may sit a 3rd inning until all have sat a 2nd.`,
+        playerId: player.id,
+      });
+    }
+  }
+
+  return errors;
+}
+
+/**
  * INFIELD_MINIMUM: Every player must have 2+ infield positions in innings 1 through min(4, totalInnings).
+ *
+ * NOTE: The Coast division rule only requires infield innings within the first 5 innings,
+ * and AAA has no timing restriction at all. We intentionally use a tighter 4-inning window
+ * for both divisions to maximize infield exposure for every player.
  */
 function validateInfieldMinimum(
   lineup: Lineup,

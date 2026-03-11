@@ -25,3 +25,9 @@ api/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# League rules reference files
+Bylaws.txt
+InterlockRules.txt
+LocalRules.txt
+RULES_REFERENCE.md
