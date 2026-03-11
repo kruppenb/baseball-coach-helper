@@ -24,7 +24,10 @@ export const rosterBodySchema = z.object({
 /** PUT /api/game-config */
 export const gameConfigBodySchema = z.object({
   data: z.object({
-    innings: z.union([z.literal(5), z.literal(6)]),
+    division: z.enum(['AAA', 'Coast']).optional(),
+    innings: z.union([z.literal(5), z.literal(6)]).optional(),
+    pitchersPerGame: z.number().int().min(1).max(10).optional(),
+    catchersPerGame: z.number().int().min(1).max(10).optional(),
   }),
 });
 

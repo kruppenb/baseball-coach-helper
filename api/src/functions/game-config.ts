@@ -33,7 +33,7 @@ export async function getGameConfig(
     if (!resource) {
       return {
         status: 200,
-        jsonBody: { data: { innings: 6 }, _etag: null },
+        jsonBody: { data: { division: 'AAA', innings: 5, pitchersPerGame: 3, catchersPerGame: 3 }, _etag: null },
       };
     }
 

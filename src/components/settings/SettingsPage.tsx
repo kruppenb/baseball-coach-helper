@@ -14,7 +14,7 @@ import styles from './SettingsPage.module.css';
 
 export function SettingsPage() {
   const { players, addPlayer, renamePlayer, removePlayer, importPlayers } = useRoster();
-  const { config, setDivision, setInnings, setPitchersPerGame, setCatchersPerGame } = useGameConfig();
+  const { config, setDivision, setPitchersPerGame, setCatchersPerGame } = useGameConfig();
   const { presentPlayers, positionBlocks, togglePositionBlock } = useLineup();
   const { user, isLoading } = useAuth();
 
@@ -101,8 +101,6 @@ export function SettingsPage() {
       <SettingsPanel
         division={config.division}
         onDivisionChange={setDivision}
-        innings={config.innings}
-        onInningsChange={setInnings}
         pitchersPerGame={config.pitchersPerGame}
         onPitchersPerGameChange={setPitchersPerGame}
         catchersPerGame={config.catchersPerGame}

@@ -12,18 +12,16 @@ const DIVISION_INNINGS: Record<Division, 5 | 6> = {
 export function useGameConfig() {
   const [stored, setConfig] = useCloudStorage<GameConfig>('gameConfig', defaultConfig, { endpoint: '/api/game-config', mode: 'singleton' });
 
-  // Backward compatibility: older saved configs may lack the new fields
+  // Backward compatibility: older saved configs may lack the new fields.
+  // Always derive innings from division — it's not independently configurable.
   const config: GameConfig = {
     ...defaultConfig,
     ...stored,
+    innings: DIVISION_INNINGS[stored?.division ?? defaultConfig.division],
   };
 
   const setDivision = (division: Division) => {
     setConfig({ ...config, division, innings: DIVISION_INNINGS[division] });
-  };
-
-  const setInnings = (value: 5 | 6) => {
-    setConfig({ ...config, innings: value });
   };
 
   const setPitchersPerGame = (value: number) => {
@@ -34,5 +32,5 @@ export function useGameConfig() {
     setConfig({ ...config, catchersPerGame: value });
   };
 
-  return { config, setDivision, setInnings, setPitchersPerGame, setCatchersPerGame };
+  return { config, setDivision, setPitchersPerGame, setCatchersPerGame };
 }

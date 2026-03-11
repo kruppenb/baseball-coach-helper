@@ -4,8 +4,6 @@ import styles from './SettingsPanel.module.css';
 interface SettingsPanelProps {
   division: Division;
   onDivisionChange: (value: Division) => void;
-  innings: 5 | 6;
-  onInningsChange: (value: 5 | 6) => void;
   pitchersPerGame?: number;
   onPitchersPerGameChange?: (value: number) => void;
   catchersPerGame?: number;
@@ -33,8 +31,6 @@ const countOptions = [1, 2, 3, 4];
 export function SettingsPanel({
   division,
   onDivisionChange,
-  innings,
-  onInningsChange,
   pitchersPerGame,
   onPitchersPerGameChange,
   catchersPerGame,
@@ -63,21 +59,6 @@ export function SettingsPanel({
           <li key={rule} className={styles.ruleItem}>{rule}</li>
         ))}
       </ul>
-
-      <div className={styles.settingRow}>
-        <label htmlFor="innings-select" className={styles.settingLabel}>
-          Innings per game
-        </label>
-        <select
-          id="innings-select"
-          value={innings}
-          onChange={(e) => onInningsChange(Number(e.target.value) as 5 | 6)}
-          className={styles.select}
-        >
-          <option value={5}>5 innings</option>
-          <option value={6}>6 innings</option>
-        </select>
-      </div>
 
       {onPitchersPerGameChange && (
         <div className={styles.settingRow}>

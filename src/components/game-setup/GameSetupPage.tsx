@@ -8,7 +8,7 @@ import styles from './GameSetupPage.module.css';
 
 export function GameSetupPage() {
   const { players, togglePresent } = useRoster();
-  const { config, setDivision, setInnings, setPitchersPerGame, setCatchersPerGame } = useGameConfig();
+  const { config, setDivision, setPitchersPerGame, setCatchersPerGame } = useGameConfig();
   const { presentPlayers, positionBlocks, togglePositionBlock } = useLineup();
 
   return (
@@ -18,8 +18,6 @@ export function GameSetupPage() {
       <SettingsPanel
         division={config.division}
         onDivisionChange={setDivision}
-        innings={config.innings}
-        onInningsChange={setInnings}
         pitchersPerGame={config.pitchersPerGame}
         onPitchersPerGameChange={setPitchersPerGame}
         catchersPerGame={config.catchersPerGame}
