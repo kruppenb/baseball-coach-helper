@@ -33,7 +33,12 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: max-content;
+}
+
+@media (max-width: 768px) {
+  .table {
+    min-width: max-content;
+  }
 }
 
 .table th,
