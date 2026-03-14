@@ -140,7 +140,6 @@ describe('preValidate', () => {
       catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p1', 5: 'p1', 6: 'p1' },
     });
     const errors = preValidate(input);
-    // Should have no catcher-pitcher errors (other errors may still exist)
     const catcherPitcherErrors = errors.filter(e => e.toLowerCase().includes('catch') && e.toLowerCase().includes('pitch') && e.includes('4'));
     expect(catcherPitcherErrors).toEqual([]);
   });

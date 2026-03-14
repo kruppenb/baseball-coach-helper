@@ -286,8 +286,8 @@ export async function pullFromCloud(
                 // Local data differs from cloud — check if it was actually
                 // edited or is just stale from a previous session.
                 const lastSynced = getLastSynced(key);
-                if (lastSynced === null || snapshotRaw !== lastSynced) {
-                  // Local was edited since last sync (or never synced) → real conflict
+                if (lastSynced !== null && snapshotRaw !== lastSynced) {
+                  // Local was edited since last sync (unpushed changes) → real conflict
                   onConflict({
                     key,
                     localData: snapshotData,
@@ -300,7 +300,7 @@ export async function pullFromCloud(
                   onStatus('error');
                   return;
                 }
-                // Local unchanged since last sync → stale data, auto-accept cloud
+                // Never synced (lastSynced null) or local unchanged → auto-accept cloud
               }
             } catch {
               // JSON parse failure on snapshot data -- safe to overwrite

@@ -240,24 +240,20 @@ export function useLineup() {
       }
     }
 
-    // Check catcher-pitcher eligibility across all innings
+    // LL rule: a player who catches 4+ innings cannot pitch that game
     const catcherCounts: Record<string, number> = {};
     const isPitcherMap: Record<string, boolean> = {};
     for (let inn = 1; inn <= innings; inn++) {
-      const pitcherId = cleanState.pitcherAssignments[inn];
       const catcherId = cleanState.catcherAssignments[inn];
-      if (catcherId) {
-        catcherCounts[catcherId] = (catcherCounts[catcherId] ?? 0) + 1;
-      }
-      if (pitcherId) {
-        isPitcherMap[pitcherId] = true;
-      }
+      if (catcherId) catcherCounts[catcherId] = (catcherCounts[catcherId] ?? 0) + 1;
+      const pitcherId = cleanState.pitcherAssignments[inn];
+      if (pitcherId) isPitcherMap[pitcherId] = true;
     }
     for (const [playerId, count] of Object.entries(catcherCounts)) {
       if (count >= 4 && isPitcherMap[playerId]) {
         const player = presentPlayers.find(p => p.id === playerId);
         const name = player?.name ?? 'A player';
-        errors.push(`${name} is assigned to catch ${count} innings and also pitch — a player who catches 4+ innings cannot pitch in the same game.`);
+        errors.push(`${name} catches ${count} innings and also pitches — a player who catches 4+ innings cannot pitch in the same game.`);
       }
     }
 

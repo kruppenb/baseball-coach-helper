@@ -54,26 +54,21 @@ export function preValidate(input: GenerateLineupInput): string[] {
     }
   }
 
-  // Check for catcher-pitcher eligibility violation in pre-assignments
-  // A player who catches 4+ innings cannot pitch in the same game
+  // LL rule: a player who catches 4+ innings cannot pitch that game
   const catcherCounts: Record<string, number> = {};
   const isPitcher: Record<string, boolean> = {};
   for (let inn = 1; inn <= innings; inn++) {
-    const pitcherId = pitcherAssignments[inn];
     const catcherId = catcherAssignments[inn];
-    if (catcherId) {
-      catcherCounts[catcherId] = (catcherCounts[catcherId] ?? 0) + 1;
-    }
-    if (pitcherId) {
-      isPitcher[pitcherId] = true;
-    }
+    if (catcherId) catcherCounts[catcherId] = (catcherCounts[catcherId] ?? 0) + 1;
+    const pitcherId = pitcherAssignments[inn];
+    if (pitcherId) isPitcher[pitcherId] = true;
   }
   for (const [playerId, count] of Object.entries(catcherCounts)) {
     if (count >= 4 && isPitcher[playerId]) {
       const player = presentPlayers.find(p => p.id === playerId);
       const name = player?.name ?? 'A player';
       errors.push(
-        `${name} is assigned to catch ${count} innings and also pitch — a player who catches 4+ innings cannot pitch in the same game.`,
+        `${name} catches ${count} innings and also pitches — a player who catches 4+ innings cannot pitch in the same game.`,
       );
     }
   }

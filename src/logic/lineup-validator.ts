@@ -3,7 +3,7 @@ import { POSITIONS, INFIELD_POSITIONS } from '../types/index.ts';
 import type { GenerateLineupInput, ValidationError } from './lineup-types.ts';
 
 /**
- * Validates a lineup against all 8 rules and returns an array of coach-friendly errors.
+ * Validates a lineup against all 9 rules and returns an array of coach-friendly errors.
  * Returns empty array if lineup is fully valid.
  */
 export function validateLineup(

@@ -119,19 +119,26 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
     [players],
   );
 
-  // Players assigned to pitcher slots (used to exclude from catcher dropdowns)
-  const assignedPitchers = useMemo(() => {
-    const set = new Set<string>();
-    for (const id of selectedPitchers) if (id) set.add(id);
-    return set;
-  }, [selectedPitchers]);
+  // Compute per-player catcher innings from slot selections.
+  // LL rule: a player who catches 4+ innings cannot pitch that game.
+  const catcherInningsByPlayer = useMemo(() => {
+    const filledCatchers = selectedCatchers.filter(Boolean);
+    const dist = distributeAcrossInnings(filledCatchers, innings);
+    const counts: Record<string, number> = {};
+    for (let i = 1; i <= innings; i++) {
+      const id = dist[i];
+      if (id) counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return counts;
+  }, [selectedCatchers, innings]);
 
-  // Players assigned to catcher slots (used to exclude from pitcher dropdowns)
-  const assignedCatchers = useMemo(() => {
+  const catches4Plus = useMemo(() => {
     const set = new Set<string>();
-    for (const id of selectedCatchers) if (id) set.add(id);
+    for (const [id, count] of Object.entries(catcherInningsByPlayer)) {
+      if (count >= 4) set.add(id);
+    }
     return set;
-  }, [selectedCatchers]);
+  }, [catcherInningsByPlayer]);
 
   // Apply assignments to inning-level P/C whenever selections change
   useEffect(() => {
@@ -156,47 +163,33 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
       next[slotIndex] = playerId;
       return next;
     });
-    // If this player was a catcher, clear ALL catcher slots with that player
-    if (playerId) {
-      setSelectedCatchers((prev) => {
-        if (!prev.includes(playerId)) return prev;
-        return prev.map((id) => (id === playerId ? '' : id));
-      });
-    }
   };
 
   const handleCatcherChange = (slotIndex: number, playerId: string) => {
-    setSelectedCatchers((prev) => {
-      const next = [...prev];
-      next[slotIndex] = playerId;
-      return next;
-    });
-    // If this player was a pitcher, clear that pitcher slot
-    if (playerId) {
-      setSelectedPitchers((prev) => {
-        const idx = prev.indexOf(playerId);
-        if (idx >= 0) {
-          const next = [...prev];
-          next[idx] = '';
-          return next;
-        }
-        return prev;
-      });
+    const nextCatchers = [...selectedCatchers];
+    nextCatchers[slotIndex] = playerId;
+    setSelectedCatchers(nextCatchers);
+
+    // If this catcher change causes any pitcher to catch 4+ innings, clear them from pitcher slots
+    const filledCatchers = nextCatchers.filter(Boolean);
+    const dist = distributeAcrossInnings(filledCatchers, innings);
+    const counts: Record<string, number> = {};
+    for (let i = 1; i <= innings; i++) {
+      const id = dist[i];
+      if (id) counts[id] = (counts[id] ?? 0) + 1;
     }
+    setSelectedPitchers((prev) => {
+      const cleared = prev.map((id) => (id && counts[id] >= 4 ? '' : id));
+      return cleared.some((id, i) => id !== prev[i]) ? cleared : prev;
+    });
   };
 
-  /** Available options for a pitcher slot: present players not assigned to another pitcher or any catcher slot */
-  const pitcherOptionsFor = (slotIndex: number) =>
-    presentPlayers.filter((p: Player) => {
-      if (p.id === selectedPitchers[slotIndex]) return true;
-      return !assignedPitchers.has(p.id) && !assignedCatchers.has(p.id);
-    });
+  /** Available options for a pitcher slot: exclude players catching 4+ innings (LL rule) */
+  const pitcherOptionsFor = (_slotIndex: number) =>
+    presentPlayers.filter((p: Player) => !catches4Plus.has(p.id));
 
-  /** Available options for a catcher slot: present players not assigned as a pitcher (same player CAN fill multiple catcher slots) */
-  const catcherOptionsFor = (_slotIndex: number) =>
-    presentPlayers.filter((p: Player) => {
-      return !assignedPitchers.has(p.id);
-    });
+  /** Available options for a catcher slot: all present players (same player can fill multiple slots) */
+  const catcherOptionsFor = (_slotIndex: number) => presentPlayers;
 
   // All pitcher slots must be filled to advance
   const canAdvance = selectedPitchers.every((id) => id !== '');
