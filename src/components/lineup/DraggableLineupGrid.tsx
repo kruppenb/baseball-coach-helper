@@ -83,6 +83,7 @@ export function DraggableLineupGrid({
 
   return (
     <DragDropProvider plugins={plugins} onDragEnd={handleDragEnd}>
+      <div className={styles.scrollWrapper}>
       <div
         className={styles.grid}
         style={{ gridTemplateColumns: `auto repeat(${innings}, 1fr)` }}
@@ -145,6 +146,7 @@ export function DraggableLineupGrid({
             </div>
           );
         })}
+      </div>
       </div>
 
       <DragOverlay>
