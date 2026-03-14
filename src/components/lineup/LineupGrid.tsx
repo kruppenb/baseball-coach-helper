@@ -33,6 +33,7 @@ export function LineupGrid({ lineup, innings, players, errors }: LineupGridProps
   const inningNumbers = Array.from({ length: innings }, (_, i) => i + 1);
 
   return (
+    <div className={styles.scrollWrapper}>
     <div
       className={styles.grid}
       style={{ gridTemplateColumns: `auto repeat(${innings}, 1fr)` }}
@@ -84,6 +85,7 @@ export function LineupGrid({ lineup, innings, players, errors }: LineupGridProps
           </div>
         );
       })}
+    </div>
     </div>
   );
 }

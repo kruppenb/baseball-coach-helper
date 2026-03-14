@@ -24,10 +24,16 @@
   color: var(--color-text-muted);
 }
 
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--space-lg);
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: var(--space-lg);
+  min-width: max-content;
 }
 
 .table th,

@@ -23,6 +23,7 @@ export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }
       {gameLabel && <span className={styles.gameLabel}>{gameLabel}</span>}
       <span className={styles.date}>{new Date().toLocaleDateString()}</span>
 
+      <div className={styles.tableWrapper}>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -65,6 +66,7 @@ export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }
           </tr>
         </tbody>
       </table>
+      </div>
 
       <div className={styles.battingSection}>
         <h4 className={styles.battingTitle}>Batting Order</h4>

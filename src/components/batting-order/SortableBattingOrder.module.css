@@ -13,18 +13,11 @@
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-sm) 0;
   transition: background 0.15s ease;
-  touch-action: none;
-  cursor: grab;
-  user-select: none;
 }
 
 .dragging {
   opacity: 0.4;
   background: var(--color-surface-hover);
-}
-
-.item:active {
-  cursor: grabbing;
 }
 
 .dragHandle {
@@ -34,7 +27,13 @@
   align-items: center;
   font-size: var(--font-size-base);
   flex-shrink: 0;
-  pointer-events: none;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
 }
 
 .position {
