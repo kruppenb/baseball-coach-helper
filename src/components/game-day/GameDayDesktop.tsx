@@ -5,6 +5,7 @@ import { useLineupEditor } from '../../hooks/useLineupEditor';
 import { useBattingOrder } from '../../hooks/useBattingOrder';
 import { useGameHistory } from '../../hooks/useGameHistory';
 import { useGameConfig } from '../../hooks/useGameConfig';
+import { usePCAssignment } from '../../hooks/usePCAssignment';
 import { computeRecentPCHistory } from '../../logic/game-history';
 import { scoreLineup } from '../../logic/lineup-scorer';
 import { AttendanceList } from '../game-setup/AttendanceList';
@@ -23,47 +24,6 @@ import styles from './GameDayDesktop.module.css';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function distributeAcrossInnings(
-  players: string[],
-  innings: number,
-): Record<number, string> {
-  const assignments: Record<number, string> = {};
-  if (players.length === 0) return assignments;
-
-  const inningsPerPlayer = Math.ceil(innings / players.length);
-
-  for (let i = 1; i <= innings; i++) {
-    const playerIndex = Math.min(
-      Math.floor((i - 1) / inningsPerPlayer),
-      players.length - 1,
-    );
-    assignments[i] = players[playerIndex];
-  }
-
-  return assignments;
-}
-
-function slotsFromAssignments(
-  assignments: Record<number, string>,
-  slotCount: number,
-): string[] {
-  const seen = new Set<string>();
-  const unique: string[] = [];
-  const innings = Object.keys(assignments).map(Number).sort((a, b) => a - b);
-  for (const inn of innings) {
-    const id = assignments[inn];
-    if (id && !seen.has(id)) {
-      seen.add(id);
-      unique.push(id);
-    }
-  }
-  const slots = Array(slotCount).fill('');
-  for (let i = 0; i < Math.min(unique.length, slotCount); i++) {
-    slots[i] = unique[i];
-  }
-  return slots;
-}
 
 function computeFairnessSummary(
   lineup: Lineup,
@@ -165,56 +125,27 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
     generate: generateBattingOrder,
   } = useBattingOrder();
 
-  // --- P/C Slot State ---
+  // --- P/C Slot State (shared hook) ---
   const pitcherCount = config.pitchersPerGame;
   const catcherCount = config.catchersPerGame;
 
-  const [selectedPitchers, setSelectedPitchers] = useState<string[]>(
-    () => slotsFromAssignments(pitcherAssignments, pitcherCount),
-  );
-  const [selectedCatchers, setSelectedCatchers] = useState<string[]>(
-    () => slotsFromAssignments(catcherAssignments, catcherCount),
-  );
-
-  // Resize slot arrays when config changes
-  useEffect(() => {
-    setSelectedPitchers(prev => {
-      if (prev.length === pitcherCount) return prev;
-      const next = Array(pitcherCount).fill('');
-      for (let i = 0; i < Math.min(prev.length, pitcherCount); i++) {
-        next[i] = prev[i];
-      }
-      return next;
-    });
-  }, [pitcherCount]);
-
-  useEffect(() => {
-    setSelectedCatchers(prev => {
-      if (prev.length === catcherCount) return prev;
-      const next = Array(catcherCount).fill('');
-      for (let i = 0; i < Math.min(prev.length, catcherCount); i++) {
-        next[i] = prev[i];
-      }
-      return next;
-    });
-  }, [catcherCount]);
-
-  // Apply assignments to inning-level P/C whenever selections change
-  useEffect(() => {
-    const filledPitchers = selectedPitchers.filter(Boolean);
-    const pitcherDist = distributeAcrossInnings(filledPitchers, innings);
-    for (let i = 1; i <= innings; i++) {
-      setPitcher(i, pitcherDist[i] ?? '');
-    }
-  }, [selectedPitchers, innings, setPitcher]);
-
-  useEffect(() => {
-    const filledCatchers = selectedCatchers.filter(Boolean);
-    const catcherDist = distributeAcrossInnings(filledCatchers, innings);
-    for (let i = 1; i <= innings; i++) {
-      setCatcher(i, catcherDist[i] ?? '');
-    }
-  }, [selectedCatchers, innings, setCatcher]);
+  const {
+    selectedPitchers,
+    selectedCatchers,
+    pitcherOptionsFor,
+    catcherOptionsFor,
+    handlePitcherChange,
+    handleCatcherChange,
+  } = usePCAssignment({
+    presentPlayers,
+    innings,
+    pitcherCount,
+    catcherCount,
+    pitcherAssignments,
+    catcherAssignments,
+    setPitcher,
+    setCatcher,
+  });
 
   // --- P/C history (all players, for compact chip display) ---
   const pcHistory = useMemo(
@@ -246,57 +177,6 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
       }))
       .sort((a, b) => b.count - a.count);
   }, [players, pcHistory]);
-
-  // Compute per-player catcher innings from slot selections.
-  // LL rule: a player who catches 4+ innings cannot pitch that game.
-  const catches4Plus = useMemo(() => {
-    const filledCatchers = selectedCatchers.filter(Boolean);
-    const dist = distributeAcrossInnings(filledCatchers, innings);
-    const counts: Record<string, number> = {};
-    for (let i = 1; i <= innings; i++) {
-      const id = dist[i];
-      if (id) counts[id] = (counts[id] ?? 0) + 1;
-    }
-    const set = new Set<string>();
-    for (const [id, count] of Object.entries(counts)) {
-      if (count >= 4) set.add(id);
-    }
-    return set;
-  }, [selectedCatchers, innings]);
-
-  const handlePitcherChange = (slotIndex: number, playerId: string) => {
-    setSelectedPitchers(prev => {
-      const next = [...prev];
-      next[slotIndex] = playerId;
-      return next;
-    });
-  };
-
-  const handleCatcherChange = (slotIndex: number, playerId: string) => {
-    const nextCatchers = [...selectedCatchers];
-    nextCatchers[slotIndex] = playerId;
-    setSelectedCatchers(nextCatchers);
-
-    // If this catcher change causes any pitcher to catch 4+ innings, clear them from pitcher slots
-    const filledCatchers = nextCatchers.filter(Boolean);
-    const dist = distributeAcrossInnings(filledCatchers, innings);
-    const counts: Record<string, number> = {};
-    for (let i = 1; i <= innings; i++) {
-      const id = dist[i];
-      if (id) counts[id] = (counts[id] ?? 0) + 1;
-    }
-    setSelectedPitchers(prev => {
-      const cleared = prev.map(id => (id && counts[id] >= 4 ? '' : id));
-      return cleared.some((id, i) => id !== prev[i]) ? cleared : prev;
-    });
-  };
-
-  /** Available options for a pitcher slot: exclude players catching 4+ innings (LL rule) */
-  const pitcherOptionsFor = (_slotIndex: number) =>
-    presentPlayers.filter((p: Player) => !catches4Plus.has(p.id));
-
-  /** Available options for a catcher slot: all present players (same player can fill multiple slots) */
-  const catcherOptionsFor = (_slotIndex: number) => presentPlayers;
 
   // --- Lineup Editor ---
   const validationInput: GenerateLineupInput = useMemo(() => ({
