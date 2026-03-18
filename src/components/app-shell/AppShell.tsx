@@ -33,7 +33,7 @@ export function AppShell() {
 
   // --- Hooks for orchestration ---
   const { players, resetAttendance } = useRoster();
-  const { selectedLineup, innings, pitcherAssignments, catcherAssignments, resetState: resetLineup } = useLineup();
+  const { selectedLineup, innings, division, pitcherAssignments, catcherAssignments, resetState: resetLineup } = useLineup();
   const { currentOrder, clear: clearBatting } = useBattingOrder();
   const { saveGame, resetCurrentGame } = useGameHistory();
   const { resetStepper } = useStepperState();
@@ -157,12 +157,13 @@ export function AppShell() {
         gameLabel: undefined,
         pitcherAssignments,
         catcherAssignments,
+        division,
       });
     }
     performReset();
     setActiveTab('game-day');
     setShowNewGameDialog(false);
-  }, [selectedLineup, currentOrder, innings, players, pitcherAssignments, catcherAssignments, saveGame, performReset]);
+  }, [selectedLineup, currentOrder, innings, players, pitcherAssignments, catcherAssignments, division, saveGame, performReset]);
 
   const handleCancelNewGame = useCallback(() => {
     setShowNewGameDialog(false);
@@ -185,11 +186,12 @@ export function AppShell() {
         gameLabel: label,
         pitcherAssignments,
         catcherAssignments,
+        division,
       });
     }
     pendingPrint.current = true;
     setPrintSeq(s => s + 1);
-  }, [selectedLineup, currentOrder, innings, players, pitcherAssignments, catcherAssignments, saveGame]);
+  }, [selectedLineup, currentOrder, innings, players, pitcherAssignments, catcherAssignments, division, saveGame]);
 
   // Defer window.print() until after React renders the game label
   useEffect(() => {

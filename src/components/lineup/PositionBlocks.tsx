@@ -1,5 +1,6 @@
 import type { Player, Position, PositionBlocks as PositionBlocksType } from '../../types';
-import { POSITIONS } from '../../types';
+import { getPositions } from '../../types';
+import { useGameConfig } from '../../hooks/useGameConfig';
 import styles from './PositionBlocks.module.css';
 
 interface PositionBlocksProps {
@@ -13,6 +14,8 @@ export function PositionBlocks({
   positionBlocks,
   onToggleBlock,
 }: PositionBlocksProps) {
+  const { config } = useGameConfig();
+  const positions = getPositions(config.division);
   const totalBlocked = Object.values(positionBlocks).reduce(
     (sum, positions) => sum + positions.length,
     0,
@@ -39,7 +42,7 @@ export function PositionBlocks({
               <div key={player.id} className={styles.playerRow}>
                 <span className={styles.playerName}>{player.name}</span>
                 <div className={styles.chips}>
-                  {POSITIONS.map((position) => {
+                  {positions.map((position) => {
                     const isBlocked =
                       positionBlocks[player.id]?.includes(position) ?? false;
                     return (

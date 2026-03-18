@@ -1,5 +1,6 @@
 import type { Lineup, Player, Position } from '../../types/index';
-import { POSITIONS } from '../../types/index';
+import { getPositions } from '../../types/index';
+import { useGameConfig } from '../../hooks/useGameConfig';
 import styles from './LineupOptions.module.css';
 
 interface LineupOptionsProps {
@@ -10,14 +11,14 @@ interface LineupOptionsProps {
   onSelect: (index: number) => void;
 }
 
-function getCompactBenchSummary(lineup: Lineup, innings: number, players: Player[]): string {
+function getCompactBenchSummary(lineup: Lineup, innings: number, players: Player[], positions: Position[]): string {
   const presentPlayers = players.filter(p => p.isPresent);
   const benchMap = new Map<string, number[]>();
 
   for (let inn = 1; inn <= innings; inn++) {
     const assignment = lineup[inn];
     if (!assignment) continue;
-    const playingIds = new Set(POSITIONS.map((pos: Position) => assignment[pos]));
+    const playingIds = new Set(positions.map((pos: Position) => assignment[pos]));
     for (const player of presentPlayers) {
       if (!playingIds.has(player.id)) {
         const existing = benchMap.get(player.name) ?? [];
@@ -43,6 +44,9 @@ export function LineupOptions({
   players,
   onSelect,
 }: LineupOptionsProps) {
+  const { config } = useGameConfig();
+  const positions = getPositions(config.division);
+
   if (lineups.length === 0) {
     return null;
   }
@@ -59,7 +63,7 @@ export function LineupOptions({
           const cardClass = isSelected
             ? `${styles.card} ${styles.cardSelected}`
             : styles.card;
-          const benchText = getCompactBenchSummary(lineup, innings, players);
+          const benchText = getCompactBenchSummary(lineup, innings, players, positions);
           return (
             <button
               key={index}

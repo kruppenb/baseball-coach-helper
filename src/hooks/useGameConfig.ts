@@ -4,9 +4,10 @@ import type { GameConfig, Division } from '../types';
 const defaultConfig: GameConfig = { division: 'AAA', innings: 5, pitchersPerGame: 3, catchersPerGame: 3 };
 
 /** Maps division to its default inning count per VLL Local Rules */
-const DIVISION_INNINGS: Record<Division, 5 | 6> = {
+const DIVISION_INNINGS: Record<Division, number> = {
   AAA: 5,
   Coast: 6,
+  AA: 4,
 };
 
 export function useGameConfig() {

@@ -4,11 +4,11 @@ export interface Player {
   isPresent: boolean;
 }
 
-export type Division = 'AAA' | 'Coast';
+export type Division = 'AAA' | 'Coast' | 'AA';
 
 export interface GameConfig {
   division: Division;
-  innings: 5 | 6;
+  innings: number;
   pitchersPerGame: number;
   catchersPerGame: number;
 }
@@ -28,11 +28,31 @@ export interface StepperState {
 
 // --- Lineup Types ---
 
-export type Position = 'P' | 'C' | '1B' | '2B' | '3B' | 'SS' | 'LF' | 'CF' | 'RF';
+export type Position = 'P' | 'C' | '1B' | '2B' | '3B' | 'SS' | 'LF' | 'LC' | 'CF' | 'RC' | 'RF';
 
-export const POSITIONS: Position[] = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+export const POSITIONS_9: Position[] = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+export const POSITIONS_10: Position[] = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'LC', 'RC', 'RF'];
+
+export const OUTFIELD_POSITIONS_3: Position[] = ['LF', 'CF', 'RF'];
+export const OUTFIELD_POSITIONS_4: Position[] = ['LF', 'LC', 'RC', 'RF'];
+
+// Aliases for backward compat (9-position set)
+export const POSITIONS = POSITIONS_9;
+export const OUTFIELD_POSITIONS = OUTFIELD_POSITIONS_3;
 export const INFIELD_POSITIONS: Position[] = ['P', 'C', '1B', '2B', '3B', 'SS'];
-export const OUTFIELD_POSITIONS: Position[] = ['LF', 'CF', 'RF'];
+
+export function getPositions(division: Division): Position[] {
+  return division === 'AA' ? POSITIONS_10 : POSITIONS_9;
+}
+export function getOutfieldPositions(division: Division): Position[] {
+  return division === 'AA' ? OUTFIELD_POSITIONS_4 : OUTFIELD_POSITIONS_3;
+}
+export function getFielderCount(division: Division): number {
+  return division === 'AA' ? 10 : 9;
+}
+export function hasPlayerPitching(division: Division): boolean {
+  return division !== 'AA';
+}
 
 /** A single inning's assignments: position -> playerId */
 export type InningAssignment = Record<Position, string>;
@@ -96,4 +116,5 @@ export interface GameHistoryEntry {
   pitcherAssignments?: Record<number, string>;
   catcherAssignments?: Record<number, string>;
   playerCount?: number;
+  division?: Division;
 }

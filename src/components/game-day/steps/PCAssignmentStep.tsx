@@ -6,6 +6,7 @@ import { useRoster } from '../../../hooks/useRoster';
 import { usePCAssignment } from '../../../hooks/usePCAssignment';
 import { computeRecentPCHistory } from '../../../logic/game-history';
 import type { Player } from '../../../types';
+import { hasPlayerPitching } from '../../../types';
 import styles from './PCAssignmentStep.module.css';
 
 interface PCAssignmentStepProps {
@@ -54,8 +55,8 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
     [players],
   );
 
-  // All pitcher slots must be filled to advance
-  const canAdvance = selectedPitchers.every((id) => id !== '');
+  // All pitcher slots must be filled to advance (AA: always true as fallback)
+  const canAdvance = !hasPlayerPitching(config.division) || selectedPitchers.every((id) => id !== '');
 
   // Build status label for history table
   const getPlayerStatus = (playerId: string): string => {

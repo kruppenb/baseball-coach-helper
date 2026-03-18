@@ -1,5 +1,5 @@
 import type { Lineup, Position } from '../types/index.ts';
-import { POSITIONS } from '../types/index.ts';
+import { INFIELD_POSITIONS, getPositions, getFielderCount, hasPlayerPitching } from '../types/index.ts';
 import type { GenerateLineupInput } from './lineup-types.ts';
 
 // --- Types ---
@@ -31,8 +31,8 @@ function scoreBenchEquity(lineup: Lineup, input: GenerateLineupInput): number {
   const { presentPlayers, innings } = input;
   const playerCount = presentPlayers.length;
 
-  // If exactly 9 players for 9 positions, nobody sits — perfect equity
-  if (playerCount <= 9) return 100;
+  // If exactly fielderCount players for positions, nobody sits — perfect equity
+  if (playerCount <= getFielderCount(input.division)) return 100;
 
   // Count bench innings per player
   const benchCounts: Record<string, number> = {};
@@ -41,7 +41,7 @@ function scoreBenchEquity(lineup: Lineup, input: GenerateLineupInput): number {
   }
 
   for (let inn = 1; inn <= innings; inn++) {
-    const playing = new Set(POSITIONS.map(pos => lineup[inn]?.[pos]).filter(Boolean));
+    const playing = new Set(getPositions(input.division).map(pos => lineup[inn]?.[pos]).filter(Boolean));
     for (const player of presentPlayers) {
       if (!playing.has(player.id)) {
         benchCounts[player.id]++;
@@ -67,14 +67,15 @@ function scoreInfieldBalance(lineup: Lineup, input: GenerateLineupInput): number
   const { presentPlayers, innings } = input;
   const playerCount = presentPlayers.length;
 
-  // Count non-battery infield innings per player
+  // Count infield innings per player (AA: all 6 infield; AAA/Coast: non-battery only)
+  const infieldPositions = hasPlayerPitching(input.division) ? NON_BATTERY_INFIELD : INFIELD_POSITIONS;
   const infieldCounts: Record<string, number> = {};
   for (const player of presentPlayers) {
     infieldCounts[player.id] = 0;
   }
 
   for (let inn = 1; inn <= innings; inn++) {
-    for (const pos of NON_BATTERY_INFIELD) {
+    for (const pos of infieldPositions) {
       const playerId = lineup[inn]?.[pos];
       if (playerId && infieldCounts[playerId] !== undefined) {
         infieldCounts[playerId]++;
@@ -93,7 +94,7 @@ function scoreInfieldBalance(lineup: Lineup, input: GenerateLineupInput): number
 
   // Max possible stdDev: approximately innings/2 for normal rosters,
   // or innings for exactly 9 players (everyone plays every inning)
-  const maxStdDev = playerCount <= 9 ? innings : innings / 2;
+  const maxStdDev = playerCount <= getFielderCount(input.division) ? innings : innings / 2;
 
   if (maxStdDev === 0) return 100;
 
@@ -106,27 +107,28 @@ function scoreInfieldBalance(lineup: Lineup, input: GenerateLineupInput): number
 function scorePositionVariety(lineup: Lineup, input: GenerateLineupInput): number {
   const { presentPlayers, innings } = input;
 
-  // For each player, count unique non-P/C positions played
+  // For each player, count unique positions played (AA: all positions; AAA/Coast: non-P/C)
+  const varietyPositions = hasPlayerPitching(input.division) ? NON_PC_POSITIONS : getPositions(input.division);
   const uniquePositionCounts: number[] = [];
 
   for (const player of presentPlayers) {
-    const positions = new Set<Position>();
+    const positionsPlayed = new Set<Position>();
     for (let inn = 1; inn <= innings; inn++) {
-      for (const pos of NON_PC_POSITIONS) {
+      for (const pos of varietyPositions) {
         if (lineup[inn]?.[pos] === player.id) {
-          positions.add(pos);
+          positionsPlayed.add(pos);
         }
       }
     }
-    uniquePositionCounts.push(positions.size);
+    uniquePositionCounts.push(positionsPlayed.size);
   }
 
   if (uniquePositionCounts.length === 0) return 100;
 
   const averageUnique = uniquePositionCounts.reduce((sum, c) => sum + c, 0) / uniquePositionCounts.length;
 
-  // Max possible unique positions = min(innings, 7) (7 non-P/C positions)
-  const maxPossible = Math.min(innings, 7);
+  // Max possible unique positions
+  const maxPossible = Math.min(innings, varietyPositions.length);
 
   if (maxPossible === 0) return 100;
 

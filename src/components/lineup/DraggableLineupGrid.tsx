@@ -3,7 +3,8 @@ import { Feedback } from '@dnd-kit/dom';
 import { DraggableCell } from './DraggableCell';
 import { BenchPlayerChip } from './BenchPlayerChip';
 import type { Lineup, Player, Position } from '../../types/index';
-import { POSITIONS } from '../../types/index';
+import { getPositions } from '../../types/index';
+import { useGameConfig } from '../../hooks/useGameConfig';
 import type { ValidationError } from '../../logic/lineup-types';
 import styles from './DraggableLineupGrid.module.css';
 
@@ -41,6 +42,9 @@ export function DraggableLineupGrid({
   onSwap,
   onBenchSwap,
 }: DraggableLineupGridProps) {
+  const { config } = useGameConfig();
+  const positions = getPositions(config.division);
+
   if (innings === 0 || Object.keys(lineup).length === 0) {
     return null;
   }
@@ -97,7 +101,7 @@ export function DraggableLineupGrid({
         ))}
 
         {/* Position rows */}
-        {POSITIONS.map(pos => (
+        {positions.map(pos => (
           <div key={`row-${pos}`} className={styles.positionRow}>
             <div className={styles.positionLabel}>
               {pos}
@@ -126,7 +130,7 @@ export function DraggableLineupGrid({
         {inningNumbers.map(inn => {
           const assignment = lineup[inn];
           const playingIds = assignment
-            ? new Set(POSITIONS.map(pos => assignment[pos]))
+            ? new Set(positions.map(pos => assignment[pos]))
             : new Set<string>();
           const benchPlayers = players.filter(
             p => p.isPresent && !playingIds.has(p.id),

@@ -1,4 +1,5 @@
 import type { Division } from '../../types';
+import { hasPlayerPitching } from '../../types';
 import styles from './SettingsPanel.module.css';
 
 interface SettingsPanelProps {
@@ -11,6 +12,14 @@ interface SettingsPanelProps {
 }
 
 const DIVISION_RULES: Record<Division, string[]> = {
+  AA: [
+    'Coach pitch (no player pitching)',
+    '10 fielders (4 outfield positions)',
+    '4 innings per game',
+    '2 infield innings required',
+    'No player sits consecutive innings',
+    'Balanced bench rotation (same as AAA)',
+  ],
   AAA: [
     '5 innings per game',
     'No player sits a 3rd inning until all have sat a 2nd',
@@ -49,6 +58,7 @@ export function SettingsPanel({
           onChange={(e) => onDivisionChange(e.target.value as Division)}
           className={styles.select}
         >
+          <option value="AA">AA</option>
           <option value="AAA">AAA</option>
           <option value="Coast">Coast</option>
         </select>
@@ -60,7 +70,7 @@ export function SettingsPanel({
         ))}
       </ul>
 
-      {onPitchersPerGameChange && (
+      {onPitchersPerGameChange && hasPlayerPitching(division) && (
         <div className={styles.settingRow}>
           <label htmlFor="pitchers-per-game-select" className={styles.settingLabel}>
             Pitchers per game
@@ -80,7 +90,7 @@ export function SettingsPanel({
         </div>
       )}
 
-      {onCatchersPerGameChange && (
+      {onCatchersPerGameChange && hasPlayerPitching(division) && (
         <div className={styles.settingRow}>
           <label htmlFor="catchers-per-game-select" className={styles.settingLabel}>
             Catchers per game

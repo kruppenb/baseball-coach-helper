@@ -1,5 +1,5 @@
-import type { Player, Position, Lineup, GameHistoryEntry, PlayerGameSummary, InningAssignment } from '../types/index.ts';
-import { POSITIONS } from '../types/index.ts';
+import type { Player, Position, Lineup, GameHistoryEntry, PlayerGameSummary, InningAssignment, Division } from '../types/index.ts';
+import { getPositions } from '../types/index.ts';
 
 /**
  * Create a game history entry from a saved game's data.
@@ -11,6 +11,7 @@ export interface CreateGameHistoryOptions {
   gameLabel?: string;
   pitcherAssignments?: Record<number, string>;
   catcherAssignments?: Record<number, string>;
+  division?: Division;
 }
 
 export function createGameHistoryEntry(
@@ -20,6 +21,8 @@ export function createGameHistoryEntry(
   players: Player[],
   options?: CreateGameHistoryOptions,
 ): GameHistoryEntry {
+  const division = options?.division ?? 'AAA';
+  const positionsForDivision = getPositions(division);
   const playerMap = new Map(players.map(p => [p.id, p.name]));
   const presentPlayers = players.filter(p => p.isPresent);
 
@@ -30,7 +33,7 @@ export function createGameHistoryEntry(
 
       for (let inn = 1; inn <= innings; inn++) {
         const inningAssignment = lineup[inn];
-        const pos = POSITIONS.find(p => inningAssignment[p] === player.id);
+        const pos = positionsForDivision.find(p => inningAssignment[p] === player.id);
         if (pos) {
           fieldingPositions.push(pos);
         } else {
@@ -55,6 +58,7 @@ export function createGameHistoryEntry(
     battingOrder,
     playerSummaries,
     playerCount: presentPlayers.length,
+    division,
     ...(options?.gameLabel !== undefined && { gameLabel: options.gameLabel }),
     ...(options?.pitcherAssignments !== undefined && { pitcherAssignments: options.pitcherAssignments }),
     ...(options?.catcherAssignments !== undefined && { catcherAssignments: options.catcherAssignments }),

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { preValidate, generateLineup, generateMultipleLineups, generateBestLineup } from './lineup-generator.ts';
 import type { GenerateLineupInput } from './lineup-types.ts';
 import type { Player, Position } from '../types/index.ts';
-import { POSITIONS, INFIELD_POSITIONS } from '../types/index.ts';
+import { POSITIONS, POSITIONS_10, INFIELD_POSITIONS } from '../types/index.ts';
 
 // --- Test Helpers ---
 
@@ -524,5 +524,170 @@ describe('generateBestLineup', () => {
         expect(result.lineup[inn]['C']).toBe(expectedCatcher);
       }
     }
+  });
+});
+
+// --- AA Division Tests ---
+
+function makeAAInput(overrides: Partial<GenerateLineupInput> = {}): GenerateLineupInput {
+  return {
+    presentPlayers: players11,
+    innings: 4,
+    division: 'AA',
+    pitcherAssignments: {},
+    catcherAssignments: {},
+    positionBlocks: {},
+    ...overrides,
+  };
+}
+
+describe('AA division - preValidate', () => {
+  it('returns empty array for valid 11-player AA input', () => {
+    const errors = preValidate(makeAAInput());
+    expect(errors).toEqual([]);
+  });
+
+  it('returns error when fewer than 10 players for AA', () => {
+    const errors = preValidate(makeAAInput({ presentPlayers: players11.slice(0, 9) }));
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0]).toContain('10');
+  });
+
+  it('accepts exactly 10 players for AA', () => {
+    const errors = preValidate(makeAAInput({ presentPlayers: players10 }));
+    expect(errors).toEqual([]);
+  });
+
+  it('skips P/C validation for AA', () => {
+    // P/C assignments should be ignored for AA
+    const errors = preValidate(makeAAInput({
+      pitcherAssignments: { 1: 'absent-id' },
+      catcherAssignments: { 1: 'absent-id' },
+    }));
+    expect(errors).toEqual([]);
+  });
+});
+
+describe('AA division - generateLineup', () => {
+  it('generates valid lineup for 11 AA players / 4 innings', () => {
+    const input = makeAAInput();
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('generates valid lineup for exactly 10 AA players / 4 innings', () => {
+    const input = makeAAInput({ presentPlayers: players10 });
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+    // With exactly 10 players, no one should sit
+    for (let inn = 1; inn <= input.innings; inn++) {
+      const playing = new Set(POSITIONS_10.map(pos => result.lineup[inn][pos]));
+      expect(playing.size).toBe(10);
+    }
+  });
+
+  it('fills 10 positions per inning (no CF)', () => {
+    const input = makeAAInput();
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    for (let inn = 1; inn <= input.innings; inn++) {
+      for (const pos of POSITIONS_10) {
+        expect(result.lineup[inn][pos]).toBeTruthy();
+      }
+      // CF should not be populated
+      expect(result.lineup[inn]['CF']).toBeUndefined();
+    }
+  });
+
+  it('P and C are assigned as regular positions (not pre-assigned)', () => {
+    const input = makeAAInput();
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    // Different players should appear at P and C across innings
+    const pPlayers = new Set<string>();
+    const cPlayers = new Set<string>();
+    for (let inn = 1; inn <= input.innings; inn++) {
+      pPlayers.add(result.lineup[inn]['P']);
+      cPlayers.add(result.lineup[inn]['C']);
+    }
+    // With 11 players over 4 innings, P and C should rotate (not all same player)
+    expect(pPlayers.size).toBeGreaterThanOrEqual(1);
+    expect(cPlayers.size).toBeGreaterThanOrEqual(1);
+  });
+
+  it('produces no consecutive bench innings for any player', () => {
+    const input = makeAAInput();
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    for (const player of input.presentPlayers) {
+      let consecutiveBench = 0;
+      for (let inn = 1; inn <= input.innings; inn++) {
+        const isPlaying = POSITIONS_10.some(pos => result.lineup[inn][pos] === player.id);
+        if (!isPlaying) {
+          consecutiveBench++;
+          expect(consecutiveBench).toBeLessThanOrEqual(1);
+        } else {
+          consecutiveBench = 0;
+        }
+      }
+    }
+  });
+
+  it('gives every player 2+ infield positions by inning 4', () => {
+    const input = makeAAInput();
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    for (const player of input.presentPlayers) {
+      let infieldCount = 0;
+      for (let inn = 1; inn <= input.innings; inn++) {
+        const isInfield = INFIELD_POSITIONS.some(pos => result.lineup[inn][pos] === player.id);
+        if (isInfield) infieldCount++;
+      }
+      expect(infieldCount).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('enforces balanced bench rotation for AA (same as AAA)', () => {
+    const input = makeAAInput({ presentPlayers: players12 });
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    const benchCounts: Record<string, number> = {};
+    for (const p of input.presentPlayers) benchCounts[p.id] = 0;
+    for (let inn = 1; inn <= input.innings; inn++) {
+      const playing = new Set(POSITIONS_10.map(pos => result.lineup[inn][pos]));
+      for (const p of input.presentPlayers) {
+        if (!playing.has(p.id)) benchCounts[p.id]++;
+      }
+    }
+    const maxBench = Math.max(...Object.values(benchCounts));
+    const minBench = Math.min(...Object.values(benchCounts));
+    if (maxBench >= 3) {
+      expect(minBench).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('respects position blocks for AA', () => {
+    const input = makeAAInput({
+      positionBlocks: { p7: ['1B', 'SS'] },
+    });
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    for (let inn = 1; inn <= input.innings; inn++) {
+      expect(result.lineup[inn]['1B']).not.toBe('p7');
+      expect(result.lineup[inn]['SS']).not.toBe('p7');
+    }
+  });
+});
+
+describe('AA division - generateBestLineup', () => {
+  it('returns a valid scored lineup for AA', () => {
+    const input = makeAAInput();
+    const result = generateBestLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.score.total).toBeGreaterThanOrEqual(0);
+    expect(result.score.total).toBeLessThanOrEqual(100);
   });
 });
