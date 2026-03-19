@@ -224,6 +224,21 @@ export function AppShell() {
             id="panel-game-day"
             aria-labelledby="tab-game-day"
           >
+            {players.length === 0 && (
+              <div className={styles.emptyRosterBanner} role="status">
+                <p className={styles.emptyRosterText}>
+                  No players on your roster yet.{' '}
+                  <button
+                    type="button"
+                    className={styles.emptyRosterLink}
+                    onClick={() => setActiveTab('settings')}
+                  >
+                    Go to Settings
+                  </button>{' '}
+                  to add your team.
+                </p>
+              </div>
+            )}
             {isDesktop ? (
               <GameDayDesktop onPrintRequest={handlePrintRequest} gameLabel={currentGameLabel} onDisplayStateChange={handleDisplayStateChange} />
             ) : (
