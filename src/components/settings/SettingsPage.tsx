@@ -67,7 +67,18 @@ export function SettingsPage() {
         onDelete={removePlayer}
       />
 
-      {/* SETT-02: CSV Import / Export */}
+      {/* SETT-02: League / Division Config */}
+      <h3 className={styles.sectionTitle}>League</h3>
+      <SettingsPanel
+        division={config.division}
+        onDivisionChange={setDivision}
+        pitchersPerGame={config.pitchersPerGame}
+        onPitchersPerGameChange={setPitchersPerGame}
+        catchersPerGame={config.catchersPerGame}
+        onCatchersPerGameChange={setCatchersPerGame}
+      />
+
+      {/* SETT-03: CSV Import / Export */}
       <h3 className={styles.sectionTitle}>CSV Import / Export</h3>
       <div className={styles.csvActions}>
         <button type="button" className={styles.csvButton} onClick={handleExport}>
@@ -88,23 +99,12 @@ export function SettingsPage() {
         <p className={styles.importStatus}>{importStatus}</p>
       )}
 
-      {/* SETT-03: Position Blocks */}
+      {/* SETT-04: Position Blocks */}
       <h3 className={styles.sectionTitle}>Position Blocks</h3>
       <PositionBlocks
         presentPlayers={presentPlayers}
         positionBlocks={positionBlocks}
         onToggleBlock={togglePositionBlock}
-      />
-
-      {/* SETT-04: Innings Config */}
-      <h3 className={styles.sectionTitle}>Innings</h3>
-      <SettingsPanel
-        division={config.division}
-        onDivisionChange={setDivision}
-        pitchersPerGame={config.pitchersPerGame}
-        onPitchersPerGameChange={setPitchersPerGame}
-        catchersPerGame={config.catchersPerGame}
-        onCatchersPerGameChange={setCatchersPerGame}
       />
 
       {/* SETT-05: Sync Status */}

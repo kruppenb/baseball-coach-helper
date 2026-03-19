@@ -19,8 +19,8 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
   const { history } = useGameHistory();
   const { players } = useRoster();
 
-  const pitcherCount = config.pitchersPerGame;
-  const catcherCount = config.catchersPerGame;
+  const pitcherCount = hasPlayerPitching(config.division) ? config.pitchersPerGame : 0;
+  const catcherCount = hasPlayerPitching(config.division) ? config.catchersPerGame : 0;
 
   const {
     selectedPitchers,

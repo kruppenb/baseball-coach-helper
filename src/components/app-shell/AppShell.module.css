@@ -22,3 +22,36 @@
   padding: var(--space-xl) var(--space-2xl);
   padding-bottom: var(--space-3xl);
 }
+
+/* ── Empty roster banner ── */
+
+.emptyRosterBanner {
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.emptyRosterText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.emptyRosterLink {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.emptyRosterLink:hover {
+  filter: brightness(0.8);
+}

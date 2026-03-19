@@ -42,7 +42,7 @@ const positionBlocksSchema = z.record(
   z.array(positionSchema),
 );
 
-const inningAssignmentSchema = z.record(positionSchema, z.string().max(100));
+const inningAssignmentSchema = z.record(z.string(), z.string().max(100));
 
 const lineupSchema = z.record(
   z.string().regex(/^\d+$/),
