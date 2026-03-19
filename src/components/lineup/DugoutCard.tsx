@@ -1,5 +1,6 @@
 import type { Lineup, Player, Position } from '../../types/index';
-import { POSITIONS } from '../../types/index';
+import { getPositions } from '../../types/index';
+import { useGameConfig } from '../../hooks/useGameConfig';
 import styles from './DugoutCard.module.css';
 
 interface DugoutCardProps {
@@ -16,6 +17,8 @@ function getPlayerName(playerId: string, players: Player[]): string {
 }
 
 export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }: DugoutCardProps) {
+  const { config } = useGameConfig();
+  const positions = getPositions(config.division);
   const inningNumbers = Array.from({ length: innings }, (_, i) => i + 1);
 
   return (
@@ -34,7 +37,7 @@ export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }
           </tr>
         </thead>
         <tbody>
-          {POSITIONS.map((pos: Position) => (
+          {positions.map((pos: Position) => (
             <tr key={`row-${pos}`}>
               <td className={styles.positionLabel}>{pos}</td>
               {inningNumbers.map(inn => {
@@ -52,7 +55,7 @@ export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }
             {inningNumbers.map(inn => {
               const assignment = lineup[inn];
               const playingIds = assignment
-                ? new Set(POSITIONS.map(pos => assignment[pos]))
+                ? new Set(positions.map(pos => assignment[pos]))
                 : new Set<string>();
               const benchPlayers = players
                 .filter(p => p.isPresent && !playingIds.has(p.id))

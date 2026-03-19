@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { useStepperState } from '../../hooks/useStepperState';
+import { useGameConfig } from '../../hooks/useGameConfig';
+import { hasPlayerPitching } from '../../types';
 import { StepperHeader } from './StepperHeader';
 import { AttendanceStep } from './steps/AttendanceStep';
 import { PCAssignmentStep } from './steps/PCAssignmentStep';
@@ -25,6 +28,14 @@ export function GameDayStepper({ onPrintRequest, gameLabel }: GameDayStepperProp
     clearStaleWarning,
     canNavigate,
   } = useStepperState();
+  const { config } = useGameConfig();
+
+  // Auto-skip P/C step for AA (coach-pitch, no player pitching)
+  useEffect(() => {
+    if (currentStep === 'pc-assignment' && !hasPlayerPitching(config.division)) {
+      completeStep('pc-assignment');
+    }
+  }, [currentStep, config.division, completeStep]);
 
   const currentIndex = STEP_ORDER.indexOf(currentStep);
 

@@ -1,5 +1,5 @@
 import type { Lineup, Position } from '../types/index.ts';
-import { POSITIONS, INFIELD_POSITIONS } from '../types/index.ts';
+import { INFIELD_POSITIONS, getPositions, getFielderCount, hasPlayerPitching } from '../types/index.ts';
 import type { GenerateLineupInput, ValidationError } from './lineup-types.ts';
 
 /**
@@ -38,9 +38,10 @@ function validateGridComplete(
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
+  const positions = getPositions(input.division);
   for (let inn = 1; inn <= input.innings; inn++) {
     const assignment = lineup[inn];
-    for (const pos of POSITIONS) {
+    for (const pos of positions) {
       if (!assignment || !assignment[pos]) {
         errors.push({
           rule: 'GRID_COMPLETE',
@@ -69,7 +70,7 @@ function validateNoDuplicates(
     if (!assignment) continue;
 
     const seen = new Map<string, Position>();
-    for (const pos of POSITIONS) {
+    for (const pos of getPositions(input.division)) {
       const playerId = assignment[pos];
       if (!playerId) continue;
 
@@ -97,6 +98,7 @@ function validatePitcherAssignments(
   lineup: Lineup,
   input: GenerateLineupInput,
 ): ValidationError[] {
+  if (!hasPlayerPitching(input.division)) return [];
   const errors: ValidationError[] = [];
 
   for (let inn = 1; inn <= input.innings; inn++) {
@@ -129,6 +131,7 @@ function validateCatcherAssignments(
   lineup: Lineup,
   input: GenerateLineupInput,
 ): ValidationError[] {
+  if (!hasPlayerPitching(input.division)) return [];
   const errors: ValidationError[] = [];
 
   for (let inn = 1; inn <= input.innings; inn++) {
@@ -172,7 +175,7 @@ function validateNoConsecutiveBench(
 
     for (let inn = 1; inn <= input.innings; inn++) {
       const assignment = lineup[inn];
-      const isPlaying = assignment && POSITIONS.some(pos => assignment[pos] === player.id);
+      const isPlaying = assignment && getPositions(input.division).some(pos => assignment[pos] === player.id);
 
       if (!isPlaying) {
         consecutiveBench++;
@@ -208,13 +211,13 @@ function validateBalancedBenchRotation(
   lineup: Lineup,
   input: GenerateLineupInput,
 ): ValidationError[] {
-  if (input.division !== 'AAA') return [];
+  if (input.division !== 'AAA' && input.division !== 'AA') return [];
 
   const errors: ValidationError[] = [];
   const playerCount = input.presentPlayers.length;
 
-  // With 9 or fewer players nobody sits, so rule is trivially satisfied
-  if (playerCount <= 9) return errors;
+  // With fielderCount or fewer players nobody sits, so rule is trivially satisfied
+  if (playerCount <= getFielderCount(input.division)) return errors;
 
   // Count bench innings per player
   const benchCounts: Record<string, number> = {};
@@ -224,7 +227,7 @@ function validateBalancedBenchRotation(
 
   for (let inn = 1; inn <= input.innings; inn++) {
     const assignment = lineup[inn];
-    const playing = new Set(POSITIONS.map(pos => assignment?.[pos]).filter(Boolean));
+    const playing = new Set(getPositions(input.division).map(pos => assignment?.[pos]).filter(Boolean));
     for (const player of input.presentPlayers) {
       if (!playing.has(player.id)) {
         benchCounts[player.id]++;
@@ -330,6 +333,7 @@ function validateCatcherPitcherEligibility(
   lineup: Lineup,
   input: GenerateLineupInput,
 ): ValidationError[] {
+  if (!hasPlayerPitching(input.division)) return [];
   const errors: ValidationError[] = [];
 
   for (const player of input.presentPlayers) {

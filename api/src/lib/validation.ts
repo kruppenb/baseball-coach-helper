@@ -5,7 +5,7 @@ const MAX_PAYLOAD_SIZE = 512_000; // 500 KB
 // --- Shared primitives ---
 
 const positionSchema = z.enum([
-  'P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF',
+  'P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'LC', 'CF', 'RC', 'RF',
 ]);
 
 const playerSchema = z.object({
@@ -24,8 +24,8 @@ export const rosterBodySchema = z.object({
 /** PUT /api/game-config */
 export const gameConfigBodySchema = z.object({
   data: z.object({
-    division: z.enum(['AAA', 'Coast']).optional(),
-    innings: z.union([z.literal(5), z.literal(6)]).optional(),
+    division: z.enum(['AAA', 'Coast', 'AA']).optional(),
+    innings: z.number().int().min(3).max(6).optional(),
     pitchersPerGame: z.number().int().min(1).max(10).optional(),
     catchersPerGame: z.number().int().min(1).max(10).optional(),
   }),
@@ -76,6 +76,7 @@ export const gameHistoryBodySchema = z.object({
     lineup: lineupSchema,
     battingOrder: z.array(z.string().max(100)).max(30),
     playerSummaries: z.array(playerGameSummarySchema).max(30),
+    division: z.enum(['AAA', 'Coast', 'AA']).optional(),
   }),
 });
 

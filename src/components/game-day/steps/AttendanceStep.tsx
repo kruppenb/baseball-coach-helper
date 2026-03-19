@@ -1,8 +1,8 @@
 import { useRoster } from '../../../hooks/useRoster';
+import { useGameConfig } from '../../../hooks/useGameConfig';
+import { getFielderCount } from '../../../types';
 import { AttendanceList } from '../../game-setup/AttendanceList';
 import styles from './AttendanceStep.module.css';
-
-const MIN_PLAYERS = 9;
 
 interface AttendanceStepProps {
   onComplete: () => void;
@@ -10,7 +10,9 @@ interface AttendanceStepProps {
 
 export function AttendanceStep({ onComplete }: AttendanceStepProps) {
   const { players, presentCount, togglePresent } = useRoster();
+  const { config } = useGameConfig();
 
+  const MIN_PLAYERS = getFielderCount(config.division);
   const canAdvance = presentCount >= MIN_PLAYERS;
 
   return (

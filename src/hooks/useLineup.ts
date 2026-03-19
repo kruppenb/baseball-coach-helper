@@ -7,6 +7,7 @@ import { generateBestLineup, preValidate } from '../logic/lineup-generator';
 import { validateLineup } from '../logic/lineup-validator';
 import { computeFieldingFairness, computeCatcherInnings } from '../logic/game-history';
 import type { LineupState, Position, Lineup, Player } from '../types/index';
+import { hasPlayerPitching } from '../types/index';
 import type { ValidationError } from '../logic/lineup-types';
 
 const defaultState: LineupState = {
@@ -49,23 +50,31 @@ export function useLineup() {
     return computeCatcherInnings(history, presentIds);
   }, [history, presentPlayers]);
 
-  // Clean up stale assignments when innings count changes
-  // (e.g., assignments for inning 6 when innings is now 5)
+  // Clean up stale assignments when innings count changes or division is AA
   const cleanState = useMemo(() => {
     let needsCleanup = false;
-    const cleanedPitcher = { ...state.pitcherAssignments };
-    const cleanedCatcher = { ...state.catcherAssignments };
+    let cleanedPitcher = { ...state.pitcherAssignments };
+    let cleanedCatcher = { ...state.catcherAssignments };
 
-    for (const key of Object.keys(cleanedPitcher)) {
-      if (Number(key) > innings) {
-        delete cleanedPitcher[Number(key)];
+    // AA has no player pitching — clear all P/C assignments
+    if (!hasPlayerPitching(division)) {
+      if (Object.keys(cleanedPitcher).length > 0 || Object.keys(cleanedCatcher).length > 0) {
+        cleanedPitcher = {};
+        cleanedCatcher = {};
         needsCleanup = true;
       }
-    }
-    for (const key of Object.keys(cleanedCatcher)) {
-      if (Number(key) > innings) {
-        delete cleanedCatcher[Number(key)];
-        needsCleanup = true;
+    } else {
+      for (const key of Object.keys(cleanedPitcher)) {
+        if (Number(key) > innings) {
+          delete cleanedPitcher[Number(key)];
+          needsCleanup = true;
+        }
+      }
+      for (const key of Object.keys(cleanedCatcher)) {
+        if (Number(key) > innings) {
+          delete cleanedCatcher[Number(key)];
+          needsCleanup = true;
+        }
       }
     }
 
@@ -77,7 +86,7 @@ export function useLineup() {
       };
     }
     return state;
-  }, [state, innings]);
+  }, [state, innings, division]);
 
   // Persist cleanup if stale keys were found
   useMemo(() => {
@@ -131,12 +140,13 @@ export function useLineup() {
   }, [setState]);
 
   const generate = useCallback((): { success: boolean; count: number; errors: string[] } => {
+    const playerPitching = hasPlayerPitching(division);
     const input = {
       presentPlayers,
       innings,
       division,
-      pitcherAssignments: cleanState.pitcherAssignments,
-      catcherAssignments: cleanState.catcherAssignments,
+      pitcherAssignments: playerPitching ? cleanState.pitcherAssignments : {},
+      catcherAssignments: playerPitching ? cleanState.catcherAssignments : {},
       positionBlocks: cleanState.positionBlocks,
       benchPriority,
     };
@@ -215,6 +225,9 @@ export function useLineup() {
 
   // Lightweight real-time checks for pre-assignment conflicts
   const preAssignmentErrors: string[] = useMemo(() => {
+    // AA has no player pitching — no P/C errors possible
+    if (!hasPlayerPitching(division)) return [];
+
     const errors: string[] = [];
     const presentIds = new Set(presentPlayers.map(p => p.id));
 
@@ -258,7 +271,7 @@ export function useLineup() {
     }
 
     return errors;
-  }, [presentPlayers, innings, cleanState.pitcherAssignments, cleanState.catcherAssignments]);
+  }, [presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments]);
 
   return {
     // State

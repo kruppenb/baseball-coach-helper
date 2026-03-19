@@ -280,3 +280,70 @@ describe('computeCatcherInnings', () => {
     expect(result['p4']).toBe(3);
   });
 });
+
+// --- AA Division Tests ---
+
+const players11: Player[] = [
+  ...players10,
+  makePlayer('p11', 'Kelly'),
+];
+
+/** Build a 4-inning AA lineup with 10 fielders (LF, LC, RC, RF outfield) */
+const aaLineup: Lineup = buildLineup({
+  1: { P: 'p1', C: 'p2', '1B': 'p3', '2B': 'p4', '3B': 'p5', SS: 'p6', LF: 'p7', LC: 'p8', RC: 'p9', RF: 'p10' },
+  // p11 benched inning 1
+  2: { P: 'p3', C: 'p4', '1B': 'p5', '2B': 'p6', '3B': 'p7', SS: 'p8', LF: 'p11', LC: 'p1', RC: 'p2', RF: 'p9' },
+  // p10 benched inning 2
+  3: { P: 'p5', C: 'p6', '1B': 'p7', '2B': 'p8', '3B': 'p9', SS: 'p10', LF: 'p1', LC: 'p2', RC: 'p3', RF: 'p4' },
+  // p11 benched inning 3
+  4: { P: 'p7', C: 'p8', '1B': 'p9', '2B': 'p10', '3B': 'p11', SS: 'p1', LF: 'p2', LC: 'p3', RC: 'p4', RF: 'p5' },
+  // p6 benched inning 4
+});
+
+const battingOrder11 = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11'];
+
+describe('createGameHistoryEntry (AA division)', () => {
+  it('creates entry with 10-position lineup and correct division', () => {
+    const entry = createGameHistoryEntry(aaLineup, battingOrder11, 4, players11, { division: 'AA' });
+    expect(entry.division).toBe('AA');
+    expect(entry.innings).toBe(4);
+    expect(entry.playerSummaries).toHaveLength(11);
+  });
+
+  it('correctly identifies positions in 10-position AA lineup', () => {
+    const entry = createGameHistoryEntry(aaLineup, battingOrder11, 4, players11, { division: 'AA' });
+
+    // p8 plays LC(inn1), SS(inn2), 2B(inn3), C(inn4)
+    const p8 = entry.playerSummaries.find(s => s.playerId === 'p8')!;
+    expect(p8.fieldingPositions).toEqual(['LC', 'SS', '2B', 'C']);
+    expect(p8.benchInnings).toBe(0);
+
+    // p11 benched innings 1 and 3, plays LF(inn2), 3B(inn4)
+    const p11 = entry.playerSummaries.find(s => s.playerId === 'p11')!;
+    expect(p11.fieldingPositions).toEqual(['LF', '3B']);
+    expect(p11.benchInnings).toBe(2);
+  });
+
+  it('detects LC and RC positions in AA lineup', () => {
+    const entry = createGameHistoryEntry(aaLineup, battingOrder11, 4, players11, { division: 'AA' });
+
+    // p1 plays LC in inning 2
+    const p1 = entry.playerSummaries.find(s => s.playerId === 'p1')!;
+    expect(p1.fieldingPositions).toContain('LC');
+    // p8 plays LC in inning 1
+    expect(entry.playerSummaries.find(s => s.playerId === 'p8')!.fieldingPositions).toContain('LC');
+  });
+});
+
+describe('computeFieldingFairness (AA division)', () => {
+  it('collects LC and RC positions in fairness metrics', () => {
+    const game = createGameHistoryEntry(aaLineup, battingOrder11, 4, players11, { division: 'AA' });
+    const presentIds = players11.map(p => p.id);
+    const result = computeFieldingFairness([game], presentIds);
+
+    // p8 plays LC in inning 1
+    expect(result['p8'].positionsPlayed).toContain('LC');
+    // p9 plays RC in innings 1 and 3
+    expect(result['p9'].positionsPlayed).toContain('RC');
+  });
+});

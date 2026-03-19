@@ -1,5 +1,5 @@
 import type { Position, Lineup, InningAssignment } from '../types/index.ts';
-import { POSITIONS, INFIELD_POSITIONS, OUTFIELD_POSITIONS } from '../types/index.ts';
+import { INFIELD_POSITIONS, getPositions, getOutfieldPositions, getFielderCount, hasPlayerPitching } from '../types/index.ts';
 import type { GenerateLineupInput, GenerateLineupResult } from './lineup-types.ts';
 import { validateLineup } from './lineup-validator.ts';
 import { shuffle } from './shuffle.ts';
@@ -20,63 +20,68 @@ export function preValidate(input: GenerateLineupInput): string[] {
   const playerCount = presentPlayers.length;
   const presentIds = new Set(presentPlayers.map(p => p.id));
 
-  // Must have at least 9 players for 9 positions
-  if (playerCount < 9) {
+  const playerPitching = hasPlayerPitching(input.division);
+  const fielderCount = getFielderCount(input.division);
+
+  // Must have enough players to fill all positions
+  if (playerCount < fielderCount) {
     errors.push(
-      `Need at least 9 present players to fill all positions. Currently ${playerCount} present.`,
+      `Need at least ${fielderCount} present players to fill all positions. Currently ${playerCount} present.`,
     );
   }
 
-  // Verify all assigned pitchers are present
-  for (const [innStr, playerId] of Object.entries(pitcherAssignments)) {
-    if (!playerId) continue;
-    if (!presentIds.has(playerId)) {
-      errors.push(`Pitcher for inning ${innStr} is not in the active roster.`);
+  if (playerPitching) {
+    // Verify all assigned pitchers are present
+    for (const [innStr, playerId] of Object.entries(pitcherAssignments)) {
+      if (!playerId) continue;
+      if (!presentIds.has(playerId)) {
+        errors.push(`Pitcher for inning ${innStr} is not in the active roster.`);
+      }
     }
-  }
 
-  // Verify all assigned catchers are present
-  for (const [innStr, playerId] of Object.entries(catcherAssignments)) {
-    if (!playerId) continue;
-    if (!presentIds.has(playerId)) {
-      errors.push(`Catcher for inning ${innStr} is not in the active roster.`);
+    // Verify all assigned catchers are present
+    for (const [innStr, playerId] of Object.entries(catcherAssignments)) {
+      if (!playerId) continue;
+      if (!presentIds.has(playerId)) {
+        errors.push(`Catcher for inning ${innStr} is not in the active roster.`);
+      }
     }
-  }
 
-  // Check for same player as pitcher AND catcher in same inning
-  for (let inn = 1; inn <= innings; inn++) {
-    const pitcherId = pitcherAssignments[inn];
-    const catcherId = catcherAssignments[inn];
-    if (pitcherId && catcherId && pitcherId === catcherId) {
-      errors.push(
-        `Same player assigned as both pitcher and catcher in inning ${inn}.`,
-      );
+    // Check for same player as pitcher AND catcher in same inning
+    for (let inn = 1; inn <= innings; inn++) {
+      const pitcherId = pitcherAssignments[inn];
+      const catcherId = catcherAssignments[inn];
+      if (pitcherId && catcherId && pitcherId === catcherId) {
+        errors.push(
+          `Same player assigned as both pitcher and catcher in inning ${inn}.`,
+        );
+      }
     }
-  }
 
-  // LL rule: a player who catches 4+ innings cannot pitch that game
-  const catcherCounts: Record<string, number> = {};
-  const isPitcher: Record<string, boolean> = {};
-  for (let inn = 1; inn <= innings; inn++) {
-    const catcherId = catcherAssignments[inn];
-    if (catcherId) catcherCounts[catcherId] = (catcherCounts[catcherId] ?? 0) + 1;
-    const pitcherId = pitcherAssignments[inn];
-    if (pitcherId) isPitcher[pitcherId] = true;
-  }
-  for (const [playerId, count] of Object.entries(catcherCounts)) {
-    if (count >= 4 && isPitcher[playerId]) {
-      const player = presentPlayers.find(p => p.id === playerId);
-      const name = player?.name ?? 'A player';
-      errors.push(
-        `${name} catches ${count} innings and also pitches — a player who catches 4+ innings cannot pitch in the same game.`,
-      );
+    // LL rule: a player who catches 4+ innings cannot pitch that game
+    const catcherCounts: Record<string, number> = {};
+    const isPitcher: Record<string, boolean> = {};
+    for (let inn = 1; inn <= innings; inn++) {
+      const catcherId = catcherAssignments[inn];
+      if (catcherId) catcherCounts[catcherId] = (catcherCounts[catcherId] ?? 0) + 1;
+      const pitcherId = pitcherAssignments[inn];
+      if (pitcherId) isPitcher[pitcherId] = true;
+    }
+    for (const [playerId, count] of Object.entries(catcherCounts)) {
+      if (count >= 4 && isPitcher[playerId]) {
+        const player = presentPlayers.find(p => p.id === playerId);
+        const name = player?.name ?? 'A player';
+        errors.push(
+          `${name} catches ${count} innings and also pitches — a player who catches 4+ innings cannot pitch in the same game.`,
+        );
+      }
     }
   }
 
   // Check position blocks don't make a position unfillable
   // For each position, count how many players are NOT blocked from it
   // and are not permanently locked into P/C for ALL innings
-  for (const pos of POSITIONS) {
+  for (const pos of getPositions(input.division)) {
     const blockedFromPos = new Set<string>();
     for (const [playerId, blockedPositions] of Object.entries(positionBlocks)) {
       if (blockedPositions && blockedPositions.includes(pos)) {
@@ -84,12 +89,12 @@ export function preValidate(input: GenerateLineupInput): string[] {
       }
     }
 
-    // For non-P/C positions, check each inning
-    if (pos !== 'P' && pos !== 'C') {
+    // For non-P/C positions (or all positions in AA), check each inning
+    if (!playerPitching || (pos !== 'P' && pos !== 'C')) {
       for (let inn = 1; inn <= innings; inn++) {
         // Players available this inning = present, not blocked, not assigned as P or C this inning
-        const pitcherId = pitcherAssignments[inn];
-        const catcherId = catcherAssignments[inn];
+        const pitcherId = playerPitching ? pitcherAssignments[inn] : undefined;
+        const catcherId = playerPitching ? catcherAssignments[inn] : undefined;
         let eligible = 0;
         for (const player of presentPlayers) {
           if (blockedFromPos.has(player.id)) continue;
@@ -165,62 +170,65 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
   }
   const playerIds = shuffledPlayers.map(p => p.id);
   const lineup: Lineup = {};
+  const positions = getPositions(input.division);
+  const outfieldPositions = getOutfieldPositions(input.division);
+  const playerPitching = hasPlayerPitching(input.division);
+  // For AA, P/C are regular infield positions; for AAA/Coast, only 1B/2B/3B/SS
+  const infieldToFill = playerPitching ? NON_BATTERY_INFIELD : INFIELD_POSITIONS;
 
   // Phase 1: Determine P/C for each inning
   const pitcherByInning: Record<number, string> = {};
   const catcherByInning: Record<number, string> = {};
-
-  for (let inn = 1; inn <= innings; inn++) {
-    pitcherByInning[inn] = pitcherAssignments[inn] || '';
-    catcherByInning[inn] = catcherAssignments[inn] || '';
-  }
-
-  // For unassigned P/C, pick from available players
-  // Track which players are used as P/C per inning
   const pcAssignedInnings: Record<string, number[]> = {};
   for (const p of playerIds) {
     pcAssignedInnings[p] = [];
   }
 
-  for (let inn = 1; inn <= innings; inn++) {
-    if (pitcherByInning[inn]) {
-      const pid = pitcherByInning[inn];
-      if (!pcAssignedInnings[pid]) pcAssignedInnings[pid] = [];
-      pcAssignedInnings[pid].push(inn);
+  if (playerPitching) {
+    for (let inn = 1; inn <= innings; inn++) {
+      pitcherByInning[inn] = pitcherAssignments[inn] || '';
+      catcherByInning[inn] = catcherAssignments[inn] || '';
     }
-    if (catcherByInning[inn]) {
-      const cid = catcherByInning[inn];
-      if (!pcAssignedInnings[cid]) pcAssignedInnings[cid] = [];
-      pcAssignedInnings[cid].push(inn);
-    }
-  }
 
-  // Fill unassigned pitcher/catcher slots
-  for (let inn = 1; inn <= innings; inn++) {
-    if (!pitcherByInning[inn]) {
-      // Pick a player not already assigned as catcher this inning
-      const catcherThisInning = catcherByInning[inn];
-      const candidates = shuffle(playerIds.filter(id => {
-        if (id === catcherThisInning) return false;
-        if (isBlockedFrom(id, 'P', positionBlocks)) return false;
-        return true;
-      }));
-      if (candidates.length === 0) return null;
-      pitcherByInning[inn] = candidates[0];
-      if (!pcAssignedInnings[candidates[0]]) pcAssignedInnings[candidates[0]] = [];
-      pcAssignedInnings[candidates[0]].push(inn);
+    for (let inn = 1; inn <= innings; inn++) {
+      if (pitcherByInning[inn]) {
+        const pid = pitcherByInning[inn];
+        if (!pcAssignedInnings[pid]) pcAssignedInnings[pid] = [];
+        pcAssignedInnings[pid].push(inn);
+      }
+      if (catcherByInning[inn]) {
+        const cid = catcherByInning[inn];
+        if (!pcAssignedInnings[cid]) pcAssignedInnings[cid] = [];
+        pcAssignedInnings[cid].push(inn);
+      }
     }
-    if (!catcherByInning[inn]) {
-      const pitcherThisInning = pitcherByInning[inn];
-      const candidates = shuffle(playerIds.filter(id => {
-        if (id === pitcherThisInning) return false;
-        if (isBlockedFrom(id, 'C', positionBlocks)) return false;
-        return true;
-      }));
-      if (candidates.length === 0) return null;
-      catcherByInning[inn] = candidates[0];
-      if (!pcAssignedInnings[candidates[0]]) pcAssignedInnings[candidates[0]] = [];
-      pcAssignedInnings[candidates[0]].push(inn);
+
+    // Fill unassigned pitcher/catcher slots
+    for (let inn = 1; inn <= innings; inn++) {
+      if (!pitcherByInning[inn]) {
+        const catcherThisInning = catcherByInning[inn];
+        const candidates = shuffle(playerIds.filter(id => {
+          if (id === catcherThisInning) return false;
+          if (isBlockedFrom(id, 'P', positionBlocks)) return false;
+          return true;
+        }));
+        if (candidates.length === 0) return null;
+        pitcherByInning[inn] = candidates[0];
+        if (!pcAssignedInnings[candidates[0]]) pcAssignedInnings[candidates[0]] = [];
+        pcAssignedInnings[candidates[0]].push(inn);
+      }
+      if (!catcherByInning[inn]) {
+        const pitcherThisInning = pitcherByInning[inn];
+        const candidates = shuffle(playerIds.filter(id => {
+          if (id === pitcherThisInning) return false;
+          if (isBlockedFrom(id, 'C', positionBlocks)) return false;
+          return true;
+        }));
+        if (candidates.length === 0) return null;
+        catcherByInning[inn] = candidates[0];
+        if (!pcAssignedInnings[candidates[0]]) pcAssignedInnings[candidates[0]] = [];
+        pcAssignedInnings[candidates[0]].push(inn);
+      }
     }
   }
 
@@ -234,9 +242,11 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
   for (const pid of playerIds) {
     playerInfieldNeeds[pid] = 2;
     // Subtract P/C assignments from needed infield positions (P and C are infield)
-    for (let inn = 1; inn <= maxInfieldInning; inn++) {
-      if (pitcherByInning[inn] === pid || catcherByInning[inn] === pid) {
-        playerInfieldNeeds[pid]--;
+    if (playerPitching) {
+      for (let inn = 1; inn <= maxInfieldInning; inn++) {
+        if (pitcherByInning[inn] === pid || catcherByInning[inn] === pid) {
+          playerInfieldNeeds[pid]--;
+        }
       }
     }
     if (playerInfieldNeeds[pid] < 0) playerInfieldNeeds[pid] = 0;
@@ -253,10 +263,10 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
     slotAssignments[pid] = [];
   }
 
-  // Create list of infield slots to fill (excluding P/C positions)
+  // Create list of infield slots to fill (for AA: all 6 infield; for AAA/Coast: 1B-SS only)
   const infieldSlots: SlotAssignment[] = [];
   for (let inn = 1; inn <= maxInfieldInning; inn++) {
-    for (const pos of NON_BATTERY_INFIELD) {
+    for (const pos of infieldToFill) {
       infieldSlots.push({ inn, pos });
     }
   }
@@ -314,14 +324,17 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
   for (let inn = 1; inn <= innings; inn++) {
     lineup[inn] = {} as InningAssignment;
 
-    // 4a. Set P/C
-    lineup[inn]['P'] = pitcherByInning[inn];
-    lineup[inn]['C'] = catcherByInning[inn];
+    // 4a. Set P/C (only for player-pitching divisions)
+    const used = new Set<string>();
+    if (playerPitching) {
+      lineup[inn]['P'] = pitcherByInning[inn];
+      lineup[inn]['C'] = catcherByInning[inn];
+      used.add(pitcherByInning[inn]);
+      used.add(catcherByInning[inn]);
+    }
 
-    const used = new Set([pitcherByInning[inn], catcherByInning[inn]]);
-
-    // 4b. Fill infield positions (1B, 2B, 3B, SS)
-    for (const pos of NON_BATTERY_INFIELD) {
+    // 4b. Fill infield positions (for AA: all 6 infield incl P/C; for AAA/Coast: 1B-SS)
+    for (const pos of infieldToFill) {
       let placed = false;
 
       // For innings 1-4, try to use pre-assigned infield slots
@@ -350,12 +363,12 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
     }
 
     // 4c. Fill outfield positions, prioritizing players who sat last inning
-    //     For AAA: also factor in total bench counts to enforce balanced rotation
+    //     For AAA/AA: also factor in total bench counts to enforce balanced rotation
     const satLastInning = inn > 1
-      ? playerIds.filter(p => !POSITIONS.some(pos => lineup[inn - 1][pos] === p))
+      ? playerIds.filter(p => !positions.some(pos => lineup[inn - 1][pos] === p))
       : [];
 
-    for (const pos of OUTFIELD_POSITIONS) {
+    for (const pos of outfieldPositions) {
       // Prefer players who sat last inning
       const eligibleSatOut = satLastInning.filter(p => {
         if (used.has(p)) return false;
@@ -371,9 +384,9 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
             return true;
           }));
 
-      // For AAA: sort eligible players so those with fewer bench innings play first
+      // For AAA/AA: sort eligible players so those with fewer bench innings play first
       // This helps enforce the "no 3rd bench until all sat 2nd" rule
-      if (input.division === 'AAA' && eligible.length > 1) {
+      if ((input.division === 'AAA' || input.division === 'AA') && eligible.length > 1) {
         eligible = [...eligible].sort((a, b) => {
           const aBench = benchCountSoFar[a] ?? 0;
           const bBench = benchCountSoFar[b] ?? 0;
@@ -531,10 +544,11 @@ function lineupsMeaningfullyDifferent(
   b: Lineup,
   input: GenerateLineupInput,
 ): boolean {
+  const positions = getPositions(input.division);
   for (let inn = 1; inn <= input.innings; inn++) {
     // Check bench differs
-    const aPlaying = new Set(POSITIONS.map(pos => a[inn][pos]));
-    const bPlaying = new Set(POSITIONS.map(pos => b[inn][pos]));
+    const aPlaying = new Set(positions.map(pos => a[inn][pos]));
+    const bPlaying = new Set(positions.map(pos => b[inn][pos]));
     const aBenched = input.presentPlayers
       .filter(p => !aPlaying.has(p.id))
       .map(p => p.id)

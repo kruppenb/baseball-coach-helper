@@ -12,7 +12,7 @@ import { ValidationPanel } from '../../lineup/ValidationPanel';
 import { scoreLineup } from '../../../logic/lineup-scorer';
 import { SortableBattingOrder } from '../../batting-order/SortableBattingOrder';
 import type { Lineup, Player, Position } from '../../../types/index';
-import { POSITIONS, INFIELD_POSITIONS } from '../../../types/index';
+import { INFIELD_POSITIONS, getPositions } from '../../../types/index';
 import type { GenerateLineupInput } from '../../../logic/lineup-types';
 import styles from './ReviewStep.module.css';
 
@@ -20,9 +20,11 @@ function computeFairnessSummary(
   lineup: Lineup,
   innings: number,
   players: Player[],
+  division: import('../../../types/index').Division,
 ): PlayerFairness[] {
   const presentPlayers = players.filter(p => p.isPresent);
   const inningNumbers = Array.from({ length: innings }, (_, i) => i + 1);
+  const positions = getPositions(division);
 
   return presentPlayers
     .map(player => {
@@ -33,7 +35,7 @@ function computeFairnessSummary(
         const assignment = lineup[inn];
         if (!assignment) continue;
 
-        const assignedPositions = POSITIONS.filter(
+        const assignedPositions = positions.filter(
           (pos: Position) => assignment[pos] === player.id,
         );
 
@@ -183,7 +185,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
           />
           {lineupScore && <FairnessScoreCard score={lineupScore} />}
           <FairnessSummary
-            summary={computeFairnessSummary(editor.lineup, innings, players)}
+            summary={computeFairnessSummary(editor.lineup, innings, players, division)}
           />
           <ValidationPanel errors={editor.validationErrors} preErrors={[]} />
         </div>

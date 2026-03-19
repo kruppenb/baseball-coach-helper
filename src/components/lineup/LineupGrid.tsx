@@ -1,5 +1,6 @@
 import type { Lineup, Player, Position } from '../../types/index';
-import { POSITIONS } from '../../types/index';
+import { getPositions } from '../../types/index';
+import { useGameConfig } from '../../hooks/useGameConfig';
 import type { ValidationError } from '../../logic/lineup-types';
 import styles from './LineupGrid.module.css';
 
@@ -26,6 +27,9 @@ function hasError(
 }
 
 export function LineupGrid({ lineup, innings, players, errors }: LineupGridProps) {
+  const { config } = useGameConfig();
+  const positions = getPositions(config.division);
+
   if (innings === 0 || Object.keys(lineup).length === 0) {
     return null;
   }
@@ -47,7 +51,7 @@ export function LineupGrid({ lineup, innings, players, errors }: LineupGridProps
       ))}
 
       {/* Position rows */}
-      {POSITIONS.map(pos => (
+      {positions.map(pos => (
         <>
           <div key={`label-${pos}`} className={styles.positionLabel}>
             {pos}
@@ -74,7 +78,7 @@ export function LineupGrid({ lineup, innings, players, errors }: LineupGridProps
       {inningNumbers.map(inn => {
         const assignment = lineup[inn];
         const playingIds = assignment
-          ? new Set(POSITIONS.map(pos => assignment[pos]))
+          ? new Set(positions.map(pos => assignment[pos]))
           : new Set<string>();
         const benchPlayers = players
           .filter(p => p.isPresent && !playingIds.has(p.id))
