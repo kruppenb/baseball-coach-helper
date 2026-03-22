@@ -1,5 +1,5 @@
 import type { Lineup, Position } from '../types/index.ts';
-import { INFIELD_POSITIONS, getPositions, getFielderCount, hasPlayerPitching } from '../types/index.ts';
+import { getPositions, getFielderCount, getInfieldPositions, hasPlayerPitching } from '../types/index.ts';
 import type { GenerateLineupInput, ValidationError } from './lineup-types.ts';
 
 /**
@@ -268,6 +268,13 @@ function validateInfieldMinimum(
 ): ValidationError[] {
   const errors: ValidationError[] = [];
   const maxCheckInning = Math.min(4, input.innings);
+  const infieldPositions = getInfieldPositions(input.division);
+
+  // Dynamic minimum: with fewer infield positions (e.g. AA has 5, not 6),
+  // larger rosters can't give everyone 2 infield innings in 4 innings.
+  const infieldSlots = infieldPositions.length * maxCheckInning;
+  const minInfield = Math.min(2, Math.floor(infieldSlots / input.presentPlayers.length));
+  if (minInfield < 1) return errors;
 
   for (const player of input.presentPlayers) {
     let infieldCount = 0;
@@ -276,14 +283,14 @@ function validateInfieldMinimum(
       const assignment = lineup[inn];
       if (!assignment) continue;
 
-      const isInfield = INFIELD_POSITIONS.some(pos => assignment[pos] === player.id);
+      const isInfield = infieldPositions.some(pos => assignment[pos] === player.id);
       if (isInfield) infieldCount++;
     }
 
-    if (infieldCount < 2) {
+    if (infieldCount < minInfield) {
       errors.push({
         rule: 'INFIELD_MINIMUM',
-        message: `${player.name} only has ${infieldCount} infield position${infieldCount === 1 ? '' : 's'} in the first 4 innings. Every player needs at least 2.`,
+        message: `${player.name} only has ${infieldCount} infield position${infieldCount === 1 ? '' : 's'} in the first 4 innings. Every player needs at least ${minInfield}.`,
         playerId: player.id,
       });
     }

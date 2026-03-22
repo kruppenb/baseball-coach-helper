@@ -12,7 +12,7 @@ import { ValidationPanel } from '../../lineup/ValidationPanel';
 import { scoreLineup } from '../../../logic/lineup-scorer';
 import { SortableBattingOrder } from '../../batting-order/SortableBattingOrder';
 import type { Lineup, Player, Position } from '../../../types/index';
-import { INFIELD_POSITIONS, getPositions } from '../../../types/index';
+import { getInfieldPositions, getPositions } from '../../../types/index';
 import type { GenerateLineupInput } from '../../../logic/lineup-types';
 import styles from './ReviewStep.module.css';
 
@@ -43,7 +43,7 @@ function computeFairnessSummary(
           benchInnings++;
         } else if (
           assignedPositions.some((pos: Position) =>
-            (INFIELD_POSITIONS as readonly string[]).includes(pos),
+            (getInfieldPositions(division) as readonly string[]).includes(pos),
           )
         ) {
           infieldInnings++;

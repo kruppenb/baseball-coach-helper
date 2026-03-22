@@ -31,7 +31,7 @@ export interface StepperState {
 export type Position = 'P' | 'C' | '1B' | '2B' | '3B' | 'SS' | 'LF' | 'LC' | 'CF' | 'RC' | 'RF';
 
 export const POSITIONS_9: Position[] = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
-export const POSITIONS_10: Position[] = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'LC', 'RC', 'RF'];
+export const POSITIONS_AA: Position[] = ['P', '1B', '2B', '3B', 'SS', 'LF', 'LC', 'RC', 'RF'];
 
 export const OUTFIELD_POSITIONS_3: Position[] = ['LF', 'CF', 'RF'];
 export const OUTFIELD_POSITIONS_4: Position[] = ['LF', 'LC', 'RC', 'RF'];
@@ -40,15 +40,19 @@ export const OUTFIELD_POSITIONS_4: Position[] = ['LF', 'LC', 'RC', 'RF'];
 export const POSITIONS = POSITIONS_9;
 export const OUTFIELD_POSITIONS = OUTFIELD_POSITIONS_3;
 export const INFIELD_POSITIONS: Position[] = ['P', 'C', '1B', '2B', '3B', 'SS'];
+export const INFIELD_POSITIONS_AA: Position[] = ['P', '1B', '2B', '3B', 'SS'];
 
 export function getPositions(division: Division): Position[] {
-  return division === 'AA' ? POSITIONS_10 : POSITIONS_9;
+  return division === 'AA' ? POSITIONS_AA : POSITIONS_9;
 }
 export function getOutfieldPositions(division: Division): Position[] {
   return division === 'AA' ? OUTFIELD_POSITIONS_4 : OUTFIELD_POSITIONS_3;
 }
+export function getInfieldPositions(division: Division): Position[] {
+  return division === 'AA' ? INFIELD_POSITIONS_AA : INFIELD_POSITIONS;
+}
 export function getFielderCount(division: Division): number {
-  return division === 'AA' ? 10 : 9;
+  return 9;
 }
 export function hasPlayerPitching(division: Division): boolean {
   return division !== 'AA';
