@@ -195,6 +195,16 @@ export function useLineup() {
     }));
   }, [setState]);
 
+  /** Persist an edited lineup back to cloud storage so it survives step transitions. */
+  const updateSelectedLineup = useCallback((lineup: Lineup) => {
+    setState((prev: LineupState) => {
+      const idx = prev.selectedLineupIndex ?? 0;
+      const updated = [...prev.generatedLineups];
+      updated[idx] = lineup;
+      return { ...prev, generatedLineups: updated };
+    });
+  }, [setState]);
+
   /** Reset all lineup state to defaults (used by New Game flow). */
   const resetState = useCallback(() => {
     setState(defaultState);
@@ -297,6 +307,7 @@ export function useLineup() {
     generate,
     selectLineup,
     clearLineups,
+    updateSelectedLineup,
     resetState,
   };
 }
