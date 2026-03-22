@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { preValidate, generateLineup, generateMultipleLineups, generateBestLineup } from './lineup-generator.ts';
 import type { GenerateLineupInput } from './lineup-types.ts';
 import type { Player, Position } from '../types/index.ts';
-import { POSITIONS, POSITIONS_10, INFIELD_POSITIONS } from '../types/index.ts';
+import { POSITIONS, POSITIONS_AA, INFIELD_POSITIONS, INFIELD_POSITIONS_AA } from '../types/index.ts';
 
 // --- Test Helpers ---
 
@@ -531,7 +531,7 @@ describe('generateBestLineup', () => {
 
 function makeAAInput(overrides: Partial<GenerateLineupInput> = {}): GenerateLineupInput {
   return {
-    presentPlayers: players11,
+    presentPlayers: players10,
     innings: 4,
     division: 'AA',
     pitcherAssignments: {},
@@ -547,14 +547,14 @@ describe('AA division - preValidate', () => {
     expect(errors).toEqual([]);
   });
 
-  it('returns error when fewer than 10 players for AA', () => {
-    const errors = preValidate(makeAAInput({ presentPlayers: players11.slice(0, 9) }));
+  it('returns error when fewer than 9 players for AA', () => {
+    const errors = preValidate(makeAAInput({ presentPlayers: players11.slice(0, 8) }));
     expect(errors.length).toBeGreaterThan(0);
-    expect(errors[0]).toContain('10');
+    expect(errors[0]).toContain('9');
   });
 
-  it('accepts exactly 10 players for AA', () => {
-    const errors = preValidate(makeAAInput({ presentPlayers: players10 }));
+  it('accepts exactly 9 players for AA', () => {
+    const errors = preValidate(makeAAInput({ presentPlayers: players11.slice(0, 9) }));
     expect(errors).toEqual([]);
   });
 
@@ -569,52 +569,50 @@ describe('AA division - preValidate', () => {
 });
 
 describe('AA division - generateLineup', () => {
-  it('generates valid lineup for 11 AA players / 4 innings', () => {
+  it('generates valid lineup for 10 AA players / 4 innings', () => {
     const input = makeAAInput();
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
     expect(result.errors).toEqual([]);
   });
 
-  it('generates valid lineup for exactly 10 AA players / 4 innings', () => {
-    const input = makeAAInput({ presentPlayers: players10 });
+  it('generates valid lineup for exactly 9 AA players / 4 innings', () => {
+    const input = makeAAInput({ presentPlayers: players10.slice(0, 9) });
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
     expect(result.errors).toEqual([]);
-    // With exactly 10 players, no one should sit
+    // With exactly 9 players, no one should sit
     for (let inn = 1; inn <= input.innings; inn++) {
-      const playing = new Set(POSITIONS_10.map(pos => result.lineup[inn][pos]));
-      expect(playing.size).toBe(10);
+      const playing = new Set(POSITIONS_AA.map(pos => result.lineup[inn][pos]));
+      expect(playing.size).toBe(9);
     }
   });
 
-  it('fills 10 positions per inning (no CF)', () => {
+  it('fills 9 positions per inning (no C, no CF)', () => {
     const input = makeAAInput();
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
     for (let inn = 1; inn <= input.innings; inn++) {
-      for (const pos of POSITIONS_10) {
+      for (const pos of POSITIONS_AA) {
         expect(result.lineup[inn][pos]).toBeTruthy();
       }
-      // CF should not be populated
+      // C and CF should not be populated
+      expect(result.lineup[inn]['C']).toBeUndefined();
       expect(result.lineup[inn]['CF']).toBeUndefined();
     }
   });
 
-  it('P and C are assigned as regular positions (not pre-assigned)', () => {
+  it('P is assigned as a regular position (not pre-assigned)', () => {
     const input = makeAAInput();
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
-    // Different players should appear at P and C across innings
+    // Different players should appear at P across innings
     const pPlayers = new Set<string>();
-    const cPlayers = new Set<string>();
     for (let inn = 1; inn <= input.innings; inn++) {
       pPlayers.add(result.lineup[inn]['P']);
-      cPlayers.add(result.lineup[inn]['C']);
     }
-    // With 11 players over 4 innings, P and C should rotate (not all same player)
+    // With 11 players over 4 innings, P should rotate
     expect(pPlayers.size).toBeGreaterThanOrEqual(1);
-    expect(cPlayers.size).toBeGreaterThanOrEqual(1);
   });
 
   it('produces no consecutive bench innings for any player', () => {
@@ -624,7 +622,7 @@ describe('AA division - generateLineup', () => {
     for (const player of input.presentPlayers) {
       let consecutiveBench = 0;
       for (let inn = 1; inn <= input.innings; inn++) {
-        const isPlaying = POSITIONS_10.some(pos => result.lineup[inn][pos] === player.id);
+        const isPlaying = POSITIONS_AA.some(pos => result.lineup[inn][pos] === player.id);
         if (!isPlaying) {
           consecutiveBench++;
           expect(consecutiveBench).toBeLessThanOrEqual(1);
@@ -642,7 +640,7 @@ describe('AA division - generateLineup', () => {
     for (const player of input.presentPlayers) {
       let infieldCount = 0;
       for (let inn = 1; inn <= input.innings; inn++) {
-        const isInfield = INFIELD_POSITIONS.some(pos => result.lineup[inn][pos] === player.id);
+        const isInfield = INFIELD_POSITIONS_AA.some(pos => result.lineup[inn][pos] === player.id);
         if (isInfield) infieldCount++;
       }
       expect(infieldCount).toBeGreaterThanOrEqual(2);
@@ -650,13 +648,13 @@ describe('AA division - generateLineup', () => {
   });
 
   it('enforces balanced bench rotation for AA (same as AAA)', () => {
-    const input = makeAAInput({ presentPlayers: players12 });
+    const input = makeAAInput({ presentPlayers: players11 });
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
     const benchCounts: Record<string, number> = {};
     for (const p of input.presentPlayers) benchCounts[p.id] = 0;
     for (let inn = 1; inn <= input.innings; inn++) {
-      const playing = new Set(POSITIONS_10.map(pos => result.lineup[inn][pos]));
+      const playing = new Set(POSITIONS_AA.map(pos => result.lineup[inn][pos]));
       for (const p of input.presentPlayers) {
         if (!playing.has(p.id)) benchCounts[p.id]++;
       }

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validateLineup } from './lineup-validator.ts';
 import type { GenerateLineupInput } from './lineup-types.ts';
 import type { Player, Lineup, InningAssignment } from '../types/index.ts';
-import { POSITIONS, POSITIONS_10 } from '../types/index.ts';
+import { POSITIONS, POSITIONS_AA } from '../types/index.ts';
 
 // --- Test Helpers ---
 
@@ -302,10 +302,10 @@ describe('validateLineup', () => {
 
 // --- AA Division Validator Tests ---
 
-/** Build an AA inning assignment from 10 player IDs (POSITIONS_10 order: P,C,1B,2B,3B,SS,LF,LC,RC,RF) */
+/** Build an AA inning assignment from 9 player IDs (POSITIONS_AA order: P,1B,2B,3B,SS,LF,LC,RC,RF) */
 function makeAAInning(playerIds: string[]): InningAssignment {
   const assignment = {} as InningAssignment;
-  POSITIONS_10.forEach((pos, i) => {
+  POSITIONS_AA.forEach((pos, i) => {
     assignment[pos] = playerIds[i];
   });
   return assignment;
@@ -313,7 +313,7 @@ function makeAAInning(playerIds: string[]): InningAssignment {
 
 function makeAAInput(overrides: Partial<GenerateLineupInput> = {}): GenerateLineupInput {
   return {
-    presentPlayers: players.slice(0, 11),
+    presentPlayers: players.slice(0, 10),
     innings: 4,
     division: 'AA',
     pitcherAssignments: {},
@@ -324,33 +324,27 @@ function makeAAInput(overrides: Partial<GenerateLineupInput> = {}): GenerateLine
 }
 
 /**
- * Valid 11-player AA 4-inning lineup. 10 fielders per inning, 1 benched.
- * Bench: p11(inn1), p10(inn2), p11(inn3), p10(inn4)
- * All players get 2+ infield in 4 innings.
- *
- * Infield (P,C,1B,2B,3B,SS) assignments per player:
- *  p1:  P(1), 1B(2)  = 2   p2:  C(1), 2B(2)  = 2   p3: 1B(1), P(2), SS(3) = 3
- *  p4: 2B(1), C(2), 1B(4)  = 3  p5: 3B(1), 3B(2), P(3) = 3  p6: SS(1), SS(2), C(3) = 3
- *  p7: LF(1)→0, P(4)  → we need to ensure infield for 7 too
- * Let me carefully construct this.
+ * Valid 10-player AA 4-inning lineup. 9 fielders per inning, 1 benched.
+ * Bench: p2(inn1), p10(inn2), p7(inn3), p8(inn4)
+ * All players get 2+ infield (P,1B,2B,3B,SS) in 4 innings.
  */
 function makeValidAALineup(): Lineup {
   return {
-    //          P     C     1B    2B    3B    SS    LF    LC    RC    RF
-    1: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']),
-    // p11 benched. p1=P, p2=C, p3=1B, p4=2B, p5=3B, p6=SS (6 infield). p7-p10 outfield.
-    2: makeAAInning(['p7', 'p8', 'p9', 'p10','p11','p1', 'p3', 'p4', 'p5', 'p6']),
-    // p2 benched. p7=P, p8=C, p9=1B, p10=2B, p11=3B, p1=SS (6 infield). p3-p6 outfield.
-    3: makeAAInning(['p3', 'p4', 'p11','p9', 'p2', 'p10','p1', 'p6', 'p7', 'p8']),
-    // p5 benched. p3=P, p4=C, p11=1B, p9=2B, p2=3B, p10=SS (6 infield). p1,p6,p7,p8 outfield.
-    4: makeAAInning(['p5', 'p6', 'p2', 'p7', 'p8', 'p9', 'p10','p11','p3', 'p1']),
-    // p4 benched. p5=P, p6=C, p2=1B, p7=2B, p8=3B, p9=SS (6 infield). p10,p11,p3,p1 outfield.
+    //          P     1B    2B    3B    SS    LF    LC    RC    RF
+    1: makeAAInning(['p1', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']),
+    // bench: p2. Infield: p1=P, p3=1B, p4=2B, p5=3B, p6=SS.
+    2: makeAAInning(['p2', 'p1', 'p6', 'p7', 'p8', 'p3', 'p4', 'p5', 'p9']),
+    // bench: p10. Infield: p2=P, p1=1B, p6=2B, p7=3B, p8=SS.
+    3: makeAAInning(['p10','p9', 'p8', 'p3', 'p4', 'p1', 'p2', 'p6', 'p5']),
+    // bench: p7. Infield: p10=P, p9=1B, p8=2B, p3=3B, p4=SS.
+    4: makeAAInning(['p7', 'p5', 'p2', 'p9', 'p10','p6', 'p3', 'p4', 'p1']),
+    // bench: p8. Infield: p7=P, p5=1B, p2=2B, p9=3B, p10=SS.
   };
-  // Infield counts per player (P,C,1B,2B,3B,SS):
-  // p1:  P(1), SS(2) = 2 ✓    p2:  C(1), 3B(3), 1B(4) = 3 ✓   p3:  1B(1), P(3) = 2 ✓
-  // p4:  2B(1), C(3) = 2 ✓    p5:  3B(1), P(4) = 2 ✓           p6:  SS(1), C(4) = 2 ✓
-  // p7:  P(2), 2B(4) = 2 ✓    p8:  C(2), 3B(4) = 2 ✓           p9:  1B(2), 2B(3), SS(4) = 3 ✓
-  // p10: 2B(2), SS(3) = 2 ✓   p11: 3B(2), 1B(3) = 2 ✓
+  // Infield counts per player (P,1B,2B,3B,SS):
+  // p1:  P(1), 1B(2) = 2 ✓    p2:  P(2), 2B(4) = 2 ✓    p3:  1B(1), 3B(3) = 2 ✓
+  // p4:  2B(1), SS(3) = 2 ✓   p5:  3B(1), 1B(4) = 2 ✓    p6:  SS(1), 2B(2) = 2 ✓
+  // p7:  3B(2), P(4) = 2 ✓    p8:  SS(2), 2B(3) = 2 ✓    p9:  1B(3), 3B(4) = 2 ✓
+  // p10: P(3), SS(4) = 2 ✓
 }
 
 describe('validateLineup (AA division)', () => {
@@ -361,7 +355,7 @@ describe('validateLineup (AA division)', () => {
     expect(errors).toEqual([]);
   });
 
-  it('GRID_COMPLETE checks 10 positions for AA', () => {
+  it('GRID_COMPLETE checks 9 positions for AA (no C)', () => {
     const lineup = makeValidAALineup();
     delete (lineup[2] as Record<string, string>)['LC'];
     const input = makeAAInput();
@@ -373,7 +367,6 @@ describe('validateLineup (AA division)', () => {
 
   it('skips PITCHER_MATCH validation for AA', () => {
     const lineup = makeValidAALineup();
-    // Even if someone "assigns" a pitcher, the validator shouldn't check
     const input = makeAAInput({ pitcherAssignments: { 1: 'p99' } });
     const errors = validateLineup(lineup, input);
     const pitchErrors = errors.filter(e => e.rule === 'PITCHER_MATCH');
@@ -397,28 +390,28 @@ describe('validateLineup (AA division)', () => {
   });
 
   it('enforces BALANCED_BENCH_ROTATION for AA', () => {
-    // Create unbalanced bench: p11 benched 3 times, p10 benched 0
+    // 11 players, p11 benched 3 times, p10 benched 0
     const lineup: Lineup = {
-      1: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']),
-      2: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']),
-      3: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']),
-      4: makeAAInning(['p1', 'p2', 'p11','p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']),
+      1: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p10']),
+      2: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p10']),
+      3: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p10']),
+      4: makeAAInning(['p1', 'p2', 'p11','p4', 'p5', 'p6', 'p7', 'p8', 'p10']),
     };
-    const input = makeAAInput();
+    const input = makeAAInput({ presentPlayers: players.slice(0, 11) });
     const errors = validateLineup(lineup, input);
     const balancedErrors = errors.filter(e => e.rule === 'BALANCED_BENCH_ROTATION');
     expect(balancedErrors.length).toBeGreaterThan(0);
   });
 
-  it('NO_CONSECUTIVE_BENCH uses 10 positions for AA', () => {
+  it('NO_CONSECUTIVE_BENCH uses 9 positions for AA', () => {
     // p11 benched both inning 1 and 2 (consecutive)
     const lineup: Lineup = {
-      1: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']),
-      2: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']),
-      3: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p11','p7', 'p8', 'p9', 'p10']),
-      4: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p11','p7', 'p8', 'p9', 'p10']),
+      1: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p10']),
+      2: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p10']),
+      3: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p11','p7', 'p8', 'p10']),
+      4: makeAAInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p11','p7', 'p8', 'p10']),
     };
-    const input = makeAAInput();
+    const input = makeAAInput({ presentPlayers: players.slice(0, 11) });
     const errors = validateLineup(lineup, input);
     const benchErrors = errors.filter(e => e.rule === 'NO_CONSECUTIVE_BENCH' && e.playerId === 'p11');
     expect(benchErrors.length).toBeGreaterThan(0);

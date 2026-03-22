@@ -13,8 +13,8 @@ interface SettingsPanelProps {
 
 const DIVISION_RULES: Record<Division, string[]> = {
   AA: [
-    'Coach pitch (no player pitching)',
-    '10 fielders (4 outfield positions)',
+    'Coach pitch (no pitcher or catcher)',
+    '9 fielders (4 outfield positions)',
     '4 innings per game',
     '2 infield innings required',
     'No player sits consecutive innings',

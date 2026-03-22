@@ -1,5 +1,5 @@
 import type { Lineup, Position } from '../types/index.ts';
-import { INFIELD_POSITIONS, getPositions, getFielderCount, hasPlayerPitching } from '../types/index.ts';
+import { getPositions, getFielderCount, getInfieldPositions, hasPlayerPitching } from '../types/index.ts';
 import type { GenerateLineupInput } from './lineup-types.ts';
 
 // --- Types ---
@@ -68,7 +68,7 @@ function scoreInfieldBalance(lineup: Lineup, input: GenerateLineupInput): number
   const playerCount = presentPlayers.length;
 
   // Count infield innings per player (AA: all 6 infield; AAA/Coast: non-battery only)
-  const infieldPositions = hasPlayerPitching(input.division) ? NON_BATTERY_INFIELD : INFIELD_POSITIONS;
+  const infieldPositions = hasPlayerPitching(input.division) ? NON_BATTERY_INFIELD : getInfieldPositions(input.division);
   const infieldCounts: Record<string, number> = {};
   for (const player of presentPlayers) {
     infieldCounts[player.id] = 0;

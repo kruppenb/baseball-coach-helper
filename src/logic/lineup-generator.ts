@@ -1,5 +1,5 @@
 import type { Position, Lineup, InningAssignment } from '../types/index.ts';
-import { INFIELD_POSITIONS, getPositions, getOutfieldPositions, getFielderCount, hasPlayerPitching } from '../types/index.ts';
+import { getPositions, getOutfieldPositions, getFielderCount, getInfieldPositions, hasPlayerPitching } from '../types/index.ts';
 import type { GenerateLineupInput, GenerateLineupResult } from './lineup-types.ts';
 import { validateLineup } from './lineup-validator.ts';
 import { shuffle } from './shuffle.ts';
@@ -173,8 +173,8 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
   const positions = getPositions(input.division);
   const outfieldPositions = getOutfieldPositions(input.division);
   const playerPitching = hasPlayerPitching(input.division);
-  // For AA, P/C are regular infield positions; for AAA/Coast, only 1B/2B/3B/SS
-  const infieldToFill = playerPitching ? NON_BATTERY_INFIELD : INFIELD_POSITIONS;
+  // For AA, P + 1B-SS (no catcher); for AAA/Coast, only 1B/2B/3B/SS (P/C pre-assigned)
+  const infieldToFill = playerPitching ? NON_BATTERY_INFIELD : getInfieldPositions(input.division);
 
   // Phase 1: Determine P/C for each inning
   const pitcherByInning: Record<number, string> = {};
@@ -234,13 +234,16 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
 
   // Phase 2: Calculate infield needs per player
   // Each player needs 2 infield positions in innings 1 through min(4, innings).
-  // NOTE: This is intentionally stricter than the rules (Coast allows 5, AAA allows any)
-  // to maximize infield exposure for every player.
+  // With fewer infield positions (e.g. AA has 5), larger rosters may only get 1.
+  // Use all infield positions (including P/C) for slot count since P/C give infield credit.
   const maxInfieldInning = Math.min(4, innings);
+  const allInfieldPositions = getInfieldPositions(input.division);
+  const totalInfieldSlots = allInfieldPositions.length * maxInfieldInning;
+  const minInfield = Math.min(2, Math.floor(totalInfieldSlots / playerIds.length));
   const playerInfieldNeeds: Record<string, number> = {};
 
   for (const pid of playerIds) {
-    playerInfieldNeeds[pid] = 2;
+    playerInfieldNeeds[pid] = minInfield;
     // Subtract P/C assignments from needed infield positions (P and C are infield)
     if (playerPitching) {
       for (let inn = 1; inn <= maxInfieldInning; inn++) {
@@ -561,8 +564,8 @@ function lineupsMeaningfullyDifferent(
       .join(',');
     if (aBenched !== bBenched) return true;
 
-    // Check infield differs (P, C, 1B, 2B, 3B, SS)
-    for (const pos of INFIELD_POSITIONS) {
+    // Check infield differs
+    for (const pos of getInfieldPositions(input.division)) {
       if (a[inn][pos] !== b[inn][pos]) return true;
     }
   }

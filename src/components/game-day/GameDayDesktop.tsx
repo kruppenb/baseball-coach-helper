@@ -17,7 +17,7 @@ import { ValidationPanel } from '../lineup/ValidationPanel';
 import { SortableBattingOrder } from '../batting-order/SortableBattingOrder';
 import { DugoutCard } from '../lineup/DugoutCard';
 import type { Player, Position, Lineup } from '../../types/index';
-import { INFIELD_POSITIONS, getPositions, getFielderCount, hasPlayerPitching } from '../../types/index';
+import { getInfieldPositions, getPositions, getFielderCount, hasPlayerPitching } from '../../types/index';
 import type { GenerateLineupInput } from '../../logic/lineup-types';
 import styles from './GameDayDesktop.module.css';
 
@@ -52,7 +52,7 @@ function computeFairnessSummary(
           benchInnings++;
         } else if (
           assignedPositions.some((pos: Position) =>
-            (INFIELD_POSITIONS as readonly string[]).includes(pos),
+            (getInfieldPositions(division) as readonly string[]).includes(pos),
           )
         ) {
           infieldInnings++;
