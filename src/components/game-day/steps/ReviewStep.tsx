@@ -80,6 +80,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     pitcherAssignments,
     catcherAssignments,
     positionBlocks,
+    updateSelectedLineup,
   } = useLineup();
 
   const { players } = useRoster();
@@ -112,6 +113,13 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     editor.setBattingOrder(currentOrder);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentOrder]);
+
+  // Persist lineup edits to cloud storage so PrintStep picks them up
+  useEffect(() => {
+    if (editor.lineup && editor.hasEdits) {
+      updateSelectedLineup(editor.lineup);
+    }
+  }, [editor.lineup, editor.hasEdits, updateSelectedLineup]);
 
   const [_hasGeneratedBatting, setHasGeneratedBatting] = useState(currentOrder !== null);
   const [generateError, setGenerateError] = useState('');

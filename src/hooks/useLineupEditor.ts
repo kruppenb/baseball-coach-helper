@@ -16,9 +16,16 @@ export function useLineupEditor(
   const initialLineupRef = useRef<Lineup | null>(initialLineup);
   const initialBattingOrderRef = useRef<string[] | null>(null);
 
-  // Reset edited state when initialLineup changes
+  // Reset edited state when initialLineup changes (e.g. regeneration).
+  // Skip reset if content matches current edits (e.g. edit was just persisted).
   useEffect(() => {
-    setEditedLineup(initialLineup ? structuredClone(initialLineup) : null);
+    setEditedLineup(prev => {
+      if (prev && initialLineup &&
+          JSON.stringify(prev) === JSON.stringify(initialLineup)) {
+        return prev;
+      }
+      return initialLineup ? structuredClone(initialLineup) : null;
+    });
     initialLineupRef.current = initialLineup;
   }, [initialLineup]);
 
