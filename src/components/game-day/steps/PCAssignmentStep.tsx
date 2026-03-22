@@ -25,10 +25,13 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
   const {
     selectedPitchers,
     selectedCatchers,
+    pitcherInningCounts,
+    pitcherInningsTotal,
     pitcherOptionsFor,
     catcherOptionsFor,
     handlePitcherChange,
     handleCatcherChange,
+    handlePitcherInningsChange,
   } = usePCAssignment({
     presentPlayers,
     innings,
@@ -61,7 +64,11 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
   // Build status label for history table
   const getPlayerStatus = (playerId: string): string => {
     const pIdx = selectedPitchers.indexOf(playerId);
-    if (pIdx >= 0) return pitcherCount > 1 ? `Pitcher ${pIdx + 1}` : 'Pitcher';
+    if (pIdx >= 0) {
+      const inn = pitcherInningCounts[pIdx] || 0;
+      if (pitcherCount > 1) return `Pitcher ${pIdx + 1} (${inn} inn)`;
+      return `Pitcher (${inn} inn)`;
+    }
     const catcherSlots = selectedCatchers
       .map((id, i) => (id === playerId ? i + 1 : -1))
       .filter((i) => i >= 0);
@@ -71,6 +78,9 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
     }
     return '';
   };
+
+  const inningOptions = Array.from({ length: innings }, (_, i) => i + 1);
+  const inningsMismatch = pitcherInningsTotal !== innings && selectedPitchers.some(Boolean);
 
   return (
     <div className={styles.step}>
@@ -87,22 +97,41 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
               >
                 {pitcherCount > 1 ? `Pitcher ${idx + 1}` : 'Pitcher'}
               </label>
-              <select
-                id={`pitcher-select-${idx}`}
-                className={styles.playerSelect}
-                value={selectedId}
-                onChange={(e) => handlePitcherChange(idx, e.target.value)}
-              >
-                <option value="">Select Pitcher</option>
-                {pitcherOptionsFor(idx).map((p: Player) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              <div className={styles.pitcherRow}>
+                <select
+                  id={`pitcher-select-${idx}`}
+                  className={styles.playerSelect}
+                  value={selectedId}
+                  onChange={(e) => handlePitcherChange(idx, e.target.value)}
+                >
+                  <option value="">Select Pitcher</option>
+                  {pitcherOptionsFor(idx).map((p: Player) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                {selectedId && (
+                  <select
+                    className={styles.inningsSelect}
+                    value={pitcherInningCounts[idx] || 1}
+                    onChange={(e) => handlePitcherInningsChange(idx, Number(e.target.value))}
+                    aria-label={`Innings for pitcher ${idx + 1}`}
+                  >
+                    {inningOptions.map((n) => (
+                      <option key={n} value={n}>{n} inn</option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
           ))}
         </div>
+        {selectedPitchers.some(Boolean) && (
+          <div className={`${styles.inningsTotal} ${inningsMismatch ? styles.inningsMismatch : ''}`}>
+            {pitcherInningsTotal}/{innings} innings assigned
+          </div>
+        )}
       </div>
 
       <div className={styles.slotSection}>

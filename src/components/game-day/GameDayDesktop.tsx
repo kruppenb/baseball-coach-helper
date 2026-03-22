@@ -134,10 +134,13 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
   const {
     selectedPitchers,
     selectedCatchers,
+    pitcherInningCounts,
+    pitcherInningsTotal,
     pitcherOptionsFor,
     catcherOptionsFor,
     handlePitcherChange,
     handleCatcherChange,
+    handlePitcherInningsChange,
   } = usePCAssignment({
     presentPlayers,
     innings,
@@ -309,22 +312,41 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
                     >
                       {pitcherCount > 1 ? `Pitcher ${idx + 1}` : 'Pitcher'}
                     </label>
-                    <select
-                      id={`desktop-pitcher-select-${idx}`}
-                      className={styles.playerSelect}
-                      value={selectedId}
-                      onChange={e => handlePitcherChange(idx, e.target.value)}
-                    >
-                      <option value="">Select Pitcher</option>
-                      {pitcherOptionsFor(idx).map((p: Player) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className={styles.pitcherRow}>
+                      <select
+                        id={`desktop-pitcher-select-${idx}`}
+                        className={styles.playerSelect}
+                        value={selectedId}
+                        onChange={e => handlePitcherChange(idx, e.target.value)}
+                      >
+                        <option value="">Select Pitcher</option>
+                        {pitcherOptionsFor(idx).map((p: Player) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedId && (
+                        <select
+                          className={styles.inningsSelect}
+                          value={pitcherInningCounts[idx] || 1}
+                          onChange={e => handlePitcherInningsChange(idx, Number(e.target.value))}
+                          aria-label={`Innings for pitcher ${idx + 1}`}
+                        >
+                          {Array.from({ length: innings }, (_, i) => i + 1).map(n => (
+                            <option key={n} value={n}>{n} inn</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
+              {selectedPitchers.some(Boolean) && (
+                <div className={`${styles.inningsTotal} ${pitcherInningsTotal !== innings ? styles.inningsMismatch : ''}`}>
+                  {pitcherInningsTotal}/{innings} innings assigned
+                </div>
+              )}
             </div>
 
             <div className={styles.slotSection}>
