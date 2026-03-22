@@ -1,5 +1,5 @@
 import type { Position, Lineup, InningAssignment } from '../types/index.ts';
-import { INFIELD_POSITIONS, getPositions, getOutfieldPositions, getFielderCount, getInfieldPositions, hasPlayerPitching } from '../types/index.ts';
+import { getPositions, getOutfieldPositions, getFielderCount, getInfieldPositions, hasPlayerPitching } from '../types/index.ts';
 import type { GenerateLineupInput, GenerateLineupResult } from './lineup-types.ts';
 import { validateLineup } from './lineup-validator.ts';
 import { shuffle } from './shuffle.ts';

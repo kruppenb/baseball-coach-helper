@@ -51,7 +51,7 @@ export function getOutfieldPositions(division: Division): Position[] {
 export function getInfieldPositions(division: Division): Position[] {
   return division === 'AA' ? INFIELD_POSITIONS_AA : INFIELD_POSITIONS;
 }
-export function getFielderCount(division: Division): number {
+export function getFielderCount(_division: Division): number {
   return 9;
 }
 export function hasPlayerPitching(division: Division): boolean {
