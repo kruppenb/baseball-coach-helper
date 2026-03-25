@@ -1,0 +1,270 @@
+/* ── Field Status Banner ── */
+
+.banner {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Collapsed row (mobile default) ── */
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  min-height: var(--min-tap-size);
+}
+
+.toggleBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  text-align: left;
+  padding: 0;
+}
+
+.toggleBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.dots {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot[data-status="Open"] {
+  background-color: var(--color-success);
+}
+
+.dot[data-status="Closed"] {
+  background-color: var(--color-danger);
+}
+
+/* Notice, or any other status */
+.dot[data-status="other"] {
+  background-color: var(--color-warning);
+}
+
+.summaryText {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timestamp {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.timestampStale {
+  color: var(--color-warning);
+}
+
+.chevron {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dimmed);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* ── Expanded detail ── */
+
+.detail {
+  padding: 0 var(--space-md) var(--space-sm);
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 2px 0;
+  font-size: var(--font-size-sm);
+}
+
+.fieldName {
+  font-weight: 500;
+}
+
+.fieldStatus {
+  color: var(--color-text-muted);
+}
+
+.fieldDetail {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dimmed);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.parksTimestamp {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dimmed);
+  margin-top: var(--space-xs);
+  padding-left: 16px; /* align with text after dots */
+}
+
+/* ── Refresh button ── */
+
+.refreshBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-xs);
+  min-width: var(--min-tap-size);
+  min-height: var(--min-tap-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.refreshBtn:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.refreshBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.refreshSpin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── Error / loading states ── */
+
+.loadingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  min-height: var(--min-tap-size);
+}
+
+.errorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dimmed);
+  min-height: var(--min-tap-size);
+}
+
+.retryLink {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+/* ── Desktop: inline row ── */
+
+@media (min-width: 900px) {
+  .banner {
+    margin-bottom: var(--space-lg);
+  }
+
+  .toggleBtn {
+    cursor: default;
+  }
+
+  .chevron {
+    display: none;
+  }
+
+  .dots {
+    display: none;
+  }
+
+  .summaryText {
+    display: none;
+  }
+
+  /* Show inline fields instead of collapsed summary */
+  .inlineFields {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex: 1;
+  }
+
+  .inlineField {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+  }
+
+  .detail {
+    display: none;
+  }
+}
+
+/* Mobile: hide inline fields */
+@media (max-width: 899px) {
+  .inlineFields {
+    display: none;
+  }
+}
+
+/* ── Print ── */
+
+@media print {
+  .banner {
+    display: none;
+  }
+}

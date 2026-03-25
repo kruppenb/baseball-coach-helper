@@ -8,6 +8,7 @@ import { HistoryPage } from '../history/HistoryPage';
 import { NewGameDialog } from '../game-day/NewGameDialog';
 import { GameLabelDialog } from '../game-day/GameLabelDialog';
 import { Toast } from '../game-day/Toast';
+import { FieldStatusBanner } from '../field-status/FieldStatusBanner';
 import { WelcomeDialog } from '../onboarding/WelcomeDialog';
 import { LocalModeDialog } from '../onboarding/LocalModeDialog';
 import { useAuth } from '../../auth/useAuth';
@@ -224,6 +225,7 @@ export function AppShell() {
             id="panel-game-day"
             aria-labelledby="tab-game-day"
           >
+            <FieldStatusBanner enabled={activeTab === 'game-day'} />
             {players.length === 0 && (
               <div className={styles.emptyRosterBanner} role="status">
                 <p className={styles.emptyRosterText}>
