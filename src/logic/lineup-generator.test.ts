@@ -212,6 +212,31 @@ describe('generateLineup', () => {
     expect(result.errors).toEqual([]);
   });
 
+  it('generates valid lineup for 12 players / 3 pitchers / 2 catchers', () => {
+    // Real-world scenario: 12 players, 3 pitchers split 2-2-2, 2 catchers split 3-3.
+    // The last pitcher (p3, innings 5-6) gets zero infield credit in the 1-4 window,
+    // which would otherwise make INFIELD_MINIMUM infeasible by 1 slot.
+    // The relaxation drops p3's window minimum from 2 to 1 since they're guaranteed
+    // 2 infield innings (pitching) in innings 5-6 anyway.
+    const input = makeDefaultInput({
+      presentPlayers: players12,
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p4', 4: 'p5', 5: 'p5', 6: 'p5' },
+    });
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+
+    // p3 (last pitcher, innings 5-6) must get at least 1 infield slot in innings 1-4
+    let p3InfieldInWindow = 0;
+    for (let inn = 1; inn <= 4; inn++) {
+      if (INFIELD_POSITIONS.some(pos => result.lineup[inn][pos] === 'p3')) {
+        p3InfieldInWindow++;
+      }
+    }
+    expect(p3InfieldInWindow).toBeGreaterThanOrEqual(1);
+  });
+
   it('respects pitcher pre-assignments', () => {
     const input = makeDefaultInput();
     const result = generateLineup(input);
@@ -266,18 +291,29 @@ describe('generateLineup', () => {
     }
   });
 
-  it('gives every player 2+ infield positions by inning 4', () => {
+  it('gives every player 2+ infield positions by inning 4 (or 1+ for late-only P/C)', () => {
     const input = makeDefaultInput();
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
     const maxCheckInning = Math.min(4, input.innings);
     for (const player of input.presentPlayers) {
       let infieldCount = 0;
-      for (let inn = 1; inn <= maxCheckInning; inn++) {
-        const isInfield = INFIELD_POSITIONS.some(pos => result.lineup[inn][pos] === player.id);
-        if (isInfield) infieldCount++;
+      let pcInWindow = 0;
+      let pcOutsideWindow = 0;
+      for (let inn = 1; inn <= input.innings; inn++) {
+        const a = result.lineup[inn];
+        if (inn <= maxCheckInning) {
+          const isInfield = INFIELD_POSITIONS.some(pos => a[pos] === player.id);
+          if (isInfield) infieldCount++;
+        }
+        if (a['P'] === player.id || a['C'] === player.id) {
+          if (inn <= maxCheckInning) pcInWindow++;
+          else pcOutsideWindow++;
+        }
       }
-      expect(infieldCount).toBeGreaterThanOrEqual(2);
+      // Relaxation: last pitcher/catcher (all P/C innings after the window) only needs 1
+      const expectedMin = pcOutsideWindow > 0 && pcInWindow === 0 ? 1 : 2;
+      expect(infieldCount).toBeGreaterThanOrEqual(expectedMin);
     }
   });
 
@@ -463,15 +499,25 @@ describe('benchPriority', () => {
       }
     }
 
-    // Verify infield minimum
+    // Verify infield minimum (relaxed to 1 for players whose only P/C falls after the window)
     const maxCheckInning = Math.min(4, input.innings);
     for (const player of input.presentPlayers) {
       let infieldCount = 0;
-      for (let inn = 1; inn <= maxCheckInning; inn++) {
-        const isInfield = INFIELD_POSITIONS.some(pos => result.lineup[inn][pos] === player.id);
-        if (isInfield) infieldCount++;
+      let pcInWindow = 0;
+      let pcOutsideWindow = 0;
+      for (let inn = 1; inn <= input.innings; inn++) {
+        const a = result.lineup[inn];
+        if (inn <= maxCheckInning) {
+          const isInfield = INFIELD_POSITIONS.some(pos => a[pos] === player.id);
+          if (isInfield) infieldCount++;
+        }
+        if (a['P'] === player.id || a['C'] === player.id) {
+          if (inn <= maxCheckInning) pcInWindow++;
+          else pcOutsideWindow++;
+        }
       }
-      expect(infieldCount).toBeGreaterThanOrEqual(2);
+      const expectedMin = pcOutsideWindow > 0 && pcInWindow === 0 ? 1 : 2;
+      expect(infieldCount).toBeGreaterThanOrEqual(expectedMin);
     }
   });
 });

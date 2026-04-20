@@ -261,6 +261,10 @@ function validateBalancedBenchRotation(
  * NOTE: The Coast division rule only requires infield innings within the first 5 innings,
  * and AAA has no timing restriction at all. We intentionally use a tighter 4-inning window
  * for both divisions to maximize infield exposure for every player.
+ *
+ * Relaxation: a player whose only P/C innings fall AFTER the window (e.g. the last pitcher
+ * who throws innings 5-6) gets their minimum dropped by 1 — their guaranteed P/C exposure
+ * later in the game compensates for the tighter window allocation.
  */
 function validateInfieldMinimum(
   lineup: Lineup,
@@ -276,21 +280,38 @@ function validateInfieldMinimum(
   const minInfield = Math.min(2, Math.floor(infieldSlots / input.presentPlayers.length));
   if (minInfield < 1) return errors;
 
+  const playerPitching = hasPlayerPitching(input.division);
+
   for (const player of input.presentPlayers) {
     let infieldCount = 0;
+    let pcInWindow = 0;
+    let pcOutsideWindow = 0;
 
-    for (let inn = 1; inn <= maxCheckInning; inn++) {
+    for (let inn = 1; inn <= input.innings; inn++) {
       const assignment = lineup[inn];
       if (!assignment) continue;
 
-      const isInfield = infieldPositions.some(pos => assignment[pos] === player.id);
-      if (isInfield) infieldCount++;
+      if (inn <= maxCheckInning) {
+        const isInfield = infieldPositions.some(pos => assignment[pos] === player.id);
+        if (isInfield) infieldCount++;
+      }
+
+      if (playerPitching) {
+        if (assignment['P'] === player.id || assignment['C'] === player.id) {
+          if (inn <= maxCheckInning) pcInWindow++;
+          else pcOutsideWindow++;
+        }
+      }
     }
 
-    if (infieldCount < minInfield) {
+    const playerMin = pcOutsideWindow > 0 && pcInWindow === 0
+      ? Math.max(1, minInfield - 1)
+      : minInfield;
+
+    if (infieldCount < playerMin) {
       errors.push({
         rule: 'INFIELD_MINIMUM',
-        message: `${player.name} only has ${infieldCount} infield position${infieldCount === 1 ? '' : 's'} in the first 4 innings. Every player needs at least ${minInfield}.`,
+        message: `${player.name} only has ${infieldCount} infield position${infieldCount === 1 ? '' : 's'} in the first 4 innings. Every player needs at least ${playerMin}.`,
         playerId: player.id,
       });
     }
