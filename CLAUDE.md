@@ -14,7 +14,7 @@ Baseball coach helper — a web app for managing youth baseball team rosters, ba
 ## Architecture
 
 - **Frontend:** React + TypeScript + Vite, deployed to Azure Static Web Apps
-- **API:** Azure Functions v4 (Node 20, TypeScript), deployed as a standalone Functions app linked to SWA
+- **API:** Azure Functions v4 (Node 22, TypeScript), deployed as a standalone Functions app linked to SWA
 - **Auth:** Entra ID via SWA built-in auth, `x-ms-client-principal` header parsed in `api/src/lib/auth.ts`
 - **Data:** Cosmos DB (RBAC-only), accessed via `@azure/cosmos` + `DefaultAzureCredential` in `api/src/lib/cosmos.ts`
 
