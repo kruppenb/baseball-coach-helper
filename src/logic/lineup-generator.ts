@@ -243,23 +243,20 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
   const playerInfieldNeeds: Record<string, number> = {};
 
   for (const pid of playerIds) {
-    // Relaxation: if the player's only P/C time falls after the window (e.g. last
-    // pitcher throwing innings 5-6), drop their window minimum by 1. Their guaranteed
-    // P/C exposure later in the game compensates for a single-slot window allocation
-    // and frees a non-battery infield slot for another player.
-    let pcInWindow = false;
-    let pcOutsideWindow = false;
+    // Relaxation: any P/C assignment (in or out of window) drops the window
+    // minimum by 1. P/C is itself a high-touch infield role — counting it as
+    // equivalent to a window-infield slot frees a non-battery slot for a
+    // player with no P/C exposure at all.
+    let hasPC = false;
     if (playerPitching) {
       for (let inn = 1; inn <= innings; inn++) {
         if (pitcherByInning[inn] === pid || catcherByInning[inn] === pid) {
-          if (inn <= maxInfieldInning) pcInWindow = true;
-          else pcOutsideWindow = true;
+          hasPC = true;
+          break;
         }
       }
     }
-    const baseMin = pcOutsideWindow && !pcInWindow
-      ? Math.max(1, minInfield - 1)
-      : minInfield;
+    const baseMin = hasPC ? Math.max(1, minInfield - 1) : minInfield;
 
     playerInfieldNeeds[pid] = baseMin;
     // Subtract P/C assignments from needed infield positions (P and C are infield)

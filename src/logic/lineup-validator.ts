@@ -262,9 +262,10 @@ function validateBalancedBenchRotation(
  * and AAA has no timing restriction at all. We intentionally use a tighter 4-inning window
  * for both divisions to maximize infield exposure for every player.
  *
- * Relaxation: a player whose only P/C innings fall AFTER the window (e.g. the last pitcher
- * who throws innings 5-6) gets their minimum dropped by 1 — their guaranteed P/C exposure
- * later in the game compensates for the tighter window allocation.
+ * Relaxation: any P/C assignment in the game (in or out of the window) drops the minimum
+ * by 1. P/C is itself a high-touch infield role, so a player with even one P/C inning has
+ * the exposure the rule is meant to guarantee — and freeing a slot keeps tight rosters
+ * (e.g. 12 players with three pitchers / two catchers) feasible.
  */
 function validateInfieldMinimum(
   lineup: Lineup,
@@ -284,8 +285,7 @@ function validateInfieldMinimum(
 
   for (const player of input.presentPlayers) {
     let infieldCount = 0;
-    let pcInWindow = 0;
-    let pcOutsideWindow = 0;
+    let hasPC = false;
 
     for (let inn = 1; inn <= input.innings; inn++) {
       const assignment = lineup[inn];
@@ -298,15 +298,12 @@ function validateInfieldMinimum(
 
       if (playerPitching) {
         if (assignment['P'] === player.id || assignment['C'] === player.id) {
-          if (inn <= maxCheckInning) pcInWindow++;
-          else pcOutsideWindow++;
+          hasPC = true;
         }
       }
     }
 
-    const playerMin = pcOutsideWindow > 0 && pcInWindow === 0
-      ? Math.max(1, minInfield - 1)
-      : minInfield;
+    const playerMin = hasPC ? Math.max(1, minInfield - 1) : minInfield;
 
     if (infieldCount < playerMin) {
       errors.push({
