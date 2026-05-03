@@ -139,9 +139,16 @@ No new logic. No confirmation dialog before switching — the user explicitly op
 
 ## Testing
 
-- **Unit:** `DivisionToggle.test.tsx` — renders three segments, marks the correct one active, fires `onChange` with the right value when an inactive segment is clicked, no-op when the active segment is clicked.
-- **Integration:** existing `PCAssignmentStep` / `PCTimeline` tests should continue to pass after the toolbar extraction. Add a test that switching division from AAA to AA via the toggle hides the P/C grid and shows the AA note (the toolbar with the toggle remains visible).
-- **Manual:** click each segment in both `SettingsPanel` and the P/C step; confirm the active state visually matches and the change persists across both surfaces (since both read from the same `useGameConfig` cloud-storage hook).
+The project's vitest config uses `environment: 'node'` and has no React Testing Library or JSX component test infrastructure (existing tests under `src/hooks` and `src/logic` test pure functions only). Adding a component-rendering harness is out of scope for this change.
+
+- **Type / build check:** `npm run build` (root) must pass. ESLint via `npm run lint` must pass.
+- **Existing tests:** `npm test` must continue to pass — no behavioral change is expected in `usePCAssignment` or any logic module, since `setDivision`'s side effects are unchanged.
+- **Manual verification:**
+  - Click each segment of the toggle on the global Settings page and on the P/C step; confirm active state matches in both places.
+  - Switch AAA → AA on the P/C step: the grid hides, the AA note appears, the toggle stays visible above the note.
+  - Switch AA → AAA on the P/C step: the grid appears (empty), the AA note is gone, the toggle stays visible.
+  - Switch AAA ↔ Coast on the P/C step: the grid resizes (5 vs 6 inning columns) and previous assignments for inning 6 stay in state but disappear from view when going Coast → AAA.
+  - Reload the app after each change and confirm the new division persists (validates the cloud-storage round trip).
 
 ## Files touched
 
@@ -151,4 +158,3 @@ No new logic. No confirmation dialog before switching — the user explicitly op
 - **Edit:** `src/components/game-day/pc-timeline/PCTimeline.tsx` (drop toolbar, drop `onAutofill` / `onClearAll` props)
 - **Edit:** `src/components/game-day/pc-timeline/index.ts` (export `PCToolbar`)
 - **Edit:** `src/components/game-day/steps/PCAssignmentStep.tsx` (render `PCToolbar` outside the `playerPitching` branch, pass division props)
-- **Add:** `src/components/game-setup/DivisionToggle.test.tsx`
