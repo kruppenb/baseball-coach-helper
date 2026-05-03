@@ -143,7 +143,7 @@ export function generateLineup(input: GenerateLineupInput): GenerateLineupResult
 
   // No fully valid lineup; return the best partial.
   return {
-    lineup: bestLineup ?? ({} as Lineup),
+    lineup: bestLineup!,
     valid: false,
     errors: bestErrors,
     warnings,
