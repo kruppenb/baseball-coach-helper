@@ -139,7 +139,7 @@ export function useLineup() {
     });
   }, [setState]);
 
-  const generate = useCallback((): { success: boolean; count: number; errors: string[] } => {
+  const generate = useCallback((): { success: boolean; errors: string[]; warnings: string[] } => {
     const playerPitching = hasPlayerPitching(division);
     const input = {
       presentPlayers,
@@ -151,33 +151,27 @@ export function useLineup() {
       benchPriority,
     };
 
-    const preErrors = preValidate(input);
-    if (preErrors.length > 0) {
-      return { success: false, count: 0, errors: preErrors };
-    }
-
     const result = generateBestLineup(input, 10);
 
-    if (!result.valid) {
+    // Always store the lineup if one was produced.
+    if (Object.keys(result.lineup).length > 0) {
+      setState((prev: LineupState) => ({
+        ...prev,
+        generatedLineups: [result.lineup],
+        selectedLineupIndex: 0,
+      }));
+    } else {
       setState((prev: LineupState) => ({
         ...prev,
         generatedLineups: [],
         selectedLineupIndex: null,
       }));
-      return {
-        success: false,
-        count: 0,
-        errors: result.errors.map(e => e.message),
-      };
     }
 
-    setState((prev: LineupState) => ({
-      ...prev,
-      generatedLineups: [result.lineup],
-      selectedLineupIndex: 0,
-    }));
-
-    return { success: true, count: 1, errors: [] };
+    const errors = result.errors.map(e => e.message);
+    const warnings = result.warnings;
+    const success = result.valid && warnings.length === 0;
+    return { success, errors, warnings };
   }, [presentPlayers, innings, division, cleanState, setState, benchPriority]);
 
   const selectLineup = useCallback((index: number) => {
@@ -233,55 +227,17 @@ export function useLineup() {
     });
   }, [selectedLineup, presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments, cleanState.positionBlocks]);
 
-  // Lightweight real-time checks for pre-assignment conflicts
-  const preAssignmentErrors: string[] = useMemo(() => {
-    // AA has no player pitching — no P/C errors possible
-    if (!hasPlayerPitching(division)) return [];
-
-    const errors: string[] = [];
-    const presentIds = new Set(presentPlayers.map(p => p.id));
-
-    for (let inn = 1; inn <= innings; inn++) {
-      const pitcherId = cleanState.pitcherAssignments[inn];
-      const catcherId = cleanState.catcherAssignments[inn];
-
-      // Same player as P+C in same inning
-      if (pitcherId && catcherId && pitcherId === catcherId) {
-        const player = presentPlayers.find(p => p.id === pitcherId);
-        const name = player?.name ?? 'A player';
-        errors.push(`${name} is assigned as both pitcher and catcher in inning ${inn}.`);
-      }
-
-      // Pitcher not present
-      if (pitcherId && !presentIds.has(pitcherId)) {
-        errors.push(`Pitcher for inning ${inn} is not in the active roster.`);
-      }
-
-      // Catcher not present
-      if (catcherId && !presentIds.has(catcherId)) {
-        errors.push(`Catcher for inning ${inn} is not in the active roster.`);
-      }
-    }
-
-    // LL rule: a player who catches 4+ innings cannot pitch that game
-    const catcherCounts: Record<string, number> = {};
-    const isPitcherMap: Record<string, boolean> = {};
-    for (let inn = 1; inn <= innings; inn++) {
-      const catcherId = cleanState.catcherAssignments[inn];
-      if (catcherId) catcherCounts[catcherId] = (catcherCounts[catcherId] ?? 0) + 1;
-      const pitcherId = cleanState.pitcherAssignments[inn];
-      if (pitcherId) isPitcherMap[pitcherId] = true;
-    }
-    for (const [playerId, count] of Object.entries(catcherCounts)) {
-      if (count >= 4 && isPitcherMap[playerId]) {
-        const player = presentPlayers.find(p => p.id === playerId);
-        const name = player?.name ?? 'A player';
-        errors.push(`${name} catches ${count} innings and also pitches — a player who catches 4+ innings cannot pitch in the same game.`);
-      }
-    }
-
-    return errors;
-  }, [presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments]);
+  const preValidationWarnings: string[] = useMemo(() => {
+    const playerPitching = hasPlayerPitching(division);
+    return preValidate({
+      presentPlayers,
+      innings,
+      division,
+      pitcherAssignments: playerPitching ? cleanState.pitcherAssignments : {},
+      catcherAssignments: playerPitching ? cleanState.catcherAssignments : {},
+      positionBlocks: cleanState.positionBlocks,
+    });
+  }, [presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments, cleanState.positionBlocks]);
 
   return {
     // State
@@ -297,7 +253,7 @@ export function useLineup() {
     division,
     selectedLineup,
     validationErrors,
-    preAssignmentErrors,
+    preValidationWarnings,
     catcherInningsHistory,
 
     // Actions
