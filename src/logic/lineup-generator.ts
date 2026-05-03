@@ -131,6 +131,7 @@ export function generateLineup(input: GenerateLineupInput): GenerateLineupResult
         rule: 'GRID_COMPLETE' as const,
         message: msg,
       })),
+      warnings: preErrors,
       attemptCount: 0,
     };
   }
@@ -142,7 +143,7 @@ export function generateLineup(input: GenerateLineupInput): GenerateLineupResult
     if (lineup) {
       const errors = validateLineup(lineup, input);
       if (errors.length === 0) {
-        return { lineup, valid: true, errors: [], attemptCount: attempt + 1 };
+        return { lineup, valid: true, errors: [], warnings: [], attemptCount: attempt + 1 };
       }
     }
   }
@@ -154,6 +155,7 @@ export function generateLineup(input: GenerateLineupInput): GenerateLineupResult
       rule: 'GRID_COMPLETE',
       message: 'Could not generate a valid lineup with these settings. Try adjusting pitcher/catcher assignments or position blocks.',
     }],
+    warnings: [],
     attemptCount: maxAttempts,
   };
 }
@@ -491,6 +493,7 @@ export function generateBestLineup(
         rule: 'GRID_COMPLETE' as const,
         message: msg,
       })),
+      warnings: preErrors,
       attemptCount: 0,
       score: { total: 0, benchEquity: 0, infieldBalance: 0, positionVariety: 0 },
     };
@@ -514,6 +517,7 @@ export function generateBestLineup(
         rule: 'GRID_COMPLETE',
         message: 'Could not generate a valid lineup with these settings. Try adjusting pitcher/catcher assignments or position blocks.',
       }],
+      warnings: [],
       attemptCount: count * 200,
       score: { total: 0, benchEquity: 0, infieldBalance: 0, positionVariety: 0 },
     };

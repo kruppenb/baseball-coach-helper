@@ -34,5 +34,6 @@ export interface GenerateLineupResult {
   lineup: Lineup;
   valid: boolean;
   errors: ValidationError[];
+  warnings: string[];
   attemptCount: number;
 }
