@@ -242,6 +242,9 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
   const minPlayers = getFielderCount(config.division);
   const canGenerate = presentCount >= minPlayers;
   const canPrint = hasLineup && hasBattingOrder;
+  const hasAnyAssignment =
+    Object.keys(pitcherAssignments).length > 0 ||
+    Object.keys(catcherAssignments).length > 0;
   const [statusMessage, setStatusMessage] = useState('');
 
   const handleGenerate = useCallback(() => {
@@ -280,12 +283,7 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
               division={config.division}
               onDivisionChange={setDivision}
               onAutofill={autofillDefaults}
-              onClearAll={
-                Object.keys(pitcherAssignments).length > 0 ||
-                Object.keys(catcherAssignments).length > 0
-                  ? clearAll
-                  : undefined
-              }
+              onClearAll={hasAnyAssignment ? clearAll : undefined}
             />
             <PCTimeline
               innings={innings}
@@ -329,6 +327,7 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
             </div>
           </Card>
         ) : (
+          // AA: division toggle intentionally not surfaced here — switch via global Settings.
           <Card label="Generate">
             <div className={styles.pcCardFooter}>
               <div className={styles.pcFooterLeft}>
