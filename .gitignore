@@ -15,6 +15,11 @@ dist/
 *.swp
 *.swo
 
+# Local tooling (Claude Code, Playwright MCP, Superpowers brainstorm)
+.claude/
+.playwright-mcp/
+.superpowers/
+
 # API
 local.settings.json
 api/dist/
