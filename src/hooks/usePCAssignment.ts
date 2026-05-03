@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { Player } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -23,100 +23,116 @@ export function defaultInningCounts(
 }
 
 /**
- * Build default slot-level innings counts: filled slots get innings from
- * defaultInningCounts, empty slots get 0.
+ * Build an even default per-inning assignment for a list of player IDs.
+ * Players are placed into consecutive inning blocks. Used by autofill.
  */
-export function slotDefaultInningCounts(
-  slots: string[],
+export function buildDefaultAssignments(
+  playerIds: string[],
   totalInnings: number,
-): number[] {
-  const filledIndices = slots
-    .map((id, i) => (id ? i : -1))
-    .filter((i) => i >= 0);
-  if (filledIndices.length === 0) return slots.map(() => 0);
-  const defaults = defaultInningCounts(filledIndices.length, totalInnings);
-  const result = Array(slots.length).fill(0);
-  filledIndices.forEach((slotIdx, i) => {
-    result[slotIdx] = defaults[i];
-  });
+): Record<number, string> {
+  const result: Record<number, string> = {};
+  if (playerIds.length === 0 || totalInnings === 0) return result;
+  const counts = defaultInningCounts(playerIds.length, totalInnings);
+  let inning = 1;
+  for (let i = 0; i < playerIds.length; i++) {
+    for (let j = 0; j < counts[i]; j++) {
+      result[inning++] = playerIds[i];
+    }
+  }
   return result;
 }
 
 /**
- * Assign players to innings using explicit per-player counts.
- * E.g. players=['a','b'], counts=[3,2] → {1:'a', 2:'a', 3:'a', 4:'b', 5:'b'}
+ * Pick up to N players for autofill, skipping any in `excludeIds`.
+ *
+ * When `strict` is false (default) the function falls back to excluded players
+ * if it can't find N eligible ones, returning roster order as a tiebreaker.
+ * When `strict` is true, excluded players are never returned even if it means
+ * returning fewer than N IDs — used for "no last-game pitcher" enforcement.
  */
-export function distributeWithCounts(
-  players: string[],
-  counts: number[],
-): Record<number, string> {
-  const assignments: Record<number, string> = {};
-  let inning = 1;
-  for (let p = 0; p < players.length; p++) {
-    if (!players[p]) continue;
-    for (let j = 0; j < (counts[p] || 0); j++) {
-      assignments[inning] = players[p];
-      inning++;
+export function pickAutofillPlayers(
+  presentPlayers: Player[],
+  count: number,
+  excludeIds: Set<string>,
+  strict = false,
+): string[] {
+  if (count === 0) return [];
+  const picked: string[] = [];
+  for (const p of presentPlayers) {
+    if (picked.length >= count) break;
+    if (excludeIds.has(p.id)) continue;
+    picked.push(p.id);
+  }
+  if (!strict && picked.length < count) {
+    for (const p of presentPlayers) {
+      if (picked.length >= count) break;
+      if (picked.includes(p.id)) continue;
+      picked.push(p.id);
     }
   }
-  return assignments;
+  return picked;
 }
 
 /**
- * Distribute `count` players evenly across `innings` innings.
- * Returns a map of inning number -> player id.
- * Example: 4 pitchers across 6 innings = P1 for 1-2, P2 for 3-4, P3 for 5, P4 for 6
+ * Count innings each player is assigned across a per-inning assignment map.
  */
-export function distributeAcrossInnings(
-  players: string[],
-  innings: number,
-): Record<number, string> {
-  if (players.length === 0) return {};
-  const counts = defaultInningCounts(players.length, innings);
-  return distributeWithCounts(players, counts);
-}
-
-/**
- * Recover per-slot innings counts from saved inning-level assignments.
- */
-export function inningCountsFromAssignments(
+export function countByPlayer(
   assignments: Record<number, string>,
-  slots: string[],
   totalInnings: number,
-): number[] {
+): Record<string, number> {
   const counts: Record<string, number> = {};
   for (let i = 1; i <= totalInnings; i++) {
     const id = assignments[i];
     if (id) counts[id] = (counts[id] ?? 0) + 1;
   }
-  return slots.map((id) => (id ? (counts[id] ?? 0) : 0));
+  return counts;
 }
 
 /**
- * Extract player IDs from inning-level assignments, preserving order.
- * Groups consecutive innings by player and allows duplicates so the same
- * player can appear in multiple slots (e.g. catcher slots 1 and 3).
- * Converts {1:'a', 2:'a', 3:'b', 4:'b', 5:'a', 6:'a'} -> ['a','b','a'].
+ * Return the unique player IDs in a per-inning assignment, ordered by their
+ * first appearance (inning 1 first). Used for stable color assignment.
  */
-export function slotsFromAssignments(
+export function rotationOrder(
   assignments: Record<number, string>,
-  slotCount: number,
+  totalInnings: number,
 ): string[] {
-  const innings = Object.keys(assignments).map(Number).sort((a, b) => a - b);
-  const sequence: string[] = [];
-  let lastId = '';
-  for (const inn of innings) {
-    const id = assignments[inn];
-    if (id && id !== lastId) {
-      sequence.push(id);
-      lastId = id;
+  const seen = new Set<string>();
+  const order: string[] = [];
+  for (let i = 1; i <= totalInnings; i++) {
+    const id = assignments[i];
+    if (id && !seen.has(id)) {
+      seen.add(id);
+      order.push(id);
     }
   }
-  const slots = Array(slotCount).fill('');
-  for (let i = 0; i < Math.min(sequence.length, slotCount); i++) {
-    slots[i] = sequence[i];
+  return order;
+}
+
+/**
+ * Merge pitcher and catcher rotations into a single ordered list of unique
+ * player IDs. Used for assigning chip colors so the same player gets the same
+ * color whether they pitch, catch, or both.
+ */
+export function combinedRotation(
+  pitcherAssignments: Record<number, string>,
+  catcherAssignments: Record<number, string>,
+  totalInnings: number,
+): string[] {
+  const seen = new Set<string>();
+  const order: string[] = [];
+  for (const id of rotationOrder(pitcherAssignments, totalInnings)) {
+    if (!seen.has(id)) {
+      seen.add(id);
+      order.push(id);
+    }
   }
-  return slots;
+  for (const id of rotationOrder(catcherAssignments, totalInnings)) {
+    if (!seen.has(id)) {
+      seen.add(id);
+      order.push(id);
+    }
+  }
+  return order;
 }
 
 // ---------------------------------------------------------------------------
@@ -126,114 +142,67 @@ export function slotsFromAssignments(
 interface UsePCAssignmentParams {
   presentPlayers: Player[];
   innings: number;
-  pitcherCount: number;
-  catcherCount: number;
+  defaultPitcherCount: number;
+  defaultCatcherCount: number;
   pitcherAssignments: Record<number, string>;
   catcherAssignments: Record<number, string>;
+  lastGamePitcherIds: string[];
   setPitcher: (inning: number, playerId: string) => void;
   setCatcher: (inning: number, playerId: string) => void;
 }
 
 export interface UsePCAssignmentReturn {
-  selectedPitchers: string[];
-  selectedCatchers: string[];
-  pitcherInningCounts: number[];
-  pitcherInningsTotal: number;
-  catches4Plus: Set<string>;
+  /** Map of playerId -> palette color index (stable per session) */
+  colorByPlayer: Record<string, number>;
+  /** Catching innings count per player (this game) */
   catcherInningsByPlayer: Record<string, number>;
-  pitcherOptionsFor: (slotIndex: number) => Player[];
-  catcherOptionsFor: (slotIndex: number) => Player[];
-  handlePitcherChange: (slotIndex: number, playerId: string) => void;
-  handleCatcherChange: (slotIndex: number, playerId: string) => void;
-  handlePitcherInningsChange: (slotIndex: number, count: number) => void;
+  /** Pitching innings count per player (this game) */
+  pitcherInningsByPlayer: Record<string, number>;
+  /** Player IDs catching 4+ innings — barred from pitching by LL rule */
+  catches4Plus: Set<string>;
+  /** True when every inning has a pitcher assigned (catchers optional) */
+  allPitchersAssigned: boolean;
+  /** Eligible players for a pitcher slot (excludes 4+ catchers) */
+  pitcherOptionsFor: (inning: number) => Player[];
+  /** Eligible players for a catcher slot (all present) */
+  catcherOptionsFor: (inning: number) => Player[];
+  /** Set/clear the pitcher for a single inning. Empty string clears. */
+  changeInningPitcher: (inning: number, playerId: string) => void;
+  /** Set/clear the catcher for a single inning. Empty string clears. */
+  changeInningCatcher: (inning: number, playerId: string) => void;
+  /** Overwrite all P/C assignments with even defaults using config counts. */
+  autofillDefaults: () => void;
+  /** Clear every P/C assignment for this game. */
+  clearAll: () => void;
 }
 
 /**
- * Shared hook that encapsulates all P/C slot state management, LL eligibility
- * computation, option filtering, and change handlers with auto-clear logic.
+ * Per-inning P/C assignment hook.
  *
- * Both the mobile PCAssignmentStep and desktop GameDayDesktop consume this
- * hook and only handle rendering.
+ * Direct edit model: each inning's pitcher and catcher are independent slots.
+ * No "slot-then-distribute" intermediate state. Mobile and desktop screens
+ * render the chip timeline driven from this hook.
  */
 export function usePCAssignment({
   presentPlayers,
   innings,
-  pitcherCount,
-  catcherCount,
+  defaultPitcherCount,
+  defaultCatcherCount,
   pitcherAssignments,
   catcherAssignments,
+  lastGamePitcherIds,
   setPitcher,
   setCatcher,
 }: UsePCAssignmentParams): UsePCAssignmentReturn {
-  // Slot arrays: initialized from existing lineupState assignments to preserve
-  // selections across page reloads (e.g. after SWA auth redirect).
-  const [selectedPitchers, setSelectedPitchers] = useState<string[]>(
-    () => slotsFromAssignments(pitcherAssignments, pitcherCount),
-  );
-  const [selectedCatchers, setSelectedCatchers] = useState<string[]>(
-    () => slotsFromAssignments(catcherAssignments, catcherCount),
+  const catcherInningsByPlayer = useMemo(
+    () => countByPlayer(catcherAssignments, innings),
+    [catcherAssignments, innings],
   );
 
-  // Per-pitcher innings counts: restored from saved assignments or defaults
-  const [pitcherInningCounts, setPitcherInningCounts] = useState<number[]>(
-    () => {
-      const slots = slotsFromAssignments(pitcherAssignments, pitcherCount);
-      const filledCount = slots.filter(Boolean).length;
-      if (filledCount > 0) {
-        return inningCountsFromAssignments(pitcherAssignments, slots, innings);
-      }
-      return slotDefaultInningCounts(slots, innings);
-    },
+  const pitcherInningsByPlayer = useMemo(
+    () => countByPlayer(pitcherAssignments, innings),
+    [pitcherAssignments, innings],
   );
-
-  // Track filled pitcher count to auto-recalculate defaults
-  const prevFilledCountRef = useRef(
-    selectedPitchers.filter(Boolean).length,
-  );
-
-  // Resize slot arrays when config changes
-  useEffect(() => {
-    setSelectedPitchers((prev) => {
-      if (prev.length === pitcherCount) return prev;
-      const next = Array(pitcherCount).fill('');
-      for (let i = 0; i < Math.min(prev.length, pitcherCount); i++) {
-        next[i] = prev[i];
-      }
-      return next;
-    });
-    setPitcherInningCounts((prev) => {
-      if (prev.length === pitcherCount) return prev;
-      const next = Array(pitcherCount).fill(0);
-      for (let i = 0; i < Math.min(prev.length, pitcherCount); i++) {
-        next[i] = prev[i];
-      }
-      return next;
-    });
-  }, [pitcherCount]);
-
-  useEffect(() => {
-    setSelectedCatchers((prev) => {
-      if (prev.length === catcherCount) return prev;
-      const next = Array(catcherCount).fill('');
-      for (let i = 0; i < Math.min(prev.length, catcherCount); i++) {
-        next[i] = prev[i];
-      }
-      return next;
-    });
-  }, [catcherCount]);
-
-  // Compute per-player catcher innings from slot selections.
-  // LL rule: a player who catches 4+ innings cannot pitch that game.
-  const catcherInningsByPlayer = useMemo(() => {
-    const filledCatchers = selectedCatchers.filter(Boolean);
-    const dist = distributeAcrossInnings(filledCatchers, innings);
-    const counts: Record<string, number> = {};
-    for (let i = 1; i <= innings; i++) {
-      const id = dist[i];
-      if (id) counts[id] = (counts[id] ?? 0) + 1;
-    }
-    return counts;
-  }, [selectedCatchers, innings]);
 
   const catches4Plus = useMemo(() => {
     const set = new Set<string>();
@@ -243,94 +212,124 @@ export function usePCAssignment({
     return set;
   }, [catcherInningsByPlayer]);
 
-  // Total assigned pitcher innings
-  const pitcherInningsTotal = useMemo(
-    () => pitcherInningCounts.reduce((sum, c) => sum + c, 0),
-    [pitcherInningCounts],
+  const colorByPlayer = useMemo(() => {
+    const map: Record<string, number> = {};
+    const order = combinedRotation(pitcherAssignments, catcherAssignments, innings);
+    order.forEach((id, idx) => {
+      map[id] = idx;
+    });
+    return map;
+  }, [pitcherAssignments, catcherAssignments, innings]);
+
+  const allPitchersAssigned = useMemo(() => {
+    for (let i = 1; i <= innings; i++) {
+      if (!pitcherAssignments[i]) return false;
+    }
+    return innings > 0;
+  }, [pitcherAssignments, innings]);
+
+  const pitcherOptionsFor = useCallback(
+    (inning: number) => {
+      const sameInningCatcher = catcherAssignments[inning];
+      return presentPlayers.filter(
+        (p) => !catches4Plus.has(p.id) && p.id !== sameInningCatcher,
+      );
+    },
+    [presentPlayers, catches4Plus, catcherAssignments],
   );
 
-  // Apply pitcher assignments using custom innings counts
-  useEffect(() => {
-    const filledPitchers: string[] = [];
-    const filledCounts: number[] = [];
-    for (let i = 0; i < selectedPitchers.length; i++) {
-      if (selectedPitchers[i]) {
-        filledPitchers.push(selectedPitchers[i]);
-        filledCounts.push(pitcherInningCounts[i] || 0);
+  const catcherOptionsFor = useCallback(
+    (inning: number) => {
+      const sameInningPitcher = pitcherAssignments[inning];
+      return presentPlayers.filter((p) => p.id !== sameInningPitcher);
+    },
+    [presentPlayers, pitcherAssignments],
+  );
+
+  /** Apply a per-inning pitcher edit and re-check LL rule for newly-eligible
+   *  catchers. (Catcher counts don't change here, so no auto-clear cascade.) */
+  const changeInningPitcher = useCallback(
+    (inning: number, playerId: string) => {
+      setPitcher(inning, playerId);
+    },
+    [setPitcher],
+  );
+
+  /** Apply a per-inning catcher edit. If this push a player to 4+ catching,
+   *  clear them from any pitching innings (LL rule). */
+  const changeInningCatcher = useCallback(
+    (inning: number, playerId: string) => {
+      setCatcher(inning, playerId);
+
+      // Compute hypothetical post-change counts to enforce LL rule
+      const next = { ...catcherAssignments };
+      if (playerId === '') delete next[inning];
+      else next[inning] = playerId;
+      const counts = countByPlayer(next, innings);
+      for (const [id, count] of Object.entries(counts)) {
+        if (count < 4) continue;
+        for (let i = 1; i <= innings; i++) {
+          if (pitcherAssignments[i] === id) {
+            setPitcher(i, '');
+          }
+        }
       }
-    }
-    const pitcherDist = distributeWithCounts(filledPitchers, filledCounts);
+    },
+    [setCatcher, setPitcher, catcherAssignments, pitcherAssignments, innings],
+  );
+
+  const autofillDefaults = useCallback(() => {
+    // Pitchers: hard-exclude anyone who pitched last game. If that leaves us
+    // short of defaultPitcherCount, the remaining slots stay empty so the
+    // coach picks them deliberately.
+    const pitcherIds = pickAutofillPlayers(
+      presentPlayers,
+      defaultPitcherCount,
+      new Set(lastGamePitcherIds),
+      true,
+    );
+    // Catchers: prefer not to overlap with pitchers, but fall back if needed.
+    const catcherIds = pickAutofillPlayers(
+      presentPlayers,
+      defaultCatcherCount,
+      new Set(pitcherIds),
+    );
+
+    const pDist = buildDefaultAssignments(pitcherIds, innings);
+    const cDist = buildDefaultAssignments(catcherIds, innings);
+
     for (let i = 1; i <= innings; i++) {
-      setPitcher(i, pitcherDist[i] ?? '');
+      setPitcher(i, pDist[i] ?? '');
+      setCatcher(i, cDist[i] ?? '');
     }
-  }, [selectedPitchers, pitcherInningCounts, innings, setPitcher]);
+  }, [
+    presentPlayers,
+    defaultPitcherCount,
+    defaultCatcherCount,
+    lastGamePitcherIds,
+    innings,
+    setPitcher,
+    setCatcher,
+  ]);
 
-  useEffect(() => {
-    const filledCatchers = selectedCatchers.filter(Boolean);
-    const catcherDist = distributeAcrossInnings(filledCatchers, innings);
+  const clearAll = useCallback(() => {
     for (let i = 1; i <= innings; i++) {
-      setCatcher(i, catcherDist[i] ?? '');
+      setPitcher(i, '');
+      setCatcher(i, '');
     }
-  }, [selectedCatchers, innings, setCatcher]);
-
-  const handlePitcherChange = (slotIndex: number, playerId: string) => {
-    const nextPitchers = [...selectedPitchers];
-    nextPitchers[slotIndex] = playerId;
-    setSelectedPitchers(nextPitchers);
-
-    // Recalculate default innings when the set of filled slots changes
-    const newFilledCount = nextPitchers.filter(Boolean).length;
-    if (newFilledCount !== prevFilledCountRef.current) {
-      prevFilledCountRef.current = newFilledCount;
-      setPitcherInningCounts(slotDefaultInningCounts(nextPitchers, innings));
-    }
-  };
-
-  const handlePitcherInningsChange = (slotIndex: number, count: number) => {
-    setPitcherInningCounts((prev) => {
-      const next = [...prev];
-      next[slotIndex] = count;
-      return next;
-    });
-  };
-
-  const handleCatcherChange = (slotIndex: number, playerId: string) => {
-    const nextCatchers = [...selectedCatchers];
-    nextCatchers[slotIndex] = playerId;
-    setSelectedCatchers(nextCatchers);
-
-    // If this catcher change causes any pitcher to catch 4+ innings, clear them from pitcher slots
-    const filledCatchers = nextCatchers.filter(Boolean);
-    const dist = distributeAcrossInnings(filledCatchers, innings);
-    const counts: Record<string, number> = {};
-    for (let i = 1; i <= innings; i++) {
-      const id = dist[i];
-      if (id) counts[id] = (counts[id] ?? 0) + 1;
-    }
-    setSelectedPitchers((prev) => {
-      const cleared = prev.map((id) => (id && counts[id] >= 4 ? '' : id));
-      return cleared.some((id, i) => id !== prev[i]) ? cleared : prev;
-    });
-  };
-
-  /** Available options for a pitcher slot: exclude players catching 4+ innings (LL rule) */
-  const pitcherOptionsFor = (_slotIndex: number) =>
-    presentPlayers.filter((p: Player) => !catches4Plus.has(p.id));
-
-  /** Available options for a catcher slot: all present players (same player can fill multiple slots) */
-  const catcherOptionsFor = (_slotIndex: number) => presentPlayers;
+  }, [innings, setPitcher, setCatcher]);
 
   return {
-    selectedPitchers,
-    selectedCatchers,
-    pitcherInningCounts,
-    pitcherInningsTotal,
-    catches4Plus,
+    colorByPlayer,
     catcherInningsByPlayer,
+    pitcherInningsByPlayer,
+    catches4Plus,
+    allPitchersAssigned,
     pitcherOptionsFor,
     catcherOptionsFor,
-    handlePitcherChange,
-    handleCatcherChange,
-    handlePitcherInningsChange,
+    changeInningPitcher,
+    changeInningCatcher,
+    autofillDefaults,
+    clearAll,
   };
 }

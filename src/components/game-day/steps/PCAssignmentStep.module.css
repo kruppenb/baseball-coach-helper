@@ -133,6 +133,12 @@
   margin-right: var(--space-xs);
 }
 
+.aaNote {
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: var(--space-md) 0;
+}
+
 .footer {
   margin-top: var(--space-md);
 }

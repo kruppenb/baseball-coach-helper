@@ -6,7 +6,8 @@ import { useBattingOrder } from '../../hooks/useBattingOrder';
 import { useGameHistory } from '../../hooks/useGameHistory';
 import { useGameConfig } from '../../hooks/useGameConfig';
 import { usePCAssignment } from '../../hooks/usePCAssignment';
-import { computeRecentPCHistory } from '../../logic/game-history';
+import { computeLastGamePitchers } from '../../logic/game-history';
+import { PCTimeline, LastGamePitchers } from './pc-timeline';
 import { scoreLineup } from '../../logic/lineup-scorer';
 import { AttendanceList } from '../game-setup/AttendanceList';
 import { DraggableLineupGrid } from '../lineup/DraggableLineupGrid';
@@ -127,61 +128,37 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
     generate: generateBattingOrder,
   } = useBattingOrder();
 
-  // --- P/C Slot State (shared hook) ---
-  const pitcherCount = hasPlayerPitching(config.division) ? config.pitchersPerGame : 0;
-  const catcherCount = hasPlayerPitching(config.division) ? config.catchersPerGame : 0;
+  // --- P/C state (per-inning chip timeline) ---
+  const playerPitching = hasPlayerPitching(config.division);
+  const defaultPitcherCount = playerPitching ? config.pitchersPerGame : 0;
+  const defaultCatcherCount = playerPitching ? config.catchersPerGame : 0;
+
+  const lastGamePitcherIds = useMemo(
+    () => computeLastGamePitchers(history),
+    [history],
+  );
 
   const {
-    selectedPitchers,
-    selectedCatchers,
-    pitcherInningCounts,
-    pitcherInningsTotal,
+    colorByPlayer,
+    catcherInningsByPlayer,
+    pitcherInningsByPlayer,
     pitcherOptionsFor,
     catcherOptionsFor,
-    handlePitcherChange,
-    handleCatcherChange,
-    handlePitcherInningsChange,
+    changeInningPitcher,
+    changeInningCatcher,
+    autofillDefaults,
+    clearAll,
   } = usePCAssignment({
     presentPlayers,
     innings,
-    pitcherCount,
-    catcherCount,
+    defaultPitcherCount,
+    defaultCatcherCount,
     pitcherAssignments,
     catcherAssignments,
+    lastGamePitcherIds,
     setPitcher,
     setCatcher,
   });
-
-  // --- P/C history (all players, for compact chip display) ---
-  const pcHistory = useMemo(
-    () => computeRecentPCHistory(history, players.map((p: Player) => p.id)),
-    [history, players],
-  );
-
-  const recentPitchers = useMemo(() => {
-    return players
-      .filter((p: Player) => pcHistory[p.id]?.pitchedGames > 0)
-      .map((p: Player) => ({
-        id: p.id,
-        name: p.name,
-        count: pcHistory[p.id].pitchedGames,
-        consecutive: pcHistory[p.id].pitchedLast2Consecutive,
-        isPresent: p.isPresent,
-      }))
-      .sort((a, b) => b.count - a.count);
-  }, [players, pcHistory]);
-
-  const recentCatchers = useMemo(() => {
-    return players
-      .filter((p: Player) => pcHistory[p.id]?.caughtGames > 0)
-      .map((p: Player) => ({
-        id: p.id,
-        name: p.name,
-        count: pcHistory[p.id].caughtGames,
-        isPresent: p.isPresent,
-      }))
-      .sort((a, b) => b.count - a.count);
-  }, [players, pcHistory]);
 
   // --- Lineup Editor ---
   const validationInput: GenerateLineupInput = useMemo(() => ({
@@ -221,22 +198,22 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
   const takeSnapshot = useCallback(() => {
     lastGenerationSnapshot.current = JSON.stringify({
       presentIds: presentPlayers.map(p => p.id).sort(),
-      pitchers: selectedPitchers,
-      catchers: selectedCatchers,
+      pitchers: pitcherAssignments,
+      catchers: catcherAssignments,
     });
-  }, [presentPlayers, selectedPitchers, selectedCatchers]);
+  }, [presentPlayers, pitcherAssignments, catcherAssignments]);
 
   useEffect(() => {
     if (!lastGenerationSnapshot.current || generatedLineups.length === 0) return;
     const currentSnapshot = JSON.stringify({
       presentIds: presentPlayers.map(p => p.id).sort(),
-      pitchers: selectedPitchers,
-      catchers: selectedCatchers,
+      pitchers: pitcherAssignments,
+      catchers: catcherAssignments,
     });
     if (currentSnapshot !== lastGenerationSnapshot.current) {
       setStaleWarning(true);
     }
-  }, [presentPlayers, selectedPitchers, selectedCatchers, generatedLineups.length]);
+  }, [presentPlayers, pitcherAssignments, catcherAssignments, generatedLineups.length]);
 
   // --- Auto-generate lineup ---
   const [generateError, setGenerateError] = useState('');
@@ -300,108 +277,32 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
           <AttendanceList players={players} onToggle={togglePresent} />
         </Card>
 
-        {hasPlayerPitching(config.division) ? (
+        {playerPitching ? (
           <Card label="Pitcher &amp; Catcher">
-            <div className={styles.slotSection}>
-              <div className={styles.slotGrid}>
-                {selectedPitchers.map((selectedId, idx) => (
-                  <div className={styles.dropdownGroup} key={`pitcher-${idx}`}>
-                    <label
-                      className={styles.dropdownLabel}
-                      htmlFor={`desktop-pitcher-select-${idx}`}
-                    >
-                      {pitcherCount > 1 ? `Pitcher ${idx + 1}` : 'Pitcher'}
-                    </label>
-                    <div className={styles.pitcherRow}>
-                      <select
-                        id={`desktop-pitcher-select-${idx}`}
-                        className={styles.playerSelect}
-                        value={selectedId}
-                        onChange={e => handlePitcherChange(idx, e.target.value)}
-                      >
-                        <option value="">Select Pitcher</option>
-                        {pitcherOptionsFor(idx).map((p: Player) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                      {selectedId && (
-                        <select
-                          className={styles.inningsSelect}
-                          value={pitcherInningCounts[idx] || 1}
-                          onChange={e => handlePitcherInningsChange(idx, Number(e.target.value))}
-                          aria-label={`Innings for pitcher ${idx + 1}`}
-                        >
-                          {Array.from({ length: innings }, (_, i) => i + 1).map(n => (
-                            <option key={n} value={n}>{n} inn</option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {selectedPitchers.some(Boolean) && (
-                <div className={`${styles.inningsTotal} ${pitcherInningsTotal !== innings ? styles.inningsMismatch : ''}`}>
-                  {pitcherInningsTotal}/{innings} innings assigned
-                </div>
-              )}
-            </div>
+            <PCTimeline
+              innings={innings}
+              presentPlayers={presentPlayers}
+              pitcherAssignments={pitcherAssignments}
+              catcherAssignments={catcherAssignments}
+              colorByPlayer={colorByPlayer}
+              catcherInningsByPlayer={catcherInningsByPlayer}
+              pitcherInningsByPlayer={pitcherInningsByPlayer}
+              pitcherOptionsFor={pitcherOptionsFor}
+              catcherOptionsFor={catcherOptionsFor}
+              onPitcherChange={changeInningPitcher}
+              onCatcherChange={changeInningCatcher}
+              onAutofill={autofillDefaults}
+              onClearAll={clearAll}
+              compact
+            />
 
-            <div className={styles.slotSection}>
-              <div className={styles.slotGrid}>
-                {selectedCatchers.map((selectedId, idx) => (
-                  <div className={styles.dropdownGroup} key={`catcher-${idx}`}>
-                    <label
-                      className={styles.dropdownLabel}
-                      htmlFor={`desktop-catcher-select-${idx}`}
-                    >
-                      {catcherCount > 1 ? `Catcher ${idx + 1}` : 'Catcher'}
-                    </label>
-                    <select
-                      id={`desktop-catcher-select-${idx}`}
-                      className={styles.playerSelect}
-                      value={selectedId}
-                      onChange={e => handleCatcherChange(idx, e.target.value)}
-                    >
-                      <option value="">Select Catcher (optional)</option>
-                      {catcherOptionsFor(idx).map((p: Player) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <LastGamePitchers
+              lastGamePitcherIds={lastGamePitcherIds}
+              players={presentPlayers}
+            />
 
             <div className={styles.pcCardFooter}>
               <div className={styles.pcFooterLeft}>
-                {(recentPitchers.length > 0 || recentCatchers.length > 0) && (
-                  <div className={styles.recentPC}>
-                    <span className={styles.recentLabel}>Last 2 games</span>
-                    <div className={styles.chipRow}>
-                      {recentPitchers.map(({ id, name, count, consecutive, isPresent }) => (
-                        <span
-                          key={`p-${id}`}
-                          className={`${styles.chip} ${consecutive ? styles.chipWarning : ''} ${!isPresent ? styles.chipAbsent : ''}`}
-                        >
-                          {name} P&times;{count}
-                        </span>
-                      ))}
-                      {recentCatchers.map(({ id, name, count, isPresent }) => (
-                        <span
-                          key={`c-${id}`}
-                          className={`${styles.chip} ${styles.chipCatcher} ${!isPresent ? styles.chipAbsent : ''}`}
-                        >
-                          {name} C&times;{count}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 {generateError && (
                   <span className={styles.statusError}>{generateError}</span>
                 )}

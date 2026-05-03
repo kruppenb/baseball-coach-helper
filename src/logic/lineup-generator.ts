@@ -244,9 +244,8 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
 
   for (const pid of playerIds) {
     // Relaxation: any P/C assignment (in or out of window) drops the window
-    // minimum by 1. P/C is itself a high-touch infield role — counting it as
-    // equivalent to a window-infield slot frees a non-battery slot for a
-    // player with no P/C exposure at all.
+    // minimum to 0. P/C is itself a high-touch infield role — a player with
+    // any P/C inning has the infield exposure the rule is meant to guarantee.
     let hasPC = false;
     if (playerPitching) {
       for (let inn = 1; inn <= innings; inn++) {
@@ -256,7 +255,7 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
         }
       }
     }
-    const baseMin = hasPC ? Math.max(1, minInfield - 1) : minInfield;
+    const baseMin = hasPC ? 0 : minInfield;
 
     playerInfieldNeeds[pid] = baseMin;
     // Subtract P/C assignments from needed infield positions (P and C are infield)

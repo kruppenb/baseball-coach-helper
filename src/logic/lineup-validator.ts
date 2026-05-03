@@ -263,9 +263,9 @@ function validateBalancedBenchRotation(
  * for both divisions to maximize infield exposure for every player.
  *
  * Relaxation: any P/C assignment in the game (in or out of the window) drops the minimum
- * by 1. P/C is itself a high-touch infield role, so a player with even one P/C inning has
- * the exposure the rule is meant to guarantee — and freeing a slot keeps tight rosters
- * (e.g. 12 players with three pitchers / two catchers) feasible.
+ * to 0 — P/C is itself a high-touch infield role, so a player with even one P/C inning
+ * has the exposure the rule is meant to guarantee. Non-PC players still need the full
+ * minInfield in the first 4 innings.
  */
 function validateInfieldMinimum(
   lineup: Lineup,
@@ -303,7 +303,7 @@ function validateInfieldMinimum(
       }
     }
 
-    const playerMin = hasPC ? Math.max(1, minInfield - 1) : minInfield;
+    const playerMin = hasPC ? 0 : minInfield;
 
     if (infieldCount < playerMin) {
       errors.push({

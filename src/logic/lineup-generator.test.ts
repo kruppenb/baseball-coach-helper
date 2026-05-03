@@ -216,8 +216,8 @@ describe('generateLineup', () => {
     // Real-world scenario: 12 players, 3 pitchers split 2-2-2, 2 catchers split 3-3.
     // The last pitcher (p3, innings 5-6) gets zero infield credit in the 1-4 window,
     // which would otherwise make INFIELD_MINIMUM infeasible by 1 slot.
-    // The relaxation drops p3's window minimum from 2 to 1 since they're guaranteed
-    // 2 infield innings (pitching) in innings 5-6 anyway.
+    // Relaxation: any P/C exposure drops the in-window infield minimum to 0, since
+    // pitching/catching is itself the high-touch infield exposure the rule guards.
     const input = makeDefaultInput({
       presentPlayers: players12,
       pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
@@ -226,15 +226,20 @@ describe('generateLineup', () => {
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
     expect(result.errors).toEqual([]);
+  });
 
-    // p3 (last pitcher, innings 5-6) must get at least 1 infield slot in innings 1-4
-    let p3InfieldInWindow = 0;
-    for (let inn = 1; inn <= 4; inn++) {
-      if (INFIELD_POSITIONS.some(pos => result.lineup[inn][pos] === 'p3')) {
-        p3InfieldInWindow++;
-      }
-    }
-    expect(p3InfieldInWindow).toBeGreaterThanOrEqual(1);
+  it('generates valid lineup with 4 distinct P/C players in a 5-inning game', () => {
+    // Reported scenario: 11 players, 5 innings, one pitcher does 4 innings, second
+    // pitcher 1 inning, two catchers split 3/2. Should not be over-constrained.
+    const input = makeDefaultInput({
+      presentPlayers: players11,
+      innings: 5,
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p1', 4: 'p1', 5: 'p2' },
+      catcherAssignments: { 1: 'p3', 2: 'p3', 3: 'p4', 4: 'p4', 5: 'p3' },
+    });
+    const result = generateLineup(input);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
   });
 
   it('respects pitcher pre-assignments', () => {
@@ -291,28 +296,24 @@ describe('generateLineup', () => {
     }
   });
 
-  it('gives every player 2+ infield positions by inning 4 (or 1+ for late-only P/C)', () => {
+  it('gives non-PC players 2+ infield positions by inning 4 (PC players exempt)', () => {
     const input = makeDefaultInput();
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
     const maxCheckInning = Math.min(4, input.innings);
     for (const player of input.presentPlayers) {
       let infieldCount = 0;
-      let pcInWindow = 0;
-      let pcOutsideWindow = 0;
+      let hasPC = false;
       for (let inn = 1; inn <= input.innings; inn++) {
         const a = result.lineup[inn];
         if (inn <= maxCheckInning) {
           const isInfield = INFIELD_POSITIONS.some(pos => a[pos] === player.id);
           if (isInfield) infieldCount++;
         }
-        if (a['P'] === player.id || a['C'] === player.id) {
-          if (inn <= maxCheckInning) pcInWindow++;
-          else pcOutsideWindow++;
-        }
+        if (a['P'] === player.id || a['C'] === player.id) hasPC = true;
       }
-      // Relaxation: last pitcher/catcher (all P/C innings after the window) only needs 1
-      const expectedMin = pcOutsideWindow > 0 && pcInWindow === 0 ? 1 : 2;
+      // Relaxation: any P/C inning waives the in-window infield minimum
+      const expectedMin = hasPC ? 0 : 2;
       expect(infieldCount).toBeGreaterThanOrEqual(expectedMin);
     }
   });
@@ -499,24 +500,20 @@ describe('benchPriority', () => {
       }
     }
 
-    // Verify infield minimum (relaxed to 1 for players whose only P/C falls after the window)
+    // Verify infield minimum: non-PC players need 2 in window; PC players exempt
     const maxCheckInning = Math.min(4, input.innings);
     for (const player of input.presentPlayers) {
       let infieldCount = 0;
-      let pcInWindow = 0;
-      let pcOutsideWindow = 0;
+      let hasPC = false;
       for (let inn = 1; inn <= input.innings; inn++) {
         const a = result.lineup[inn];
         if (inn <= maxCheckInning) {
           const isInfield = INFIELD_POSITIONS.some(pos => a[pos] === player.id);
           if (isInfield) infieldCount++;
         }
-        if (a['P'] === player.id || a['C'] === player.id) {
-          if (inn <= maxCheckInning) pcInWindow++;
-          else pcOutsideWindow++;
-        }
+        if (a['P'] === player.id || a['C'] === player.id) hasPC = true;
       }
-      const expectedMin = pcOutsideWindow > 0 && pcInWindow === 0 ? 1 : 2;
+      const expectedMin = hasPC ? 0 : 2;
       expect(infieldCount).toBeGreaterThanOrEqual(expectedMin);
     }
   });

@@ -202,3 +202,23 @@ export function computeRecentPCHistory(
 
   return result;
 }
+
+/**
+ * Player IDs who pitched (any inning) in the most recent game.
+ *
+ * Used by the P/C assignment screen to suggest who NOT to pitch this game.
+ * Returns an empty array if there is no history.
+ */
+export function computeLastGamePitchers(
+  history: GameHistoryEntry[],
+): string[] {
+  if (history.length === 0) return [];
+  const lastGame = history[history.length - 1];
+  const ids = new Set<string>();
+  for (let inn = 1; inn <= lastGame.innings; inn++) {
+    const inningAssignment: InningAssignment | undefined = lastGame.lineup[inn];
+    if (!inningAssignment) continue;
+    if (inningAssignment['P']) ids.add(inningAssignment['P']);
+  }
+  return [...ids];
+}

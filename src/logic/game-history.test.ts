@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createGameHistoryEntry, computeFieldingFairness, computeCatcherInnings } from './game-history.ts';
+import { createGameHistoryEntry, computeFieldingFairness, computeCatcherInnings, computeLastGamePitchers } from './game-history.ts';
+import type { GameHistoryEntry } from '../types/index.ts';
 import type { Player, Position, Lineup } from '../types/index.ts';
 
 // --- Test Helpers ---
@@ -346,5 +347,39 @@ describe('computeFieldingFairness (AA division)', () => {
     expect(result['p8'].positionsPlayed).toContain('LC');
     // p9 plays RC in inning 1
     expect(result['p9'].positionsPlayed).toContain('RC');
+  });
+});
+
+describe('computeLastGamePitchers', () => {
+  it('returns empty array when history is empty', () => {
+    expect(computeLastGamePitchers([])).toEqual([]);
+  });
+
+  it('returns unique pitcher IDs from the most recent game', () => {
+    const earlier = createGameHistoryEntry(sixInningLineup, battingOrder10, 6, players10);
+    // Last game: rotate pitcher between p2 (inn 1-3) and p3 (inn 4-6)
+    const lateLineup = buildLineup({
+      1: { P: 'p2', C: 'p1', '1B': 'p3', '2B': 'p4', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      2: { P: 'p2', C: 'p1', '1B': 'p3', '2B': 'p4', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      3: { P: 'p2', C: 'p1', '1B': 'p3', '2B': 'p4', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      4: { P: 'p3', C: 'p1', '1B': 'p4', '2B': 'p2', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      5: { P: 'p3', C: 'p1', '1B': 'p4', '2B': 'p2', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+      6: { P: 'p3', C: 'p1', '1B': 'p4', '2B': 'p2', '3B': 'p5', SS: 'p6', LF: 'p7', CF: 'p8', RF: 'p9' },
+    });
+    const later = createGameHistoryEntry(lateLineup, battingOrder10, 6, players10);
+    const ids = computeLastGamePitchers([earlier, later]);
+    expect(new Set(ids)).toEqual(new Set(['p2', 'p3']));
+  });
+
+  it('skips innings without lineups', () => {
+    const partial: GameHistoryEntry = {
+      id: 'g',
+      gameDate: new Date().toISOString(),
+      innings: 6,
+      lineup: { 1: { P: 'pX' } as Record<import('../types/index.ts').Position, string> },
+      battingOrder: [],
+      playerSummaries: [],
+    };
+    expect(computeLastGamePitchers([partial])).toEqual(['pX']);
   });
 });
