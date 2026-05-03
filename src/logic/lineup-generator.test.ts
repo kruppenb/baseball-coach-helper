@@ -805,4 +805,45 @@ describe('best-effort generation', () => {
     expect(result.warnings.length).toBeGreaterThan(0);
     expect(result.warnings.some(w => w.toLowerCase().includes('catch') && w.toLowerCase().includes('pitch'))).toBe(true);
   });
+
+  it('returns a populated lineup with warnings when P and C overlap in the same inning', () => {
+    // Same player assigned as both pitcher and catcher in inning 3 — preValidate flags it
+    // but the solver still produces a lineup with downstream validation errors.
+    const input = makeDefaultInput({
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p5', 4: 'p2', 5: 'p3', 6: 'p3' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p5', 5: 'p6', 6: 'p6' },
+    });
+    const result = generateLineup(input);
+    // Lineup populated despite the conflict
+    expect(Object.keys(result.lineup).length).toBe(input.innings);
+    // Warning surfaces the conflict
+    expect(result.warnings.some(w => w.toLowerCase().includes('pitcher') && w.toLowerCase().includes('catcher') && w.includes('3'))).toBe(true);
+  });
+
+  it('returns a lineup with a blank cell when all players are blocked from a position', () => {
+    // Block every present player from 1B except the two who are always P/C
+    const blocks: Record<string, Position[]> = {};
+    for (const p of players11) {
+      if (p.id !== 'p1' && p.id !== 'p4') {
+        blocks[p.id] = ['1B'];
+      }
+    }
+    const input = makeDefaultInput({
+      presentPlayers: players11,
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p1', 4: 'p1', 5: 'p1', 6: 'p1' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p4', 4: 'p4', 5: 'p4', 6: 'p4' },
+      positionBlocks: blocks,
+    });
+    const result = generateLineup(input);
+    // Lineup populated
+    expect(Object.keys(result.lineup).length).toBe(input.innings);
+    // Pre-validation warning identifies the unfillable position
+    expect(result.warnings.some(w => w.includes('1B'))).toBe(true);
+    // 1B cell ends up blank in at least one inning (since p1 and p4 are P/C the entire game)
+    let blankAt1B = 0;
+    for (let inn = 1; inn <= input.innings; inn++) {
+      if (result.lineup[inn]['1B'] === '') blankAt1B++;
+    }
+    expect(blankAt1B).toBeGreaterThan(0);
+  });
 });
