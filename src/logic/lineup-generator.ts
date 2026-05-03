@@ -481,53 +481,55 @@ export interface GenerateBestLineupResult extends GenerateLineupResult {
 
 /**
  * Generates N lineups, scores each, and returns the highest-scoring valid lineup.
- * Falls back to an error result if no valid lineup can be generated.
+ * If no valid lineup can be generated, returns the best partial lineup with warnings.
+ * Never short-circuits on preValidate — always attempts generation.
  */
 export function generateBestLineup(
   input: GenerateLineupInput,
   count: number = 10,
 ): GenerateBestLineupResult {
-  const preErrors = preValidate(input);
-  if (preErrors.length > 0) {
-    return {
-      lineup: {} as Lineup,
-      valid: false,
-      errors: preErrors.map(msg => ({
-        rule: 'GRID_COMPLETE' as const,
-        message: msg,
-      })),
-      warnings: preErrors,
-      attemptCount: 0,
-      score: { total: 0, benchEquity: 0, infieldBalance: 0, positionVariety: 0 },
-    };
-  }
-
+  const warnings = preValidate(input);
   const scored: GenerateBestLineupResult[] = [];
+  const fallbacks: GenerateBestLineupResult[] = [];
 
   for (let i = 0; i < count; i++) {
     const result = generateLineup(input);
+    const score = scoreLineup(result.lineup, input);
+    const enriched: GenerateBestLineupResult = { ...result, warnings, score };
     if (result.valid) {
-      const score = scoreLineup(result.lineup, input);
-      scored.push({ ...result, score });
+      scored.push(enriched);
+    } else {
+      fallbacks.push(enriched);
     }
   }
 
-  if (scored.length === 0) {
-    return {
-      lineup: {} as Lineup,
-      valid: false,
-      errors: [{
-        rule: 'GRID_COMPLETE',
-        message: 'Could not generate a valid lineup with these settings. Try adjusting pitcher/catcher assignments or position blocks.',
-      }],
-      warnings: [],
-      attemptCount: count * 200,
-      score: { total: 0, benchEquity: 0, infieldBalance: 0, positionVariety: 0 },
-    };
+  if (scored.length > 0) {
+    scored.sort((a, b) => b.score.total - a.score.total);
+    return scored[0];
   }
 
-  scored.sort((a, b) => b.score.total - a.score.total);
-  return scored[0];
+  if (fallbacks.length > 0) {
+    // No fully valid lineup — pick the one with the fewest errors, breaking ties by score.
+    fallbacks.sort((a, b) => {
+      const errDiff = a.errors.length - b.errors.length;
+      if (errDiff !== 0) return errDiff;
+      return b.score.total - a.score.total;
+    });
+    return fallbacks[0];
+  }
+
+  // Defensive fallback — generateLineup always returns something now, so this shouldn't fire.
+  return {
+    lineup: {} as Lineup,
+    valid: false,
+    errors: [{
+      rule: 'GRID_COMPLETE',
+      message: 'Could not generate any lineup. Check player and assignment inputs.',
+    }],
+    warnings,
+    attemptCount: 0,
+    score: { total: 0, benchEquity: 0, infieldBalance: 0, positionVariety: 0 },
+  };
 }
 
 // --- Helper Functions ---

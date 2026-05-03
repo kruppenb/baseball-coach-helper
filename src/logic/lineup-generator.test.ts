@@ -550,7 +550,7 @@ describe('generateBestLineup', () => {
     const result = generateBestLineup(input);
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
-    expect(result.score.total).toBe(0);
+    expect(result.score.total).toBeGreaterThanOrEqual(0);
   });
 
   it('respects pitcher and catcher pre-assignments', () => {
@@ -773,5 +773,30 @@ describe('best-effort generation', () => {
     // ...and the preValidate "need at least 9 players" message is in warnings
     expect(result.warnings.length).toBeGreaterThan(0);
     expect(result.warnings.some(w => w.includes('9'))).toBe(true);
+  });
+
+  it('generateBestLineup returns a lineup even with impossible inputs', () => {
+    const input = makeDefaultInput({
+      presentPlayers: players11.slice(0, 6), // impossible
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p5', 5: 'p6', 6: 'p6' },
+    });
+    const result = generateBestLineup(input, 5);
+    expect(result.lineup).toBeTruthy();
+    expect(Object.keys(result.lineup).length).toBe(input.innings);
+    expect(result.warnings.length).toBeGreaterThan(0);
+  });
+
+  it('generateBestLineup includes preValidate warnings even when valid lineup is found', () => {
+    // Trigger a soft warning (player catches 4+ and pitches) but with enough players
+    // that the solver can still produce a valid-ish lineup. Note: validateLineup
+    // may also flag this — that's fine for this test, we only assert warnings exist.
+    const input = makeDefaultInput({
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
+      catcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p1', 4: 'p1', 5: 'p6', 6: 'p6' },
+    });
+    const result = generateBestLineup(input, 3);
+    expect(result.warnings.length).toBeGreaterThan(0);
+    expect(result.warnings.some(w => w.toLowerCase().includes('catch') && w.toLowerCase().includes('pitch'))).toBe(true);
   });
 });
