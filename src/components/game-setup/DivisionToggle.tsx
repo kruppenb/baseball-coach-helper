@@ -14,7 +14,7 @@ export function DivisionToggle({ division, onChange, compact = false }: Division
   return (
     <div
       className={`${styles.toggle} ${compact ? styles.compact : ''}`}
-      role="radiogroup"
+      role="group"
       aria-label="Division"
     >
       {DIVISIONS.map((value) => {
@@ -23,8 +23,7 @@ export function DivisionToggle({ division, onChange, compact = false }: Division
           <button
             key={value}
             type="button"
-            role="radio"
-            aria-checked={active}
+            aria-pressed={active}
             className={`${styles.segment} ${active ? styles.active : ''}`}
             onClick={() => {
               if (!active) onChange(value);
