@@ -122,7 +122,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     }
   }, [editor.lineup, editor.hasEdits, updateSelectedLineup]);
 
-  const [_hasGeneratedBatting, setHasGeneratedBatting] = useState(currentOrder !== null);
   const [generateError, setGenerateError] = useState('');
 
   // Auto-generate on mount if no lineups exist
@@ -134,7 +133,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
       const result = generate();
       setGenerateError(result.errors[0] ?? '');
       generateBattingOrder();
-      setHasGeneratedBatting(true);
     }
   }, [generatedLineups.length, generate, generateBattingOrder]);
 
@@ -143,7 +141,6 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     const result = generate();
     setGenerateError(result.errors[0] ?? '');
     generateBattingOrder();
-    setHasGeneratedBatting(true);
   };
 
   // Previous batting order from game history (FLOW-05)
