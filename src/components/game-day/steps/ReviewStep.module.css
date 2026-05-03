@@ -117,6 +117,15 @@
   vertical-align: middle;
 }
 
+.lineupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
 .emptyMessage {
   color: var(--color-text-muted);
   font-size: var(--font-size-base);

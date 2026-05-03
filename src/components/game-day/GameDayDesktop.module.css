@@ -246,9 +246,17 @@
   background: var(--color-primary-light);
   padding: 2px var(--space-sm);
   border-radius: var(--radius-sm);
-  margin-bottom: var(--space-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.lineupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
 }
 
 /* ── Collapsible fairness ── */

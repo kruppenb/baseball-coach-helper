@@ -1,0 +1,196 @@
+/* ── Trigger ── */
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  min-height: 32px;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.trigger:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.triggerActive {
+  color: var(--color-text);
+  border-color: var(--color-blocked, var(--color-text));
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--color-blocked-bg, var(--color-surface-hover));
+  color: var(--color-blocked, var(--color-text));
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── Popover (modal sheet) ── */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-lg);
+  animation: fadeIn 0.12s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.popover {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevated);
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn 0.15s ease;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.popoverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.popoverTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+}
+
+.popoverClose {
+  background: none;
+  border: none;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-xs) var(--space-sm);
+  line-height: 1;
+}
+
+.popoverClose:hover {
+  color: var(--color-text);
+}
+
+.hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  padding: var(--space-md) var(--space-lg) 0;
+}
+
+.empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-lg);
+  margin: 0;
+}
+
+.body {
+  overflow-y: auto;
+  padding: var(--space-md) 0;
+}
+
+.playerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.playerRow:last-child {
+  border-bottom: none;
+}
+
+.playerName {
+  min-width: 110px;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.chips {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.chip {
+  min-width: 36px;
+  min-height: 32px;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.chip:hover {
+  background: var(--color-surface-hover);
+}
+
+.chipBlocked {
+  background: var(--color-blocked-bg);
+  border-color: var(--color-blocked);
+  color: var(--color-blocked);
+  text-decoration: line-through;
+}
+
+.chipBlocked:hover {
+  filter: brightness(0.95);
+}
+
+/* ── Mobile tweaks ── */
+
+@media (max-width: 480px) {
+  .playerRow {
+    padding: var(--space-sm) var(--space-md);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  .playerName {
+    min-width: 0;
+  }
+}

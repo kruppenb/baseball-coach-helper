@@ -9,6 +9,7 @@ import { FairnessScoreCard } from '../../lineup/FairnessScoreCard';
 import { FairnessSummary } from '../../lineup/FairnessSummary';
 import type { PlayerFairness } from '../../lineup/FairnessSummary';
 import { ValidationPanel } from '../../lineup/ValidationPanel';
+import { PositionBlocksPopover } from '../../lineup/PositionBlocksPopover';
 import { scoreLineup } from '../../../logic/lineup-scorer';
 import { SortableBattingOrder } from '../../batting-order/SortableBattingOrder';
 import type { Lineup, Player, Position } from '../../../types/index';
@@ -80,6 +81,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     pitcherAssignments,
     catcherAssignments,
     positionBlocks,
+    togglePositionBlock,
     updateSelectedLineup,
     preValidationWarnings,
   } = useLineup();
@@ -173,6 +175,13 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
       {/* Lineup Grid, Fairness, Validation */}
       {editor.lineup && (
         <div className={styles.section}>
+          <div className={styles.lineupHeader}>
+            <PositionBlocksPopover
+              presentPlayers={presentPlayers}
+              positionBlocks={positionBlocks}
+              onToggleBlock={togglePositionBlock}
+            />
+          </div>
           <DraggableLineupGrid
             lineup={editor.lineup}
             innings={innings}

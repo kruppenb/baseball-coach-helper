@@ -51,12 +51,18 @@ export function useLocalStorage<T>(
   const setValue = useCallback((value: T | ((prev: T) => T)) => {
     setStoredValue((prev) => {
       const nextValue = value instanceof Function ? value(prev) : value;
-      // Notify other hook instances using the same key
-      window.dispatchEvent(
-        new CustomEvent('local-storage-sync', {
-          detail: { key, value: nextValue },
-        })
-      );
+      // Notify other hook instances using the same key. Defer to a microtask
+      // so the dispatch happens after this updater commits — keeping the
+      // updater pure (StrictMode double-invokes updaters; dispatching
+      // synchronously here would fire listeners twice and cause callers that
+      // re-enter via the listener to interleave between the invocations).
+      queueMicrotask(() => {
+        window.dispatchEvent(
+          new CustomEvent('local-storage-sync', {
+            detail: { key, value: nextValue },
+          })
+        );
+      });
       return nextValue;
     });
   }, [key]);
