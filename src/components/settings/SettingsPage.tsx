@@ -1,13 +1,11 @@
 import { useState, useRef } from 'react';
 import { useRoster } from '../../hooks/useRoster';
 import { useGameConfig } from '../../hooks/useGameConfig';
-import { useLineup } from '../../hooks/useLineup';
 import { useAuth } from '../../auth/useAuth';
 import { getDisplayName } from '../../auth/types';
 import { exportRosterCsv, downloadCsv, parseRosterCsv } from '../../logic/csv';
 import { PlayerInput } from '../roster/PlayerInput';
 import { PlayerList } from '../roster/PlayerList';
-import { PositionBlocks } from '../lineup/PositionBlocks';
 import { SettingsPanel } from '../game-setup/SettingsPanel';
 import { SyncStatusIndicator } from '../app-shell/SyncStatusIndicator';
 import styles from './SettingsPage.module.css';
@@ -15,7 +13,6 @@ import styles from './SettingsPage.module.css';
 export function SettingsPage() {
   const { players, addPlayer, renamePlayer, removePlayer, importPlayers } = useRoster();
   const { config, setDivision, setPitchersPerGame, setCatchersPerGame } = useGameConfig();
-  const { presentPlayers, positionBlocks, togglePositionBlock } = useLineup();
   const { user, isLoading } = useAuth();
 
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -98,14 +95,6 @@ export function SettingsPage() {
       {importStatus && (
         <p className={styles.importStatus}>{importStatus}</p>
       )}
-
-      {/* SETT-04: Position Blocks */}
-      <h3 className={styles.sectionTitle}>Position Blocks</h3>
-      <PositionBlocks
-        presentPlayers={presentPlayers}
-        positionBlocks={positionBlocks}
-        onToggleBlock={togglePositionBlock}
-      />
 
       {/* SETT-05: Sync Status */}
       <h3 className={styles.sectionTitle}>Sync Status</h3>

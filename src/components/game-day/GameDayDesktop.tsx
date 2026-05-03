@@ -15,6 +15,7 @@ import { FairnessScoreCard } from '../lineup/FairnessScoreCard';
 import { FairnessSummary } from '../lineup/FairnessSummary';
 import type { PlayerFairness } from '../lineup/FairnessSummary';
 import { ValidationPanel } from '../lineup/ValidationPanel';
+import { PositionBlocksPopover } from '../lineup/PositionBlocksPopover';
 import { SortableBattingOrder } from '../batting-order/SortableBattingOrder';
 import { DugoutCard } from '../lineup/DugoutCard';
 import type { Player, Position, Lineup } from '../../types/index';
@@ -116,6 +117,7 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
     pitcherAssignments,
     catcherAssignments,
     positionBlocks,
+    togglePositionBlock,
     generatedLineups,
     selectedLineup,
     generate,
@@ -365,9 +367,16 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
       {editor.lineup ? (
         <div className={styles.workspaceZone}>
           <Card label="Lineup">
-            {editor.hasEdits && (
-              <span className={styles.editsBadge}>Edited</span>
-            )}
+            <div className={styles.lineupHeader}>
+              {editor.hasEdits && (
+                <span className={styles.editsBadge}>Edited</span>
+              )}
+              <PositionBlocksPopover
+                presentPlayers={presentPlayers}
+                positionBlocks={positionBlocks}
+                onToggleBlock={togglePositionBlock}
+              />
+            </div>
             <DraggableLineupGrid
               lineup={editor.lineup}
               innings={innings}
