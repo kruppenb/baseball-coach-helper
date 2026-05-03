@@ -53,10 +53,17 @@ export const lineupStateBodySchema = z.object({
   data: z.object({
     pitcherAssignments: batteryAssignmentsSchema,
     catcherAssignments: batteryAssignmentsSchema,
-    positionBlocks: positionBlocksSchema,
+    // positionBlocks moved to its own endpoint; accepted-but-ignored here so
+    // older clients pushing the legacy shape don't get rejected during deploy.
+    positionBlocks: positionBlocksSchema.optional(),
     generatedLineups: z.array(lineupSchema).max(50),
     selectedLineupIndex: z.number().int().min(0).nullable(),
   }).nullable(),
+});
+
+/** PUT /api/position-blocks */
+export const positionBlocksBodySchema = z.object({
+  data: positionBlocksSchema,
 });
 
 /** PUT /api/game-history */

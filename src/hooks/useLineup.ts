@@ -6,20 +6,28 @@ import { useGameHistory } from './useGameHistory';
 import { generateBestLineup, preValidate } from '../logic/lineup-generator';
 import { validateLineup } from '../logic/lineup-validator';
 import { computeFieldingFairness, computeCatcherInnings } from '../logic/game-history';
-import type { LineupState, Position, Lineup, Player } from '../types/index';
+import type { LineupState, Position, Lineup, Player, PositionBlocks } from '../types/index';
 import { hasPlayerPitching } from '../types/index';
 import type { ValidationError } from '../logic/lineup-types';
 
 const defaultState: LineupState = {
   pitcherAssignments: {},
   catcherAssignments: {},
-  positionBlocks: {},
   generatedLineups: [],
   selectedLineupIndex: null,
 };
 
+const defaultPositionBlocks: PositionBlocks = {};
+
 export function useLineup() {
   const [state, setState] = useCloudStorage<LineupState>('lineupState', defaultState, { endpoint: '/api/lineup-state', mode: 'singleton' });
+  // Position blocks are roster-wide — they live in their own key so they
+  // survive the New Game flow (which resets lineupState).
+  const [positionBlocks, setPositionBlocks] = useCloudStorage<PositionBlocks>(
+    'positionBlocks',
+    defaultPositionBlocks,
+    { endpoint: '/api/position-blocks', mode: 'singleton' },
+  );
   const { players } = useRoster();
   const { config } = useGameConfig();
 
@@ -120,24 +128,15 @@ export function useLineup() {
   }, [setState]);
 
   const togglePositionBlock = useCallback((playerId: string, position: Position) => {
-    setState((prev: LineupState) => {
-      const current = prev.positionBlocks[playerId] ?? [];
+    setPositionBlocks((prev: PositionBlocks) => {
+      const current = prev[playerId] ?? [];
       const idx = current.indexOf(position);
-      let updated: Position[];
-      if (idx >= 0) {
-        updated = current.filter((_, i) => i !== idx);
-      } else {
-        updated = [...current, position];
-      }
-      return {
-        ...prev,
-        positionBlocks: {
-          ...prev.positionBlocks,
-          [playerId]: updated,
-        },
-      };
+      const updated = idx >= 0
+        ? current.filter((_, i) => i !== idx)
+        : [...current, position];
+      return { ...prev, [playerId]: updated };
     });
-  }, [setState]);
+  }, [setPositionBlocks]);
 
   const generate = useCallback((): { success: boolean; errors: string[]; warnings: string[] } => {
     const playerPitching = hasPlayerPitching(division);
@@ -147,7 +146,7 @@ export function useLineup() {
       division,
       pitcherAssignments: playerPitching ? cleanState.pitcherAssignments : {},
       catcherAssignments: playerPitching ? cleanState.catcherAssignments : {},
-      positionBlocks: cleanState.positionBlocks,
+      positionBlocks,
       benchPriority,
     };
 
@@ -172,7 +171,7 @@ export function useLineup() {
     const warnings = result.warnings;
     const success = result.valid;
     return { success, errors, warnings };
-  }, [presentPlayers, innings, division, cleanState, setState, benchPriority]);
+  }, [presentPlayers, innings, division, cleanState, setState, benchPriority, positionBlocks]);
 
   const selectLineup = useCallback((index: number) => {
     setState((prev: LineupState) => ({
@@ -223,9 +222,9 @@ export function useLineup() {
       division,
       pitcherAssignments: cleanState.pitcherAssignments,
       catcherAssignments: cleanState.catcherAssignments,
-      positionBlocks: cleanState.positionBlocks,
+      positionBlocks,
     });
-  }, [selectedLineup, presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments, cleanState.positionBlocks]);
+  }, [selectedLineup, presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments, positionBlocks]);
 
   const preValidationWarnings: string[] = useMemo(() => {
     const playerPitching = hasPlayerPitching(division);
@@ -235,15 +234,15 @@ export function useLineup() {
       division,
       pitcherAssignments: playerPitching ? cleanState.pitcherAssignments : {},
       catcherAssignments: playerPitching ? cleanState.catcherAssignments : {},
-      positionBlocks: cleanState.positionBlocks,
+      positionBlocks,
     });
-  }, [presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments, cleanState.positionBlocks]);
+  }, [presentPlayers, innings, division, cleanState.pitcherAssignments, cleanState.catcherAssignments, positionBlocks]);
 
   return {
     // State
     pitcherAssignments: cleanState.pitcherAssignments,
     catcherAssignments: cleanState.catcherAssignments,
-    positionBlocks: cleanState.positionBlocks,
+    positionBlocks,
     generatedLineups: cleanState.generatedLineups,
     selectedLineupIndex: cleanState.selectedLineupIndex,
 

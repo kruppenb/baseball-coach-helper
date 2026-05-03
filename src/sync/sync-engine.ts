@@ -471,6 +471,10 @@ export async function migrateLocalData(
       config: { endpoint: '/api/lineup-state', mode: 'singleton' },
     },
     {
+      key: 'positionBlocks',
+      config: { endpoint: '/api/position-blocks', mode: 'singleton' },
+    },
+    {
       key: 'battingOrderState',
       config: {
         endpoint: '/api/batting',

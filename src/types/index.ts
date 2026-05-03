@@ -74,7 +74,6 @@ export type PositionBlocks = Record<string, Position[]>;
 export interface LineupState {
   pitcherAssignments: BatteryAssignments;
   catcherAssignments: BatteryAssignments;
-  positionBlocks: PositionBlocks;
   generatedLineups: Lineup[];
   selectedLineupIndex: number | null;
 }
