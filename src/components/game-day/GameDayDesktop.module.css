@@ -253,7 +253,7 @@
 .lineupHeader {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
   flex-wrap: wrap;
