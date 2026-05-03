@@ -19,6 +19,7 @@ dist/
 .claude/
 .playwright-mcp/
 .superpowers/
+.worktrees/
 
 # API
 local.settings.json
