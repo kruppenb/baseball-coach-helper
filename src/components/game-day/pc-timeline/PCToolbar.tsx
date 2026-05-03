@@ -18,7 +18,7 @@ export function PCToolbar({
   onClearAll,
 }: PCToolbarProps) {
   return (
-    <div className={styles.toolbar}>
+    <div className={styles.toolbar} role="toolbar" aria-label="Pitcher/Catcher actions">
       <DivisionToggle division={division} onChange={onDivisionChange} compact />
       {onAutofill && (
         <button
