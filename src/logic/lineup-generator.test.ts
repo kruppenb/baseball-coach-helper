@@ -318,15 +318,17 @@ describe('generateLineup', () => {
     }
   });
 
-  it('fails gracefully with coach-friendly error for impossible constraints', () => {
+  it('surfaces coach-friendly warnings AND returns a lineup for impossible constraints', () => {
     const input = makeDefaultInput({
-      presentPlayers: players11.slice(0, 8), // Only 8 players
+      presentPlayers: players11.slice(0, 8), // Only 8 players, need 9
     });
     const result = generateLineup(input);
     expect(result.valid).toBe(false);
-    expect(result.errors.length).toBeGreaterThan(0);
-    // Should have a meaningful message, not technical jargon
-    expect(result.errors[0].message.length).toBeGreaterThan(10);
+    // Lineup is populated even though impossible
+    expect(Object.keys(result.lineup).length).toBe(input.innings);
+    // Pre-validation warning is surfaced
+    expect(result.warnings.length).toBeGreaterThan(0);
+    expect(result.warnings.some(w => w.includes('9'))).toBe(true);
   });
 
   it('works when P/C are not pre-assigned for some innings', () => {
