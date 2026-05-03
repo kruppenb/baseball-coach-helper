@@ -170,7 +170,7 @@ export function useLineup() {
 
     const errors = result.errors.map(e => e.message);
     const warnings = result.warnings;
-    const success = result.valid && warnings.length === 0;
+    const success = result.valid;
     return { success, errors, warnings };
   }, [presentPlayers, innings, division, cleanState, setState, benchPriority]);
 
