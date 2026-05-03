@@ -352,8 +352,8 @@ function attemptBuild(input: GenerateLineupInput): Lineup {
     if (playerPitching) {
       lineup[inn]['P'] = pitcherByInning[inn];
       lineup[inn]['C'] = catcherByInning[inn];
-      used.add(pitcherByInning[inn]);
-      used.add(catcherByInning[inn]);
+      if (pitcherByInning[inn]) used.add(pitcherByInning[inn]);
+      if (catcherByInning[inn]) used.add(catcherByInning[inn]);
     }
 
     // 4b. Fill infield positions (for AA: all 6 infield incl P/C; for AAA/Coast: 1B-SS)
