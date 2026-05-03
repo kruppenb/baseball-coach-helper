@@ -782,9 +782,13 @@ describe('best-effort generation', () => {
       catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p5', 5: 'p6', 6: 'p6' },
     });
     const result = generateBestLineup(input, 5);
-    expect(result.lineup).toBeTruthy();
+    expect(result.valid).toBe(false);
     expect(Object.keys(result.lineup).length).toBe(input.innings);
     expect(result.warnings.length).toBeGreaterThan(0);
+    // Confirm we got a real solver attempt, not the defensive empty fallback.
+    expect(
+      Object.values(result.lineup).some(inning => Object.keys(inning).length > 0),
+    ).toBe(true);
   });
 
   it('generateBestLineup includes preValidate warnings even when valid lineup is found', () => {
