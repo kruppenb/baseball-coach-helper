@@ -1,5 +1,6 @@
 import type { Division } from '../../types';
 import { hasPlayerPitching } from '../../types';
+import { DivisionToggle } from './DivisionToggle';
 import styles from './SettingsPanel.module.css';
 
 interface SettingsPanelProps {
@@ -49,19 +50,7 @@ export function SettingsPanel({
     <div className={styles.settings}>
       <h3 className={styles.settingsTitle}>Settings</h3>
       <div className={styles.settingRow}>
-        <label htmlFor="division-select" className={styles.settingLabel}>
-          Division
-        </label>
-        <select
-          id="division-select"
-          value={division}
-          onChange={(e) => onDivisionChange(e.target.value as Division)}
-          className={styles.select}
-        >
-          <option value="AA">AA</option>
-          <option value="AAA">AAA</option>
-          <option value="Coast">Coast</option>
-        </select>
+        <DivisionToggle division={division} onChange={onDivisionChange} />
       </div>
 
       <ul className={styles.rulesList}>
