@@ -732,3 +732,30 @@ describe('AA division - generateBestLineup', () => {
     expect(result.score.total).toBeLessThanOrEqual(100);
   });
 });
+
+// --- Best-effort generation (non-blocking validation) ---
+
+describe('best-effort generation', () => {
+  it('returns a lineup with blank cells when too few players are present', () => {
+    const input = makeDefaultInput({
+      presentPlayers: players11.slice(0, 7), // 7 players, need 9 fielders
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p5', 5: 'p6', 6: 'p6' },
+    });
+    const result = generateLineup(input);
+    expect(result.lineup).toBeTruthy();
+    expect(Object.keys(result.lineup).length).toBe(input.innings);
+    // Inning 1 should have all positions defined (some may be '')
+    for (const pos of POSITIONS) {
+      expect(result.lineup[1][pos]).toBeDefined();
+    }
+    // Some cell somewhere should be '' (we have fewer players than positions)
+    let blankCount = 0;
+    for (let inn = 1; inn <= input.innings; inn++) {
+      for (const pos of POSITIONS) {
+        if (result.lineup[inn][pos] === '') blankCount++;
+      }
+    }
+    expect(blankCount).toBeGreaterThan(0);
+  });
+});

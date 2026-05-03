@@ -140,11 +140,9 @@ export function generateLineup(input: GenerateLineupInput): GenerateLineupResult
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const lineup = attemptBuild(input);
-    if (lineup) {
-      const errors = validateLineup(lineup, input);
-      if (errors.length === 0) {
-        return { lineup, valid: true, errors: [], warnings: [], attemptCount: attempt + 1 };
-      }
+    const errors = validateLineup(lineup, input);
+    if (errors.length === 0) {
+      return { lineup, valid: true, errors: [], warnings: [], attemptCount: attempt + 1 };
     }
   }
 
@@ -161,9 +159,9 @@ export function generateLineup(input: GenerateLineupInput): GenerateLineupResult
 }
 
 /**
- * Single build attempt. Returns null if constraints can't be satisfied in this attempt.
+ * Single build attempt. Always returns a Lineup — fills blank cells ('') where no eligible player exists.
  */
-function attemptBuild(input: GenerateLineupInput): Lineup | null {
+function attemptBuild(input: GenerateLineupInput): Lineup {
   const { presentPlayers, innings, pitcherAssignments, catcherAssignments, positionBlocks } = input;
   let shuffledPlayers = shuffle(presentPlayers);
   if (input.benchPriority) {
@@ -214,10 +212,13 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
           if (isBlockedFrom(id, 'P', positionBlocks)) return false;
           return true;
         }));
-        if (candidates.length === 0) return null;
-        pitcherByInning[inn] = candidates[0];
-        if (!pcAssignedInnings[candidates[0]]) pcAssignedInnings[candidates[0]] = [];
-        pcAssignedInnings[candidates[0]].push(inn);
+        if (candidates.length === 0) {
+          pitcherByInning[inn] = '';
+        } else {
+          pitcherByInning[inn] = candidates[0];
+          if (!pcAssignedInnings[candidates[0]]) pcAssignedInnings[candidates[0]] = [];
+          pcAssignedInnings[candidates[0]].push(inn);
+        }
       }
       if (!catcherByInning[inn]) {
         const pitcherThisInning = pitcherByInning[inn];
@@ -226,10 +227,13 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
           if (isBlockedFrom(id, 'C', positionBlocks)) return false;
           return true;
         }));
-        if (candidates.length === 0) return null;
-        catcherByInning[inn] = candidates[0];
-        if (!pcAssignedInnings[candidates[0]]) pcAssignedInnings[candidates[0]] = [];
-        pcAssignedInnings[candidates[0]].push(inn);
+        if (candidates.length === 0) {
+          catcherByInning[inn] = '';
+        } else {
+          catcherByInning[inn] = candidates[0];
+          if (!pcAssignedInnings[candidates[0]]) pcAssignedInnings[candidates[0]] = [];
+          pcAssignedInnings[candidates[0]].push(inn);
+        }
       }
     }
   }
@@ -375,9 +379,12 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
       // Fallback: pick from eligible players
       if (!placed) {
         const eligible = findEligible(pos, inn, used);
-        if (eligible.length === 0) return null;
-        lineup[inn][pos] = eligible[0];
-        used.add(eligible[0]);
+        if (eligible.length === 0) {
+          lineup[inn][pos] = '';
+        } else {
+          lineup[inn][pos] = eligible[0];
+          used.add(eligible[0]);
+        }
       }
     }
 
@@ -413,10 +420,13 @@ function attemptBuild(input: GenerateLineupInput): Lineup | null {
         });
       }
 
-      if (eligible.length === 0) return null;
-      const pick = eligible[Math.floor(Math.random() * Math.min(eligible.length, eligible.length > 2 ? 2 : eligible.length))];
-      lineup[inn][pos] = pick;
-      used.add(pick);
+      if (eligible.length === 0) {
+        lineup[inn][pos] = '';
+      } else {
+        const pick = eligible[Math.floor(Math.random() * Math.min(eligible.length, eligible.length > 2 ? 2 : eligible.length))];
+        lineup[inn][pos] = pick;
+        used.add(pick);
+      }
     }
 
     // Remaining players are on the bench — update bench counts
