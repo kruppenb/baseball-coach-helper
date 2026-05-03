@@ -758,4 +758,20 @@ describe('best-effort generation', () => {
     }
     expect(blankCount).toBeGreaterThan(0);
   });
+
+  it('returns a lineup AND surfaces preValidate issues, even when impossible', () => {
+    const input = makeDefaultInput({
+      presentPlayers: players11.slice(0, 5), // 5 players — clearly impossible
+      pitcherAssignments: { 1: 'p1', 2: 'p1', 3: 'p2', 4: 'p2', 5: 'p3', 6: 'p3' },
+      catcherAssignments: { 1: 'p4', 2: 'p4', 3: 'p5', 4: 'p5', 5: 'p1', 6: 'p1' },
+    });
+    const result = generateLineup(input);
+    // valid: false because the lineup will have errors
+    expect(result.valid).toBe(false);
+    // ...but a lineup object exists
+    expect(Object.keys(result.lineup).length).toBe(input.innings);
+    // ...and the preValidate "need at least 9 players" message is in warnings
+    expect(result.warnings.length).toBeGreaterThan(0);
+    expect(result.warnings.some(w => w.includes('9'))).toBe(true);
+  });
 });

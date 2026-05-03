@@ -1,6 +1,6 @@
 import type { Position, Lineup, InningAssignment } from '../types/index.ts';
 import { getPositions, getOutfieldPositions, getFielderCount, getInfieldPositions, hasPlayerPitching } from '../types/index.ts';
-import type { GenerateLineupInput, GenerateLineupResult } from './lineup-types.ts';
+import type { GenerateLineupInput, GenerateLineupResult, ValidationError } from './lineup-types.ts';
 import { validateLineup } from './lineup-validator.ts';
 import { shuffle } from './shuffle.ts';
 import { scoreLineup } from './lineup-scorer.ts';
@@ -121,40 +121,33 @@ export function preValidate(input: GenerateLineupInput): string[] {
  * Produces a single valid lineup or returns an error result.
  */
 export function generateLineup(input: GenerateLineupInput): GenerateLineupResult {
-  // Run pre-validation first
-  const preErrors = preValidate(input);
-  if (preErrors.length > 0) {
-    return {
-      lineup: {} as Lineup,
-      valid: false,
-      errors: preErrors.map(msg => ({
-        rule: 'GRID_COMPLETE' as const,
-        message: msg,
-      })),
-      warnings: preErrors,
-      attemptCount: 0,
-    };
-  }
-
+  const warnings = preValidate(input);
   const maxAttempts = 200;
 
+  let bestLineup: Lineup | null = null;
+  let bestErrors: ValidationError[] = [];
+  let attempts = 0;
+
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    attempts = attempt + 1;
     const lineup = attemptBuild(input);
     const errors = validateLineup(lineup, input);
     if (errors.length === 0) {
-      return { lineup, valid: true, errors: [], warnings: [], attemptCount: attempt + 1 };
+      return { lineup, valid: true, errors: [], warnings, attemptCount: attempts };
+    }
+    if (bestLineup === null || errors.length < bestErrors.length) {
+      bestLineup = lineup;
+      bestErrors = errors;
     }
   }
 
+  // No fully valid lineup; return the best partial.
   return {
-    lineup: {} as Lineup,
+    lineup: bestLineup ?? ({} as Lineup),
     valid: false,
-    errors: [{
-      rule: 'GRID_COMPLETE',
-      message: 'Could not generate a valid lineup with these settings. Try adjusting pitcher/catcher assignments or position blocks.',
-    }],
-    warnings: [],
-    attemptCount: maxAttempts,
+    errors: bestErrors,
+    warnings,
+    attemptCount: attempts,
   };
 }
 
