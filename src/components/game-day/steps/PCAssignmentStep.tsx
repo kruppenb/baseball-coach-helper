@@ -5,7 +5,7 @@ import { useGameHistory } from '../../../hooks/useGameHistory';
 import { usePCAssignment } from '../../../hooks/usePCAssignment';
 import { computeLastGamePitchers } from '../../../logic/game-history';
 import { hasPlayerPitching } from '../../../types';
-import { PCTimeline, LastGamePitchers } from '../pc-timeline';
+import { PCTimeline, PCToolbar, LastGamePitchers } from '../pc-timeline';
 import styles from './PCAssignmentStep.module.css';
 
 interface PCAssignmentStepProps {
@@ -21,7 +21,7 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
     setPitcher,
     setCatcher,
   } = useLineup();
-  const { config } = useGameConfig();
+  const { config, setDivision } = useGameConfig();
   const { history } = useGameHistory();
 
   const playerPitching = hasPlayerPitching(config.division);
@@ -58,9 +58,20 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
 
   const canAdvance = !playerPitching || allPitchersAssigned;
 
+  const hasAnyAssignment =
+    Object.keys(pitcherAssignments).length > 0 ||
+    Object.keys(catcherAssignments).length > 0;
+
   return (
     <div className={styles.step}>
       <h2 className={styles.heading}>Pitcher &amp; Catcher</h2>
+
+      <PCToolbar
+        division={config.division}
+        onDivisionChange={setDivision}
+        onAutofill={playerPitching ? autofillDefaults : undefined}
+        onClearAll={playerPitching && hasAnyAssignment ? clearAll : undefined}
+      />
 
       {playerPitching ? (
         <>
@@ -76,8 +87,6 @@ export function PCAssignmentStep({ onComplete }: PCAssignmentStepProps) {
             catcherOptionsFor={catcherOptionsFor}
             onPitcherChange={changeInningPitcher}
             onCatcherChange={changeInningCatcher}
-            onAutofill={autofillDefaults}
-            onClearAll={clearAll}
           />
 
           <LastGamePitchers

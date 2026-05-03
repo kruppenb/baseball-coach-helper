@@ -7,7 +7,7 @@ import { useGameHistory } from '../../hooks/useGameHistory';
 import { useGameConfig } from '../../hooks/useGameConfig';
 import { usePCAssignment } from '../../hooks/usePCAssignment';
 import { computeLastGamePitchers } from '../../logic/game-history';
-import { PCTimeline, LastGamePitchers } from './pc-timeline';
+import { PCTimeline, PCToolbar, LastGamePitchers } from './pc-timeline';
 import { scoreLineup } from '../../logic/lineup-scorer';
 import { AttendanceList } from '../game-setup/AttendanceList';
 import { DraggableLineupGrid } from '../lineup/DraggableLineupGrid';
@@ -121,7 +121,7 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
     generate,
     preValidationWarnings,
   } = useLineup();
-  const { config } = useGameConfig();
+  const { config, setDivision } = useGameConfig();
   const { history } = useGameHistory();
   const {
     currentOrder,
@@ -276,6 +276,17 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
 
         {playerPitching ? (
           <Card label="Pitcher &amp; Catcher">
+            <PCToolbar
+              division={config.division}
+              onDivisionChange={setDivision}
+              onAutofill={autofillDefaults}
+              onClearAll={
+                Object.keys(pitcherAssignments).length > 0 ||
+                Object.keys(catcherAssignments).length > 0
+                  ? clearAll
+                  : undefined
+              }
+            />
             <PCTimeline
               innings={innings}
               presentPlayers={presentPlayers}
@@ -288,8 +299,6 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
               catcherOptionsFor={catcherOptionsFor}
               onPitcherChange={changeInningPitcher}
               onCatcherChange={changeInningCatcher}
-              onAutofill={autofillDefaults}
-              onClearAll={clearAll}
               compact
             />
 

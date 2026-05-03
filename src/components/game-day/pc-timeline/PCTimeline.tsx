@@ -16,8 +16,6 @@ interface PCTimelineProps {
   catcherOptionsFor: (inning: number) => Player[];
   onPitcherChange: (inning: number, playerId: string) => void;
   onCatcherChange: (inning: number, playerId: string) => void;
-  onAutofill: () => void;
-  onClearAll: () => void;
   /** Compact mode: tighter chips, smaller font (used in desktop card). */
   compact?: boolean;
 }
@@ -38,8 +36,6 @@ export function PCTimeline({
   catcherOptionsFor,
   onPitcherChange,
   onCatcherChange,
-  onAutofill,
-  onClearAll,
   compact = false,
 }: PCTimelineProps) {
   const [popover, setPopover] = useState<PopoverState>({ open: false });
@@ -77,31 +73,8 @@ export function PCTimeline({
         : catcherAssignments[popover.inning] ?? ''
       : '';
 
-  const hasAnyAssignment =
-    Object.keys(pitcherAssignments).length > 0 ||
-    Object.keys(catcherAssignments).length > 0;
-
   return (
     <div className={`${styles.timeline} ${compact ? styles.compact : ''}`}>
-      <div className={styles.toolbar}>
-        <button
-          type="button"
-          className={styles.autofillBtn}
-          onClick={onAutofill}
-        >
-          Auto-fill
-        </button>
-        {hasAnyAssignment && (
-          <button
-            type="button"
-            className={styles.clearBtn}
-            onClick={onClearAll}
-          >
-            Clear all
-          </button>
-        )}
-      </div>
-
       <div
         className={styles.grid}
         style={{ gridTemplateColumns: `auto repeat(${innings}, minmax(0, 1fr))` }}
