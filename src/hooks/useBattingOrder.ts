@@ -7,6 +7,7 @@ import type { BattingOrderState, BattingHistoryEntry, Player } from '../types/in
 const defaultState: BattingOrderState = {
   currentOrder: null,
   isConfirmed: false,
+  isLocked: false,
 };
 
 export function useBattingOrder() {
@@ -60,10 +61,15 @@ export function useBattingOrder() {
     setState(defaultState);
   }, [setState]);
 
+  const setLocked = useCallback((locked: boolean) => {
+    setState((prev: BattingOrderState) => ({ ...prev, isLocked: locked }));
+  }, [setState]);
+
   return {
     // State
     currentOrder: state.currentOrder,
     isConfirmed: state.isConfirmed,
+    isLocked: state.isLocked ?? false,
     history,
     bandCounts,
     presentPlayers,
@@ -72,5 +78,6 @@ export function useBattingOrder() {
     generate,
     confirm,
     clear,
+    setLocked,
   };
 }

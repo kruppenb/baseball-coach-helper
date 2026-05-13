@@ -1,0 +1,29 @@
+.toggle {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-sm);
+  min-width: var(--min-tap-size);
+  min-height: var(--min-tap-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  color: var(--color-text-muted);
+}
+
+.toggle:hover {
+  background: var(--color-surface-muted, rgba(0, 0, 0, 0.05));
+  color: var(--color-text);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.locked {
+  color: var(--color-primary);
+}

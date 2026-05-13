@@ -47,6 +47,17 @@
   margin: 0 0 var(--space-md) 0;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-md);
+}
+
+.titleRow .sectionTitle {
+  margin: 0;
+}
+
 
 .comparison {
   display: flex;

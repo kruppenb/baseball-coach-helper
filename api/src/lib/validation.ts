@@ -91,6 +91,7 @@ export const gameHistoryBodySchema = z.object({
 const battingOrderStateDataSchema = z.object({
   currentOrder: z.array(z.string().max(100)).max(30).nullable(),
   isConfirmed: z.boolean(),
+  isLocked: z.boolean().optional().default(false),
 });
 
 const battingHistoryEntryDataSchema = z.object({

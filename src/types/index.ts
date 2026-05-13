@@ -94,6 +94,7 @@ export interface BattingHistoryEntry {
 export interface BattingOrderState {
   currentOrder: string[] | null;
   isConfirmed: boolean;
+  isLocked: boolean;
 }
 
 // --- Game History Types ---

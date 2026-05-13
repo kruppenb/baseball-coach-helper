@@ -47,6 +47,7 @@ export async function getBatting(
         battingOrderState: orderResource?.data ?? {
           currentOrder: null,
           isConfirmed: false,
+          isLocked: false,
         },
         battingHistory: historyResources.map(
           (r: { data: unknown }) => r.data,
