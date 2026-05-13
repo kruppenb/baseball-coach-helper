@@ -214,7 +214,7 @@ describe('generateLineup', () => {
 
   it('generates valid lineup for 12 players / 3 pitchers / 2 catchers', () => {
     // Real-world scenario: 12 players, 3 pitchers split 2-2-2, 2 catchers split 3-3.
-    // The last pitcher (p3, innings 5-6) gets zero infield credit in the 1-4 window,
+    // The last pitcher (p3, innings 5-6) gets only 1 inning of infield credit in the 1-5 window,
     // which would otherwise make INFIELD_MINIMUM infeasible by 1 slot.
     // Relaxation: any P/C exposure drops the in-window infield minimum to 0, since
     // pitching/catching is itself the high-touch infield exposure the rule guards.
@@ -296,11 +296,11 @@ describe('generateLineup', () => {
     }
   });
 
-  it('gives non-PC players 2+ infield positions by inning 4 (PC players exempt)', () => {
+  it('gives non-PC players 2+ infield positions in the window (PC players exempt)', () => {
     const input = makeDefaultInput();
     const result = generateLineup(input);
     expect(result.valid).toBe(true);
-    const maxCheckInning = Math.min(4, input.innings);
+    const maxCheckInning = Math.min(5, input.innings);
     for (const player of input.presentPlayers) {
       let infieldCount = 0;
       let hasPC = false;
@@ -503,7 +503,7 @@ describe('benchPriority', () => {
     }
 
     // Verify infield minimum: non-PC players need 2 in window; PC players exempt
-    const maxCheckInning = Math.min(4, input.innings);
+    const maxCheckInning = Math.min(5, input.innings);
     for (const player of input.presentPlayers) {
       let infieldCount = 0;
       let hasPC = false;

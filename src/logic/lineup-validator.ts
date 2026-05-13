@@ -256,27 +256,26 @@ function validateBalancedBenchRotation(
 }
 
 /**
- * INFIELD_MINIMUM: Every player must have 2+ infield positions in innings 1 through min(4, totalInnings).
+ * INFIELD_MINIMUM: Every player must have 2+ infield positions in innings 1 through min(5, totalInnings).
  *
- * NOTE: The Coast division rule only requires infield innings within the first 5 innings,
- * and AAA has no timing restriction at all. We intentionally use a tighter 4-inning window
- * for both divisions to maximize infield exposure for every player.
+ * Matches VLL Local Rules: Coast requires 2 infield innings within the first 5 (Coast Sec. 2c);
+ * AAA and AA have no timing window, and since their games are 5 and 4 innings respectively,
+ * min(5, innings) covers the entire game for them — equivalent to "no timing restriction."
  *
  * Relaxation: any P/C assignment in the game (in or out of the window) drops the minimum
  * to 0 — P/C is itself a high-touch infield role, so a player with even one P/C inning
- * has the exposure the rule is meant to guarantee. Non-PC players still need the full
- * minInfield in the first 4 innings.
+ * has the exposure the rule is meant to guarantee.
  */
 function validateInfieldMinimum(
   lineup: Lineup,
   input: GenerateLineupInput,
 ): ValidationError[] {
   const errors: ValidationError[] = [];
-  const maxCheckInning = Math.min(4, input.innings);
+  const maxCheckInning = Math.min(5, input.innings);
   const infieldPositions = getInfieldPositions(input.division);
 
   // Dynamic minimum: with fewer infield positions (e.g. AA has 5, not 6),
-  // larger rosters can't give everyone 2 infield innings in 4 innings.
+  // larger rosters can't give everyone 2 infield innings in the window.
   const infieldSlots = infieldPositions.length * maxCheckInning;
   const minInfield = Math.min(2, Math.floor(infieldSlots / input.presentPlayers.length));
   if (minInfield < 1) return errors;
@@ -308,7 +307,7 @@ function validateInfieldMinimum(
     if (infieldCount < playerMin) {
       errors.push({
         rule: 'INFIELD_MINIMUM',
-        message: `${player.name} only has ${infieldCount} infield position${infieldCount === 1 ? '' : 's'} in the first 4 innings. Every player needs at least ${playerMin}.`,
+        message: `${player.name} only has ${infieldCount} infield position${infieldCount === 1 ? '' : 's'} in the first ${maxCheckInning} innings. Every player needs at least ${playerMin}.`,
         playerId: player.id,
       });
     }

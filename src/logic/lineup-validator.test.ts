@@ -182,14 +182,14 @@ describe('validateLineup', () => {
   });
 
   describe('INFIELD_MINIMUM', () => {
-    it('reports player with fewer than 2 infield positions in innings 1-4', () => {
-      // Custom lineup where p7 only has 1 infield position in innings 1-4
+    it('reports player with fewer than 2 infield positions in the window', () => {
+      // Custom lineup where p7 only has 1 infield position in innings 1-5
       const custom: Lineup = {
         1: makeInning(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']),   // p7=LF
         2: makeInning(['p1', 'p2', 'p10','p3', 'p9', 'p4', 'p5', 'p7', 'p6']),   // p7=CF
         3: makeInning(['p1', 'p2', 'p8', 'p9', 'p10','p3', 'p7', 'p6', 'p5']),   // p7=LF
         4: makeInning(['p1', 'p2', 'p6', 'p7', 'p8', 'p9', 'p3', 'p10','p5']),   // p7=2B (only 1 infield)
-        5: makeInning(['p1', 'p2', 'p4', 'p5', 'p7', 'p3', 'p8', 'p9', 'p10']),
+        5: makeInning(['p1', 'p2', 'p4', 'p5', 'p8', 'p3', 'p7', 'p9', 'p10']),  // p7=LF
         6: makeInning(['p1', 'p2', 'p10','p3', 'p7', 'p5', 'p6', 'p4', 'p8']),
       };
       const input = makeDefaultInput({ presentPlayers: players });

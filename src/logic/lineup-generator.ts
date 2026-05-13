@@ -232,10 +232,11 @@ function attemptBuild(input: GenerateLineupInput): Lineup {
   }
 
   // Phase 2: Calculate infield needs per player
-  // Each player needs 2 infield positions in innings 1 through min(4, innings).
+  // Each player needs 2 infield positions in innings 1 through min(5, innings) — matches
+  // VLL Coast rule (first 5) and covers all innings in AAA (5) and AA (4).
   // With fewer infield positions (e.g. AA has 5), larger rosters may only get 1.
   // Use all infield positions (including P/C) for slot count since P/C give infield credit.
-  const maxInfieldInning = Math.min(4, innings);
+  const maxInfieldInning = Math.min(5, innings);
   const allInfieldPositions = getInfieldPositions(input.division);
   const totalInfieldSlots = allInfieldPositions.length * maxInfieldInning;
   const minInfield = Math.min(2, Math.floor(totalInfieldSlots / playerIds.length));
