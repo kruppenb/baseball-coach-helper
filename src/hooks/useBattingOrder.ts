@@ -40,7 +40,11 @@ export function useBattingOrder() {
 
   const generate = useCallback(() => {
     const order = generateBattingOrder(presentPlayers, history);
-    setState({ currentOrder: order, isConfirmed: false });
+    setState((prev: BattingOrderState) => ({
+      ...prev,
+      currentOrder: order,
+      isConfirmed: false,
+    }));
   }, [presentPlayers, history, setState]);
 
   const confirm = useCallback((orderOverride?: string[]) => {
