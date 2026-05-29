@@ -1,4 +1,4 @@
-import type { Lineup, Player, Position } from '../../types/index';
+import type { Division, Lineup, Player, Position } from '../../types/index';
 import { getPositions } from '../../types/index';
 import { useGameConfig } from '../../hooks/useGameConfig';
 import styles from './DugoutCard.module.css';
@@ -9,6 +9,8 @@ interface DugoutCardProps {
   players: Player[];
   battingOrder: string[] | null;
   gameLabel?: string;
+  gameDate?: Date;
+  division?: Division;
 }
 
 function getPlayerName(playerId: string, players: Player[]): string {
@@ -16,15 +18,16 @@ function getPlayerName(playerId: string, players: Player[]): string {
   return player?.name ?? '';
 }
 
-export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }: DugoutCardProps) {
+export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel, gameDate, division }: DugoutCardProps) {
   const { config } = useGameConfig();
-  const positions = getPositions(config.division);
+  const positions = getPositions(division ?? config.division);
   const inningNumbers = Array.from({ length: innings }, (_, i) => i + 1);
+  const dateLabel = (gameDate ?? new Date()).toLocaleDateString();
 
   return (
     <div className={styles.card} data-dugout-card>
       {gameLabel && <span className={styles.gameLabel}>{gameLabel}</span>}
-      <span className={styles.date}>{new Date().toLocaleDateString()}</span>
+      <span className={styles.date}>{dateLabel}</span>
 
       <div className={styles.tableWrapper}>
       <table className={styles.table}>
@@ -91,7 +94,7 @@ export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }
           {[0, 1].map(copy => (
             <div key={`strip-${copy}`} className={styles.scorekeeperStrip}>
               {gameLabel && <div className={styles.stripLabel}>{gameLabel}</div>}
-              <div className={styles.stripDate}>{new Date().toLocaleDateString()}</div>
+              <div className={styles.stripDate}>{dateLabel}</div>
               <h4 className={styles.stripTitle}>Batting Order</h4>
               <ol className={styles.stripList}>
                 {battingOrder.map((playerId, index) => (

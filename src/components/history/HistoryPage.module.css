@@ -248,8 +248,37 @@
   text-underline-offset: 2px;
 }
 
+/* Print button inside expanded detail */
+.printBtn {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: var(--space-md);
+  transition: filter 0.15s ease;
+}
+
+.printBtn:hover {
+  filter: brightness(0.92);
+}
+
+/* Offscreen host for the print-only DugoutCard */
+.printOnly {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 @media print {
   .undoToast {
+    display: none;
+  }
+  .printBtn {
     display: none;
   }
 }

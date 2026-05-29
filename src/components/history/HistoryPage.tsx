@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useGameHistory } from '../../hooks/useGameHistory';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
-import type { GameHistoryEntry } from '../../types/index';
+import { DugoutCard } from '../lineup/DugoutCard';
+import type { GameHistoryEntry, Player } from '../../types/index';
 import styles from './HistoryPage.module.css';
 
 function formatDate(isoDate: string): string {
@@ -12,13 +13,39 @@ function formatDate(isoDate: string): string {
   });
 }
 
-function GameCardDetail({ game }: { game: GameHistoryEntry }) {
+function synthesizePlayers(entry: GameHistoryEntry): Player[] {
+  return entry.playerSummaries.map((s) => ({
+    id: s.playerId,
+    name: s.playerName,
+    isPresent: true,
+  }));
+}
+
+function GameCardDetail({
+  game,
+  onPrint,
+}: {
+  game: GameHistoryEntry;
+  onPrint: (game: GameHistoryEntry) => void;
+}) {
   const sortedPlayers = [...game.playerSummaries].sort(
     (a, b) => a.battingPosition - b.battingPosition,
   );
 
+  const handlePrintClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPrint(game);
+  };
+
   return (
     <div className={styles.detail}>
+      <button
+        type="button"
+        className={styles.printBtn}
+        onClick={handlePrintClick}
+      >
+        Print Dugout Card
+      </button>
       <div className={styles.detailSection}>
         <div className={styles.detailHeading}>Batting Order</div>
         <ol className={styles.battingList}>
@@ -140,6 +167,7 @@ export function HistoryPage() {
   const isDesktop = useMediaQuery('(min-width: 900px)');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pendingUndo, setPendingUndo] = useState<PendingUndo | null>(null);
+  const [printingEntry, setPrintingEntry] = useState<GameHistoryEntry | null>(null);
 
   const reversedHistory = [...history].reverse();
 
@@ -191,6 +219,22 @@ export function HistoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // --- Print flow ---
+  const handlePrint = useCallback((game: GameHistoryEntry) => {
+    setPrintingEntry(game);
+  }, []);
+
+  useEffect(() => {
+    if (!printingEntry) return;
+    const clear = () => setPrintingEntry(null);
+    window.addEventListener('afterprint', clear, { once: true });
+    const raf = requestAnimationFrame(() => window.print());
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('afterprint', clear);
+    };
+  }, [printingEntry]);
+
   const showToast = pendingUndo !== null;
 
   return (
@@ -211,6 +255,7 @@ export function HistoryPage() {
               isDesktop={isDesktop}
               onToggle={() => handleCardClick(game.id)}
               onDelete={() => handleDelete(game.id)}
+              onPrint={handlePrint}
               playerCount={playerCount(game)}
             />
           ))}
@@ -228,6 +273,21 @@ export function HistoryPage() {
           Undo
         </button>
       </div>
+
+      {/* Offscreen DugoutCard for printing the selected history entry */}
+      {printingEntry && (
+        <div className={styles.printOnly} aria-hidden="true">
+          <DugoutCard
+            lineup={printingEntry.lineup}
+            innings={printingEntry.innings}
+            players={synthesizePlayers(printingEntry)}
+            battingOrder={printingEntry.battingOrder}
+            gameLabel={printingEntry.gameLabel}
+            gameDate={new Date(printingEntry.gameDate)}
+            division={printingEntry.division ?? 'AAA'}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -239,10 +299,11 @@ interface GameCardProps {
   isDesktop: boolean;
   onToggle: () => void;
   onDelete: () => void;
+  onPrint: (game: GameHistoryEntry) => void;
   playerCount: number;
 }
 
-function GameCard({ game, isExpanded, isDesktop, onToggle, onDelete, playerCount }: GameCardProps) {
+function GameCard({ game, isExpanded, isDesktop, onToggle, onDelete, onPrint, playerCount }: GameCardProps) {
   const swipe = useSwipeToDelete(!isDesktop, onDelete);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
@@ -306,7 +367,7 @@ function GameCard({ game, isExpanded, isDesktop, onToggle, onDelete, playerCount
             &#x203A;
           </span>
         </div>
-        {isExpanded && <GameCardDetail game={game} />}
+        {isExpanded && <GameCardDetail game={game} onPrint={onPrint} />}
       </div>
     </div>
   );
