@@ -97,6 +97,52 @@
   display: none;
 }
 
+/* Scorekeeper strips: shown on screen as a preview, optimized for print. */
+.scorekeeperPage {
+  display: flex;
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px dashed var(--color-border);
+}
+
+.scorekeeperStrip {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.stripLabel {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.stripDate {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.stripTitle {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.stripList {
+  margin: 0;
+  padding-left: var(--space-xl);
+  font-size: var(--font-size-sm);
+}
+
+.stripList li {
+  padding: 1px 0;
+}
+
 /* Print-specific styles */
 @media print {
 
@@ -180,5 +226,61 @@
   .noBattingOrder {
     font-size: 12pt;
     color: #000;
+  }
+
+  /* Second page: two identical scorekeeper strips, cut down the middle. */
+  .scorekeeperPage {
+    break-before: page;
+    page-break-before: always;
+    display: flex;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    border-top: none;
+    width: 100%;
+    min-height: 7in;
+  }
+
+  .scorekeeperStrip {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 16pt 18pt;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  /* Dashed cut line between the two strips. */
+  .scorekeeperStrip + .scorekeeperStrip {
+    border-left: 1pt dashed #000;
+  }
+
+  .stripLabel {
+    font-size: 18pt;
+    font-weight: 700;
+    margin-bottom: 4pt;
+  }
+
+  .stripDate {
+    font-size: 12pt;
+    color: #000;
+    margin-bottom: 10pt;
+  }
+
+  .stripTitle {
+    font-size: 14pt;
+    font-weight: 700;
+    margin: 0 0 6pt 0;
+  }
+
+  .stripList {
+    font-size: 14pt;
+    padding-left: 28pt;
+    margin: 0;
+  }
+
+  .stripList li {
+    padding: 2pt 0;
+    break-inside: avoid;
   }
 }

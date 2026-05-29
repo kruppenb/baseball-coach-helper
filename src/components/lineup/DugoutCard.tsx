@@ -86,6 +86,25 @@ export function DugoutCard({ lineup, innings, players, battingOrder, gameLabel }
         )}
       </div>
 
+      {battingOrder && battingOrder.length > 0 && (
+        <div className={styles.scorekeeperPage}>
+          {[0, 1].map(copy => (
+            <div key={`strip-${copy}`} className={styles.scorekeeperStrip}>
+              {gameLabel && <div className={styles.stripLabel}>{gameLabel}</div>}
+              <div className={styles.stripDate}>{new Date().toLocaleDateString()}</div>
+              <h4 className={styles.stripTitle}>Batting Order</h4>
+              <ol className={styles.stripList}>
+                {battingOrder.map((playerId, index) => (
+                  <li key={`strip-${copy}-bat-${index}`}>
+                    {getPlayerName(playerId, players)}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      )}
+
     </div>
   );
 }
