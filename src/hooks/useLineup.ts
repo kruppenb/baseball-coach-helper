@@ -219,6 +219,9 @@ export function useLineup() {
       ...prev,
       generatedLineups: [],
       selectedLineupIndex: null,
+      // Locks reference a generated lineup; clear them so a later regenerate
+      // doesn't show stale 🔒 innings that never actually constrained it.
+      lockedInnings: [],
     }));
   }, [setState]);
 
