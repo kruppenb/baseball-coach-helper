@@ -847,3 +847,51 @@ describe('best-effort generation', () => {
     expect(blankAt1B).toBeGreaterThan(0);
   });
 });
+
+describe('locked innings', () => {
+  it('reproduces a locked inning verbatim', () => {
+    const input = makeDefaultInput();
+    const first = generateLineup(input);
+    const lockedInning = first.lineup[3];
+
+    const result = generateLineup({ ...input, lockedInnings: { 3: lockedInning } });
+
+    expect(result.lineup[3]).toEqual(lockedInning);
+  });
+
+  it('does not freeze the unlocked innings (other innings can vary)', () => {
+    const input = makeDefaultInput();
+    const first = generateLineup(input);
+    const lockedInning = first.lineup[3];
+    const locked = { ...input, lockedInnings: { 3: lockedInning } };
+
+    // Generate several times; inning 3 must always match, and at least one
+    // other inning must differ across runs (generation is not frozen wholesale).
+    const inning1Variants = new Set<string>();
+    for (let i = 0; i < 8; i++) {
+      const r = generateLineup(locked);
+      expect(r.lineup[3]).toEqual(lockedInning);
+      inning1Variants.add(JSON.stringify(r.lineup[1]));
+    }
+    expect(inning1Variants.size).toBeGreaterThan(1);
+  });
+
+  it('keeps the merged lineup valid on a tight roster with a locked inning', () => {
+    // Derive a valid lineup on a 10-player roster (tight bench rotation), lock
+    // one of its innings, then regenerate. The merged result must still pass
+    // full validation (covers NO_CONSECUTIVE_BENCH across the lock boundary and
+    // INFIELD_MINIMUM). Uses the known-good makeDefaultInput shape (Coast / 6
+    // innings / P/C for all innings), just with 10 players instead of 11.
+    const input = makeDefaultInput({ presentPlayers: players10 });
+    const seed = generateBestLineup(input, 10);
+    expect(seed.valid).toBe(true);
+
+    const result = generateBestLineup(
+      { ...input, lockedInnings: { 2: seed.lineup[2] } },
+      10,
+    );
+
+    expect(result.lineup[2]).toEqual(seed.lineup[2]);
+    expect(result.valid).toBe(true);
+  });
+});

@@ -156,6 +156,9 @@ export function generateLineup(input: GenerateLineupInput): GenerateLineupResult
  */
 function attemptBuild(input: GenerateLineupInput): Lineup {
   const { presentPlayers, innings, pitcherAssignments, catcherAssignments, positionBlocks } = input;
+  const lockedInnings = input.lockedInnings ?? {};
+  const isLocked = (inn: number): boolean =>
+    Object.prototype.hasOwnProperty.call(lockedInnings, inn);
   let shuffledPlayers = shuffle(presentPlayers);
   if (input.benchPriority) {
     const bp = input.benchPriority;
@@ -283,6 +286,7 @@ function attemptBuild(input: GenerateLineupInput): Lineup {
   // Create list of infield slots to fill (for AA: all 6 infield; for AAA/Coast: 1B-SS only)
   const infieldSlots: SlotAssignment[] = [];
   for (let inn = 1; inn <= maxInfieldInning; inn++) {
+    if (isLocked(inn)) continue;
     for (const pos of infieldToFill) {
       infieldSlots.push({ inn, pos });
     }
@@ -339,6 +343,21 @@ function attemptBuild(input: GenerateLineupInput): Lineup {
 
   // Phase 4: Build lineup inning by inning
   for (let inn = 1; inn <= innings; inn++) {
+    // Locked inning: copy the preserved assignment verbatim, update bench
+    // tracking from it so the next inning builds around it, and skip generation.
+    if (isLocked(inn)) {
+      lineup[inn] = { ...lockedInnings[inn] } as InningAssignment;
+      const usedLocked = new Set(
+        Object.values(lockedInnings[inn]).filter(id => id !== ''),
+      );
+      for (const pid of playerIds) {
+        if (!usedLocked.has(pid)) {
+          benchCountSoFar[pid]++;
+        }
+      }
+      continue;
+    }
+
     lineup[inn] = {} as InningAssignment;
 
     // 4a. Set P/C (only for player-pitching divisions)
