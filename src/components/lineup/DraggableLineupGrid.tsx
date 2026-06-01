@@ -108,7 +108,7 @@ export function DraggableLineupGrid({
               <span className={styles.headerLabel}>Inn {inn}</span>
               <button
                 type="button"
-                className={`${styles.inningLock}${locked ? ` ${styles.inningLockOn}` : ''}`}
+                className={styles.inningLock}
                 onClick={() => onToggleInningLock(inn)}
                 aria-pressed={locked}
                 aria-label={locked ? `Unlock inning ${inn}` : `Lock inning ${inn}`}
