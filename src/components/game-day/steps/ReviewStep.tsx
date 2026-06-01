@@ -151,6 +151,7 @@ export function ReviewStep({ onComplete }: ReviewStepProps) {
     setRegenNote('');
     if (innings > 0 && lockedInnings.length >= innings) {
       setRegenNote('All innings locked — nothing to regenerate.');
+      setTimeout(() => setRegenNote(''), 3000);
     } else {
       const result = generate();
       setGenerateError(result.errors[0] ?? '');
