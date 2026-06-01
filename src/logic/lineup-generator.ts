@@ -272,6 +272,26 @@ function attemptBuild(input: GenerateLineupInput): Lineup {
     if (playerInfieldNeeds[pid] < 0) playerInfieldNeeds[pid] = 0;
   }
 
+  // Credit infield innings a player already holds in a locked inning, so the
+  // slot allocator (Phase 3) doesn't over-assign them and starve other players.
+  // Mirrors the validator, which counts locked-inning infield toward the minimum.
+  // (P/C credit inside locked innings is already handled by the P/C loop above
+  // for player-pitching divisions; infieldToFill excludes P/C there. For AA,
+  // infieldToFill includes P, which is correct since AA has no separate P/C pass.)
+  for (const [innStr, assignment] of Object.entries(lockedInnings)) {
+    const inn = Number(innStr);
+    if (inn > maxInfieldInning) continue;
+    for (const pos of infieldToFill) {
+      const pid = assignment[pos];
+      if (pid && playerInfieldNeeds[pid] !== undefined) {
+        playerInfieldNeeds[pid]--;
+      }
+    }
+  }
+  for (const pid of playerIds) {
+    if (playerInfieldNeeds[pid] < 0) playerInfieldNeeds[pid] = 0;
+  }
+
   // Phase 3: Pre-assign infield slots for innings 1 through maxInfieldInning
   interface SlotAssignment {
     inn: number;
@@ -346,6 +366,9 @@ function attemptBuild(input: GenerateLineupInput): Lineup {
     // Locked inning: copy the preserved assignment verbatim, update bench
     // tracking from it so the next inning builds around it, and skip generation.
     if (isLocked(inn)) {
+      // If a locked inning references a now-absent player, that id stays in the
+      // lineup and the final validateLineup surfaces it as an error — by design,
+      // the generator can't resolve a stale locked inning without coach action.
       lineup[inn] = { ...lockedInnings[inn] } as InningAssignment;
       const usedLocked = new Set(
         Object.values(lockedInnings[inn]).filter(id => id !== ''),

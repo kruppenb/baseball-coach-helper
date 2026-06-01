@@ -859,6 +859,8 @@ describe('locked innings', () => {
     expect(result.lineup[3]).toEqual(lockedInning);
   });
 
+  // Statistical: with a real shuffle and an 11-player roster, 8 runs yield
+  // distinct inning-1 assignments with ~100% probability.
   it('does not freeze the unlocked innings (other innings can vary)', () => {
     const input = makeDefaultInput();
     const first = generateLineup(input);
