@@ -142,3 +142,9 @@
   font-size: var(--font-size-base);
   margin: 0;
 }
+
+.regenNote {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
