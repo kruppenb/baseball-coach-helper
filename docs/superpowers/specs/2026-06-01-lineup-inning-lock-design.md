@@ -182,6 +182,7 @@ styling for a non-error condition).
 | All innings locked + Regenerate | Lineup unchanged; batting order still regenerates if unlocked; status note shown. |
 | Older stored `LineupState` without `lockedInnings` | Read as `?? []`. |
 | Hand-edit inside a locked inning, then Regenerate | Edit is in the selected lineup → captured as the locked assignment → preserved. |
+| Hand-edit the **P or C** cell of a locked inning | The edited P/C is preserved verbatim, but `pitcherAssignments`/`catcherAssignments` are unchanged, so existing validation surfaces a `PITCHER_MATCH`/`CATCHER_MATCH` error. Not new — hand-editing P/C always diverged from the pre-assignments; locking just makes the edit persist instead of being overwritten on regen. Coach resolves via the P/C card or by unlocking. |
 
 ## Testing (TDD)
 
