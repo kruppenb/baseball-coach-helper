@@ -58,6 +58,7 @@ export const lineupStateBodySchema = z.object({
     positionBlocks: positionBlocksSchema.optional(),
     generatedLineups: z.array(lineupSchema).max(50),
     selectedLineupIndex: z.number().int().min(0).nullable(),
+    lockedInnings: z.array(z.number().int().min(1).max(20)).max(20).optional().default([]),
   }).nullable(),
 });
 
