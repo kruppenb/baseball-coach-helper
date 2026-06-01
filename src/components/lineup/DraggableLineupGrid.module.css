@@ -36,6 +36,10 @@
   border-bottom: 1px solid var(--color-border);
   border-left: 1px solid var(--color-border);
   color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
 .positionRow {
@@ -172,4 +176,31 @@
 .benchDropTarget {
   background: var(--color-primary-light);
   outline: 2px dashed var(--color-primary);
+}
+
+.headerLabel {
+  display: block;
+}
+
+.inningLock {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+}
+
+.inningLock:hover {
+  background: var(--color-surface);
+}
+
+.lockedHeader {
+  background: var(--color-accent-bg);
+  color: var(--color-text);
+}
+
+.lockedCell {
+  background: var(--color-accent-bg);
 }
