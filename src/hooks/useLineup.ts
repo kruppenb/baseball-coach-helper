@@ -6,7 +6,7 @@ import { useGameHistory } from './useGameHistory';
 import { generateBestLineup, preValidate } from '../logic/lineup-generator';
 import { validateLineup } from '../logic/lineup-validator';
 import { computeFieldingFairness, computeCatcherInnings } from '../logic/game-history';
-import type { LineupState, Position, Lineup, Player, PositionBlocks } from '../types/index';
+import type { LineupState, Position, Lineup, Player, PositionBlocks, InningAssignment } from '../types/index';
 import { hasPlayerPitching } from '../types/index';
 import type { ValidationError } from '../logic/lineup-types';
 
@@ -15,6 +15,7 @@ const defaultState: LineupState = {
   catcherAssignments: {},
   generatedLineups: [],
   selectedLineupIndex: null,
+  lockedInnings: [],
 };
 
 const defaultPositionBlocks: PositionBlocks = {};
@@ -86,11 +87,20 @@ export function useLineup() {
       }
     }
 
+    const currentLocked = state.lockedInnings ?? [];
+    const filteredLocked = currentLocked.filter(n => n <= innings);
+    let cleanedLocked = currentLocked;
+    if (filteredLocked.length !== currentLocked.length) {
+      cleanedLocked = filteredLocked;
+      needsCleanup = true;
+    }
+
     if (needsCleanup) {
       return {
         ...state,
         pitcherAssignments: cleanedPitcher,
         catcherAssignments: cleanedCatcher,
+        lockedInnings: cleanedLocked,
       };
     }
     return state;
@@ -127,6 +137,19 @@ export function useLineup() {
     });
   }, [setState]);
 
+  const toggleInningLock = useCallback((inning: number) => {
+    setState((prev: LineupState) => {
+      const current = prev.lockedInnings ?? [];
+      const has = current.includes(inning);
+      return {
+        ...prev,
+        lockedInnings: has
+          ? current.filter(n => n !== inning)
+          : [...current, inning],
+      };
+    });
+  }, [setState]);
+
   const togglePositionBlock = useCallback((playerId: string, position: Position) => {
     setPositionBlocks((prev: PositionBlocks) => {
       const current = prev[playerId] ?? [];
@@ -140,6 +163,16 @@ export function useLineup() {
 
   const generate = useCallback((): { success: boolean; errors: string[]; warnings: string[] } => {
     const playerPitching = hasPlayerPitching(division);
+    const lockedList = cleanState.lockedInnings ?? [];
+    const selectedIdx = cleanState.selectedLineupIndex;
+    const selected =
+      selectedIdx != null ? cleanState.generatedLineups[selectedIdx] : undefined;
+    const lockedInnings: Record<number, InningAssignment> = {};
+    if (selected) {
+      for (const inn of lockedList) {
+        if (selected[inn]) lockedInnings[inn] = selected[inn];
+      }
+    }
     const input = {
       presentPlayers,
       innings,
@@ -148,6 +181,7 @@ export function useLineup() {
       catcherAssignments: playerPitching ? cleanState.catcherAssignments : {},
       positionBlocks,
       benchPriority,
+      lockedInnings,
     };
 
     const result = generateBestLineup(input, 10);
@@ -245,6 +279,7 @@ export function useLineup() {
     positionBlocks,
     generatedLineups: cleanState.generatedLineups,
     selectedLineupIndex: cleanState.selectedLineupIndex,
+    lockedInnings: cleanState.lockedInnings ?? [],
 
     // Computed
     presentPlayers,
@@ -259,6 +294,7 @@ export function useLineup() {
     setPitcher,
     setCatcher,
     togglePositionBlock,
+    toggleInningLock,
     generate,
     selectLineup,
     clearLineups,
