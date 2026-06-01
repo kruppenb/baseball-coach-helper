@@ -15,11 +15,11 @@ const lineup: Lineup = {
   2: { P: 'p2' } as Lineup[number],
 };
 
-beforeEach(() => {
-  localStorage.clear();
-});
-
 describe('DraggableLineupGrid inning locks', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('renders a lock toggle per inning and reflects locked state', () => {
     render(
       <DraggableLineupGrid

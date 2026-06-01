@@ -178,11 +178,12 @@
   outline: 2px dashed var(--color-primary);
 }
 
-.headerLabel {
-  display: block;
-}
-
 .inningLock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--min-tap-size);
+  min-height: var(--min-tap-size);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -194,6 +195,11 @@
 
 .inningLock:hover {
   background: var(--color-surface);
+}
+
+.inningLock:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .lockedHeader {

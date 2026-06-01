@@ -105,7 +105,7 @@ export function DraggableLineupGrid({
               key={`header-${inn}`}
               className={`${styles.headerCell}${locked ? ` ${styles.lockedHeader}` : ''}`}
             >
-              <span className={styles.headerLabel}>Inn {inn}</span>
+              <span>Inn {inn}</span>
               <button
                 type="button"
                 className={styles.inningLock}
