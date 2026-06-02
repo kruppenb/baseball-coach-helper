@@ -134,6 +134,8 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
     selectedLineup,
     generate,
     preValidationWarnings,
+    lockedInnings,
+    toggleInningLock,
   } = useLineup();
   const { config, setDivision } = useGameConfig();
   const { history } = useGameHistory();
@@ -268,6 +270,14 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
   const handleGenerate = useCallback(() => {
     setGenerateError('');
     setStatusMessage('');
+    if (innings > 0 && lockedInnings.length >= innings) {
+      setStatusMessage('All innings locked — nothing to regenerate.');
+      setTimeout(() => setStatusMessage(''), 3000);
+      if (!isBattingLocked) {
+        generateBattingOrder();
+      }
+      return;
+    }
     const result = generate();
     setGenerateError(result.errors[0] ?? '');
     if (!isBattingLocked) {
@@ -283,7 +293,7 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
       );
       setTimeout(() => setStatusMessage(''), 3000);
     }
-  }, [generate, generateBattingOrder, takeSnapshot, isBattingLocked]);
+  }, [generate, generateBattingOrder, takeSnapshot, isBattingLocked, innings, lockedInnings]);
 
   const handlePrint = useCallback(() => {
     onPrintRequest();
@@ -414,6 +424,8 @@ export function GameDayDesktop({ onPrintRequest, gameLabel, onDisplayStateChange
               errors={editor.validationErrors}
               onSwap={editor.swapPositions}
               onBenchSwap={editor.benchSwap}
+              lockedInnings={lockedInnings}
+              onToggleInningLock={toggleInningLock}
             />
 
             {lineupScore && (

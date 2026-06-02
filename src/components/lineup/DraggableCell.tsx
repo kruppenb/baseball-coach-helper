@@ -8,6 +8,7 @@ interface DraggableCellProps {
   playerId: string;
   playerName: string;
   hasError: boolean;
+  locked?: boolean;
 }
 
 export function DraggableCell({
@@ -16,6 +17,7 @@ export function DraggableCell({
   playerId,
   playerName,
   hasError,
+  locked = false,
 }: DraggableCellProps) {
   const { ref: dragRef, isDragSource } = useDraggable({
     id: `drag-${inning}-${position}`,
@@ -32,6 +34,7 @@ export function DraggableCell({
     styles.cell,
     hasError ? styles.errorCell : '',
     isDropTarget ? styles.dropTarget : '',
+    locked ? styles.lockedCell : '',
   ]
     .filter(Boolean)
     .join(' ');

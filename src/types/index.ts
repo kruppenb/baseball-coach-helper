@@ -76,6 +76,7 @@ export interface LineupState {
   catcherAssignments: BatteryAssignments;
   generatedLineups: Lineup[];
   selectedLineupIndex: number | null;
+  lockedInnings: number[];
 }
 
 // --- Batting Order Types ---

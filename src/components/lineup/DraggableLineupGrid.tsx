@@ -17,6 +17,8 @@ interface DraggableLineupGridProps {
   errors: ValidationError[];
   onSwap: (inning: number, posA: Position, posB: Position) => void;
   onBenchSwap: (inning: number, position: Position, benchPlayerId: string) => void;
+  lockedInnings?: number[];
+  onToggleInningLock?: (inning: number) => void;
 }
 
 function getPlayerName(playerId: string, players: Player[]): string {
@@ -41,6 +43,8 @@ export function DraggableLineupGrid({
   errors,
   onSwap,
   onBenchSwap,
+  lockedInnings = [],
+  onToggleInningLock = () => {},
 }: DraggableLineupGridProps) {
   const { config } = useGameConfig();
   const positions = getPositions(config.division);
@@ -94,11 +98,29 @@ export function DraggableLineupGrid({
       >
         {/* Header row */}
         <div className={styles.cornerCell} />
-        {inningNumbers.map(inn => (
-          <div key={`header-${inn}`} className={styles.headerCell}>
-            Inn {inn}
-          </div>
-        ))}
+        {inningNumbers.map(inn => {
+          const locked = lockedInnings.includes(inn);
+          return (
+            <div
+              key={`header-${inn}`}
+              className={`${styles.headerCell}${locked ? ` ${styles.lockedHeader}` : ''}`}
+            >
+              <span>Inn {inn}</span>
+              <button
+                type="button"
+                className={styles.inningLock}
+                onClick={() => onToggleInningLock(inn)}
+                aria-pressed={locked}
+                aria-label={locked ? `Unlock inning ${inn}` : `Lock inning ${inn}`}
+                title={locked
+                  ? `Inning ${inn} locked — Regenerate will skip it`
+                  : `Lock inning ${inn}`}
+              >
+                <span aria-hidden="true">{locked ? '🔒' : '🔓'}</span>
+              </button>
+            </div>
+          );
+        })}
 
         {/* Position rows */}
         {positions.map(pos => (
@@ -117,6 +139,7 @@ export function DraggableLineupGrid({
                   playerId={playerId}
                   playerName={getPlayerName(playerId, players)}
                   hasError={isError}
+                  locked={lockedInnings.includes(inn)}
                 />
               );
             })}

@@ -1,4 +1,4 @@
-import type { Player, Lineup, Position, BatteryAssignments, PositionBlocks, Division } from '../types/index.ts';
+import type { Player, Lineup, Position, BatteryAssignments, PositionBlocks, Division, InningAssignment } from '../types/index.ts';
 
 export type ValidationRule =
   | 'GRID_COMPLETE'
@@ -28,6 +28,9 @@ export interface GenerateLineupInput {
   positionBlocks: PositionBlocks;
   /** Maps playerId to cumulative bench innings from history. Higher = more field time priority. */
   benchPriority?: Record<string, number>;
+  /** Innings to preserve verbatim during generation: inning number -> assignment.
+   *  The builder copies these in and fills only the remaining innings around them. */
+  lockedInnings?: Record<number, InningAssignment>;
 }
 
 export interface GenerateLineupResult {
