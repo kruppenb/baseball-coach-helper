@@ -99,19 +99,27 @@ jobs:
           tenant-id: ${{ env.AZURE_TENANT_ID }}
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Get SWA Deployment Token
-        id: swa-token
+      # The Azure/static-web-apps-deploy@v1 "close" action does not work with this
+      # custom OIDC workflow — it returns "No matching static site found" and leaves
+      # each PR's preview environment orphaned (they accumulate toward the SWA
+      # environment cap and eventually block new preview deploys). Delete the
+      # environment directly via the Azure CLI using the OIDC login above. SWA names
+      # each PR's preview environment by the PR number; the existence guard keeps a
+      # PR that never produced a preview from failing this job.
+      - name: Delete PR preview environment
+        env:
+          PR_ENV: ${{ github.event.pull_request.number }}
         run: |
-          TOKEN=$(az staticwebapp secrets list \
-            --name "$SWA_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --query "properties.apiKey" -o tsv)
-          echo "::add-mask::$TOKEN"
-          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
-
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ steps.swa-token.outputs.token }}
-          action: "close"
+          if az staticwebapp environment show \
+               --name "$SWA_NAME" \
+               --resource-group "$RESOURCE_GROUP" \
+               --environment-name "$PR_ENV" >/dev/null 2>&1; then
+            az staticwebapp environment delete \
+              --name "$SWA_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --environment-name "$PR_ENV" \
+              --yes
+            echo "Deleted preview environment $PR_ENV"
+          else
+            echo "No preview environment $PR_ENV to delete"
+          fi
