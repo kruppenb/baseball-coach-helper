@@ -106,33 +106,49 @@ jobs:
       # environment directly via the Azure CLI using the OIDC login above. SWA names
       # each PR's preview environment by the PR number.
       #
-      # IMPORTANT — do NOT poll/wait for the environment to appear: when a PR is
-      # merged seconds after opening, its preview build is still in flight, and
-      # deleting the environment mid-build breaks that build. Only act on an
-      # environment that already exists at close time (the normal case — the build
-      # finished long before merge). A fast-merge orphan is rare and harmless.
+      # Two hard-won constraints baked into the logic below:
       #
-      # Use --no-wait: the deploy identity can issue the delete (it owns the SWA) but
-      # lacks Microsoft.Web/locations/staticSitesOperationStatuses/read to poll the
-      # long-running delete, so fire-and-forget instead of polling (which would error
-      # even though the delete itself succeeds).
+      # 1. Single check, NO waiting. When a PR is merged seconds after opening, its
+      #    preview build is still in flight; deleting the environment mid-build breaks
+      #    that build. So only act on an environment that already EXISTS at close time
+      #    (the normal case — the build finished long before merge). A fast-merge
+      #    orphan is rare and harmless.
+      #
+      # 2. The deploy identity is Contributor on the resource group, which is enough
+      #    to DELETE the environment but NOT to read the delete's long-running-operation
+      #    status (that resource lives at the subscription/location scope, outside the
+      #    RG). So `az ... delete` exits non-zero on the status poll even though the
+      #    delete is accepted. We tolerate that and confirm success by reading the
+      #    environment resource itself (which the identity CAN read), not the op status.
       - name: Delete PR preview environment
         env:
           PR_ENV: ${{ github.event.pull_request.number }}
         run: |
-          if az staticwebapp environment show \
-               --name "$SWA_NAME" \
-               --resource-group "$RESOURCE_GROUP" \
-               --environment-name "$PR_ENV" >/dev/null 2>&1; then
-            if az staticwebapp environment delete \
+          if ! az staticwebapp environment show \
                  --name "$SWA_NAME" \
                  --resource-group "$RESOURCE_GROUP" \
-                 --environment-name "$PR_ENV" \
-                 --yes --no-wait; then
-              echo "Requested deletion of preview environment $PR_ENV"
-            else
-              echo "::warning::Could not delete preview environment $PR_ENV; clean it up manually."
-            fi
-          else
+                 --environment-name "$PR_ENV" >/dev/null 2>&1; then
             echo "No preview environment $PR_ENV to delete"
+            exit 0
           fi
+
+          # Accepted server-side even though az errors polling the op status — tolerate.
+          az staticwebapp environment delete \
+            --name "$SWA_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --environment-name "$PR_ENV" \
+            --yes || true
+
+          # Confirm via the resource itself (readable by this identity).
+          for _ in $(seq 1 12); do
+            if ! az staticwebapp environment show \
+                   --name "$SWA_NAME" \
+                   --resource-group "$RESOURCE_GROUP" \
+                   --environment-name "$PR_ENV" >/dev/null 2>&1; then
+              echo "Deleted preview environment $PR_ENV"
+              exit 0
+            fi
+            sleep 10
+          done
+
+          echo "::warning::Requested deletion of preview environment $PR_ENV but it is still present after ~2m; clean it up manually."
