@@ -104,22 +104,34 @@ jobs:
       # each PR's preview environment orphaned (they accumulate toward the SWA
       # environment cap and eventually block new preview deploys). Delete the
       # environment directly via the Azure CLI using the OIDC login above. SWA names
-      # each PR's preview environment by the PR number; the existence guard keeps a
-      # PR that never produced a preview from failing this job.
+      # each PR's preview environment by the PR number.
+      #
+      # A preview build can still be in flight when a PR is merged seconds after it
+      # opens, so the environment may not exist yet when this job starts. Poll for
+      # it (deleting as soon as it appears) up to a bounded timeout; if it never
+      # shows, the PR produced no preview and there is nothing to clean up.
       - name: Delete PR preview environment
         env:
           PR_ENV: ${{ github.event.pull_request.number }}
         run: |
-          if az staticwebapp environment show \
-               --name "$SWA_NAME" \
-               --resource-group "$RESOURCE_GROUP" \
-               --environment-name "$PR_ENV" >/dev/null 2>&1; then
-            az staticwebapp environment delete \
-              --name "$SWA_NAME" \
-              --resource-group "$RESOURCE_GROUP" \
-              --environment-name "$PR_ENV" \
-              --yes
-            echo "Deleted preview environment $PR_ENV"
-          else
-            echo "No preview environment $PR_ENV to delete"
-          fi
+          deadline=$((SECONDS + 300))
+          while true; do
+            if az staticwebapp environment show \
+                 --name "$SWA_NAME" \
+                 --resource-group "$RESOURCE_GROUP" \
+                 --environment-name "$PR_ENV" >/dev/null 2>&1; then
+              az staticwebapp environment delete \
+                --name "$SWA_NAME" \
+                --resource-group "$RESOURCE_GROUP" \
+                --environment-name "$PR_ENV" \
+                --yes
+              echo "Deleted preview environment $PR_ENV"
+              break
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "No preview environment $PR_ENV appeared within timeout; nothing to delete"
+              break
+            fi
+            echo "Preview environment $PR_ENV not present yet; waiting…"
+            sleep 20
+          done
