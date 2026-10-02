@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Baseball coach helper â€” a web app for managing youth baseball team rosters, batting orders, and game lineups. React frontend (Vite) deployed to Azure Static Web Apps, with an Azure Functions API backend using Cosmos DB.
+Baseball coach helper — a web app for managing youth baseball team rosters, batting orders, and game lineups. React frontend (Vite) deployed to Azure Static Web Apps, with an Azure Functions API backend using Cosmos DB.
 
 ## Key commands
 
@@ -36,15 +36,15 @@ See [troubleshooting_guide.md](./troubleshooting_guide.md) for:
 
 ## API structure
 
-- `api/src/functions/` â€” HTTP-triggered functions (roster, batting, game-config, game-history, lineup-state)
-- `api/src/lib/cosmos.ts` â€” Cosmos DB client singleton (managed identity with connection-string fallback)
-- `api/src/lib/auth.ts` â€” SWA client principal parsing
-- `api/src/lib/validation.ts` â€” Zod v4 request body schemas
-- `api/src/lib/logging.ts` â€” Structured error logging for App Insights
+- `api/src/functions/` — HTTP-triggered functions (roster, batting, game-config, game-history, lineup-state)
+- `api/src/lib/cosmos.ts` — Cosmos DB client singleton (managed identity with connection-string fallback)
+- `api/src/lib/auth.ts` — SWA client principal parsing
+- `api/src/lib/validation.ts` — Zod v4 request body schemas
+- `api/src/lib/logging.ts` — Structured error logging for App Insights
 
 ## Image generation
 
 Use the shared pipeline, never a direct image API call:
 `node C:\repos\art-pipeline\art.mjs --out <file> [--ref <existing art>] [--crop W:H] [--style <name>] "<prompt>"`
-â€” Codex / GPT-6 Astra on the ChatGPT subscription by default, Gemini API fallback, chosen automatically.
+— Codex / GPT-6 Astra on the ChatGPT subscription by default, Gemini API fallback, chosen automatically.
 Details and prompting tips: `C:\repos\art-pipeline\README.md` (summary in `C:\repos\CLAUDE.md`).
